@@ -7,35 +7,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **DiagnoLeads**は、B2B企業向けのマルチテナント診断サービスプラットフォームです。複数の事業者（テナント）が独立した環境で診断コンテンツを作成・運用し、Webサイトに埋め込んで見込み顧客を獲得できます。
 
 ### 主要機能
-- **ノーコード診断作成**: ドラッグ&ドロップで質問・回答選択肢を設定、スコアリングロジックを構築
-- **柔軟な埋め込み**: JavaScript一行でクライアントサイトに診断機能を実装
-- **リード管理**: 診断結果と連動した見込み顧客情報の自動収集、スコアリング、ホットリード検出
-- **分析ダッシュボード**: 診断完了率、離脱ポイント、コンバージョンファネルをリアルタイム可視化
-- **外部連携**: Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期
+- **🤖 AI診断生成**: Claude APIでトピック入力だけで質問・選択肢・スコアリングを自動生成
+- **📊 ノーコード診断ビルダー**: ドラッグ&ドロップで質問・回答選択肢を設定
+- **🎯 AIリード分析**: 診断回答から企業課題を自動検出、ホットリードスコアを算出
+- **📈 リアルタイム分析**: 診断完了率、離脱ポイント、CVファネルを可視化
+- **🔗 外部連携**: Salesforce、HubSpot、Slackと自動同期
+- **🏢 マルチテナント**: 複数企業が独立環境で運用可能
 
 ## アーキテクチャ
+
+### OpenSpec仕様駆動開発
+
+このプロジェクトは**OpenSpec**を使用した仕様駆動開発を採用しています。
+
+**ワークフロー:**
+1. `/openspec-proposal` - 新機能の仕様を提案
+2. レビュー・調整（仕様ファイル編集）
+3. `/openspec-apply` - 仕様に基づき実装
+4. `/openspec-archive` - 完了した変更をアーカイブ
+
+**仕様ファイルの場所:**
+- `openspec/specs/` - 承認済み仕様（Source of Truth）
+- `openspec/changes/` - レビュー中の変更提案
+- `openspec/archive/` - 完了した変更
 
 ### 高レベル構造
 
 ```
 DiagnoLeads/
-├── backend/          # バックエンドAPI（FastAPI/Django）
-│   ├── api/          # REST API エンドポイント
-│   ├── models/       # データモデル（テナント、診断、リード等）
-│   ├── services/     # ビジネスロジック層
-│   ├── integrations/ # 外部サービス連携（Salesforce、HubSpot等）
-│   └── core/         # マルチテナント管理、認証・認可
-├── frontend/         # 管理画面（React/Vue.js）
-│   ├── components/   # UIコンポーネント
-│   ├── pages/        # ページ（ダッシュボード、診断作成等）
-│   ├── stores/       # 状態管理
-│   └── services/     # API呼び出し
-├── embed/            # 埋め込みウィジェット（Vanilla JS/WebComponents）
-│   ├── widget/       # 診断ウィジェット本体
-│   ├── loader/       # ローダースクリプト
-│   └── styles/       # カスタマイズ可能なスタイル
-├── database/         # データベーススキーマ・マイグレーション
-└── docs/             # ドキュメント
+├── openspec/                          # OpenSpec仕様管理
+│   ├── specs/                         # 承認済み仕様（Source of Truth）
+│   │   ├── OVERVIEW.md
+│   │   ├── auth/
+│   │   │   ├── authentication.md
+│   │   │   └── multi-tenant.md
+│   │   ├── assessments/
+│   │   ├── leads/
+│   │   └── integrations/
+│   ├── changes/                       # 変更提案
+│   └── archive/                       # 完了した変更
+│
+├── backend/                           # FastAPIバックエンド
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── api/v1/                    # REST API エンドポイント
+│   │   ├── models/                    # SQLAlchemyモデル
+│   │   ├── services/                  # ビジネスロジック層
+│   │   │   └── ai/                    # AI機能（診断生成、リード分析）
+│   │   ├── integrations/              # 外部サービス連携
+│   │   └── core/                      # マルチテナント、認証
+│   ├── tests/
+│   └── requirements.txt
+│
+├── frontend/                          # React + Vite
+│   ├── src/
+│   │   ├── features/                  # 機能ベースの構造
+│   │   │   ├── assessments/
+│   │   │   ├── leads/
+│   │   │   └── analytics/
+│   │   ├── components/                # 共通UIコンポーネント
+│   │   ├── stores/                    # Zustand状態管理
+│   │   └── lib/                       # ユーティリティ、API
+│   └── package.json
+│
+├── embed/                             # 埋め込みウィジェット
+│   └── ...
+│
+└── docs/                              # ドキュメント
 ```
 
 ### マルチテナントアーキテクチャ
@@ -68,38 +106,50 @@ DiagnoLeads/
 5. 結果表示 + リード情報収集フォーム表示
 6. 収集したリード情報をテナントのダッシュボードに即座に反映
 
-## 技術スタック（推奨）
+## 技術スタック（低コストスタートアップ構成）
 
 ### バックエンド
 - **言語**: Python 3.11+
-- **フレームワーク**: FastAPI または Django REST Framework
-- **データベース**: PostgreSQL（マルチテナント対応、JSON型サポート）
-- **ORM**: SQLAlchemy / Django ORM
-- **認証**: python-jose（JWT）、OAuth2
-- **タスクキュー**: Celery + Redis（外部連携の非同期処理）
-- **キャッシュ**: Redis
+- **フレームワーク**: FastAPI
+- **ORM**: SQLAlchemy 2.0
+- **データベース**: PostgreSQL (Supabase無料枠)
+- **キャッシュ**: Redis (Upstash無料枠)
+- **認証**: Supabase Auth + JWT
+- **非同期ジョブ**: Trigger.dev (無料枠)
+- **ホスティング**: Railway (無料枠 → $5/月)
 
-### フロントエンド（管理画面）
+### フロントエンド
 - **言語**: TypeScript
-- **フレームワーク**: React 18+ / Vue 3+
-- **ルーティング**: React Router / Vue Router
-- **状態管理**: Redux Toolkit / Pinia
-- **UIライブラリ**: Tailwind CSS, shadcn/ui
-- **フォーム**: React Hook Form / VeeValidate
-- **データ可視化**: Chart.js, Recharts
+- **フレームワーク**: React 18 + Vite
+- **状態管理**: Zustand (軽量) + TanStack Query (サーバー状態)
+- **ルーティング**: React Router 6
+- **UIライブラリ**: Tailwind CSS + shadcn/ui
+- **フォーム**: React Hook Form + Zod
+- **データ可視化**: Recharts
+- **ホスティング**: Vercel (無料枠)
+
+### AI機能
+- **プロバイダー**: Anthropic Claude API
+- **モデル**: Claude 3.5 Sonnet
+- **用途**: 診断生成、リード分析、レポート作成
+- **コスト**: 従量課金（月$30-100想定）
 
 ### 埋め込みウィジェット
 - **言語**: TypeScript
-- **アプローチ**: Web Components または Vanilla JS（フレームワーク非依存）
-- **バンドル**: Rollup / Vite（最小サイズ化）
-- **スタイル**: Shadow DOM によるカプセル化
+- **アプローチ**: Web Components（フレームワーク非依存）
+- **バンドル**: Vite（最小サイズ化）
+- **スタイル**: Shadow DOM
 
 ### インフラ
-- **コンテナ**: Docker, Docker Compose
-- **オーケストレーション**: Kubernetes（本番環境）
 - **CI/CD**: GitHub Actions
-- **監視**: Prometheus + Grafana
-- **ログ**: ELK Stack / CloudWatch
+- **監視**: Sentry (無料枠) + Vercel Analytics
+- **ドメイン**: カスタムドメイン
+
+### コスト構造
+- **MVP/β版（~10テナント）**: 月$30-50（ほぼAI API費用のみ）
+- **正式ローンチ（~50テナント）**: 月$150-200
+- **スケールアップ（~200テナント）**: 月$500-1,000
+- **エンタープライズ（500+テナント）**: AWS移行検討
 
 ## 開発コマンド
 
@@ -177,23 +227,23 @@ npm run build
 npm test
 ```
 
-### Docker環境
+### OpenSpec開発ワークフロー
 
 ```bash
-# すべてのサービスを起動（バックエンド、フロントエンド、DB、Redis）
-docker-compose up -d
+# 新機能の仕様を提案（Claude Codeで使用）
+/openspec-proposal "AI診断生成機能を追加"
 
-# ログ確認
-docker-compose logs -f backend
+# 生成された仕様ファイルをレビュー・編集
+# openspec/changes/YYYY-MM-DD-feature-name/
 
-# データベースマイグレーション（コンテナ内で実行）
-docker-compose exec backend alembic upgrade head
+# 仕様に基づいて実装
+/openspec-apply
 
-# テスト実行（コンテナ内）
-docker-compose exec backend pytest
+# 実装完了後、変更をアーカイブ
+/openspec-archive
 
-# すべてのサービスを停止・削除
-docker-compose down -v
+# 仕様ファイルの確認
+cat openspec/specs/assessments/ai-generation.md
 ```
 
 ## 重要な開発規約
@@ -231,11 +281,32 @@ assessments = db.query(Assessment).filter(
 - **パフォーマンス**: バンドルサイズを50KB以下に抑える（gzip圧縮前）
 - **クロスドメイン対応**: CORS設定を適切に行う
 
+### AI機能の実装
+
+**診断生成サービス例:**
+```python
+# backend/app/services/ai/assessment_generator.py
+from anthropic import Anthropic
+
+class AssessmentGenerator:
+    def __init__(self):
+        self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+    async def generate(self, topic: str, industry: str) -> dict:
+        prompt = f"トピック:{topic}、業界:{industry}の診断を生成してください"
+        response = self.client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=4000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return parse_response(response)
+```
+
 ### 外部連携の実装
 
-- Celeryタスクとして非同期実行
+- Trigger.devで非同期実行
 - リトライロジックを実装（最大3回、指数バックオフ）
-- 認証情報は環境変数または暗号化して保存
+- 認証情報はSupabase Secrets Manager または環境変数で管理
 - レート制限を考慮したAPI呼び出し
 
 ### セキュリティ
@@ -288,18 +359,28 @@ assessments = db.query(Assessment).filter(
 以下の環境変数を `.env` ファイルで設定してください（`.env.example` を参照）:
 
 ```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/diagnoleads
+# Supabase (Database + Auth)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_KEY=your-service-key
+DATABASE_URL=postgresql://postgres:password@db.your-project.supabase.co:5432/postgres
 
-# Redis
-REDIS_URL=redis://localhost:6379/0
+# Upstash Redis
+REDIS_URL=https://your-redis.upstash.io
+
+# Anthropic Claude API
+ANTHROPIC_API_KEY=sk-ant-xxx
 
 # JWT
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=your-secret-key-here-generate-with-openssl
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
-# External Integrations
+# Trigger.dev
+TRIGGER_API_KEY=tr_dev_xxx
+TRIGGER_API_URL=https://api.trigger.dev
+
+# External Integrations (Optional)
 SALESFORCE_CLIENT_ID=
 SALESFORCE_CLIENT_SECRET=
 HUBSPOT_API_KEY=
@@ -312,7 +393,24 @@ DEBUG=True
 
 ## 参考リソース
 
+### OpenSpec & 仕様駆動開発
+- [OpenSpec GitHub](https://github.com/Fission-AI/OpenSpec)
+- [OpenSpec公式サイト](https://openspec.dev/)
+
+### 技術ドキュメント
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Anthropic Claude API](https://docs.anthropic.com/)
 - [PostgreSQL Multi-Tenancy](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
-- [Web Components Best Practices](https://web.dev/custom-elements-best-practices/)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - セキュリティベストプラクティス
+- [TanStack Query](https://tanstack.com/query/latest)
+- [shadcn/ui](https://ui.shadcn.com/)
+
+### セキュリティ
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [JWT Best Practices](https://auth0.com/blog/a-look-at-the-latest-draft-for-jwt-bcp/)
+
+### PaaS プロバイダー
+- [Vercel](https://vercel.com/docs)
+- [Railway](https://docs.railway.app/)
+- [Upstash](https://docs.upstash.com/)
+- [Trigger.dev](https://trigger.dev/docs)
