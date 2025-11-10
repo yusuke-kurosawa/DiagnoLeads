@@ -1,0 +1,175 @@
+name: openspec-driven-dev
+version: 1.0.0
+description: |
+  OpenAPI Spec駆動開発の自動化Droid
+  
+  DiagnoLeadsは完全Spec駆動開発を採用しています。
+  このDroidはOpenAPI仕様とコードの同期を自動化し、
+  仕様を唯一の信頼できる情報源（Single Source of Truth）として維持します。
+
+activation:
+  # APIコード変更時に自動起動
+  file_patterns:
+    - "backend/app/api/**/*.py"
+    - "backend/app/schemas/**/*.py"
+    - "backend/app/models/**/*.py"
+  
+  # OpenAPI仕様変更時
+  spec_changes:
+    - "openapi.json"
+  
+  # 手動コマンド
+  commands:
+    - "openapi生成"
+    - "openspec sync"
+    - "型を生成"
+    - "spec同期"
+
+behavior:
+  when_api_code_changes:
+    action: regenerate_openapi_spec
+    auto_commit: false
+    notify: true
+  
+  when_openapi_changes:
+    action: regenerate_frontend_types
+    auto_commit: false
+    notify: true
+
+workflows:
+  regenerate_openapi_spec:
+    description: バックエンドコードからOpenAPI仕様を再生成
+    steps:
+      - name: OpenAPI仕様生成
+        command: "cd backend && source venv/bin/activate && python scripts/generate_openapi.py"
+        on_error: fail
+      
+      - name: 仕様の妥当性検証
+        command: "cd frontend && npm run validate:openapi"
+        on_error: warn
+      
+      - name: フロントエンド型生成
+        command: "cd frontend && npm run generate:types"
+        on_error: fail
+      
+      - name: 型チェック
+        command: "cd frontend && npm run type-check"
+        on_error: warn
+    
+    notifications:
+      success: |
+        ✅ OpenAPI仕様を更新しました
+        
+        次のステップ:
+        1. 差分を確認: git diff openapi.json
+        2. フロントエンド型を確認: git diff frontend/src/types/api.generated.ts
+        3. 変更をコミット: git add openapi.json frontend/src/types/
+      
+      failure: |
+        ❌ OpenAPI仕様の更新に失敗しました
+        
+        トラブルシューティング:
+        1. バックエンドのエラーを確認
+        2. 手動で実行: cd backend && python scripts/generate_openapi.py
+        3. ログを確認してエラーを修正
+
+  regenerate_frontend_types:
+    description: OpenAPI仕様からフロントエンド型を再生成
+    steps:
+      - name: TypeScript型生成
+        command: "cd frontend && npm run generate:types"
+        on_error: fail
+      
+      - name: 型チェック
+        command: "cd frontend && npm run type-check"
+        on_error: warn
+      
+      - name: ESLint
+        command: "cd frontend && npm run lint"
+        on_error: warn
+    
+    notifications:
+      success: "✅ フロントエンド型を更新しました"
+      failure: "❌ フロントエンド型の生成に失敗しました"
+
+  full_sync:
+    description: 完全な同期（バックエンド→OpenAPI→フロントエンド→テスト）
+    steps:
+      - name: OpenAPI仕様生成
+        command: "cd backend && source venv/bin/activate && python scripts/generate_openapi.py"
+      
+      - name: 仕様検証
+        command: "cd frontend && npm run validate:openapi"
+        on_error: warn
+      
+      - name: フロントエンド型生成
+        command: "cd frontend && npm run generate:types"
+      
+      - name: バックエンドテスト
+        command: "cd backend && source venv/bin/activate && DATABASE_URL=postgresql://postgres:postgres@localhost:5432/diagnoleads_test pytest tests/ -v"
+        on_error: warn
+      
+      - name: フロントエンドビルド
+        command: "cd frontend && npm run build"
+      
+      - name: フロントエンドリント
+        command: "cd frontend && npm run lint"
+        on_error: warn
+    
+    notifications:
+      success: |
+        ✅ 完全同期が完了しました
+        
+        - OpenAPI仕様: 更新済み
+        - TypeScript型: 更新済み
+        - バックエンドテスト: PASSED
+        - フロントエンドビルド: SUCCESS
+        - コード品質: PASSED
+      
+      failure: |
+        ❌ 同期中にエラーが発生しました
+        
+        各ステップのログを確認してください
+
+best_practices:
+  - rule: "Spec First"
+    description: "コードより先にOpenAPI仕様を定義する"
+    enforcement: "recommend"
+  
+  - rule: "operationId必須"
+    description: "すべてのエンドポイントに一意なoperationIdを設定"
+    enforcement: "error"
+  
+  - rule: "自動生成型を使用"
+    description: "手動で型を定義せず、生成された型を使用"
+    enforcement: "recommend"
+  
+  - rule: "仕様とコードの同期"
+    description: "API変更時は必ずOpenAPI仕様を更新"
+    enforcement: "error"
+
+integration:
+  ci_cd:
+    - name: "OpenAPI検証"
+      stage: "test"
+      command: "npm run validate:openapi"
+    
+    - name: "型生成確認"
+      stage: "test"
+      command: "npm run generate:types && git diff --exit-code frontend/src/types/api.generated.ts"
+  
+  pre_commit:
+    - name: "OpenAPI仕様生成"
+      command: "cd backend && python scripts/generate_openapi.py"
+    
+    - name: "型生成"
+      command: "cd frontend && npm run generate:types"
+
+documentation:
+  workflow_guide: ".factory/workflows/openspec-driven-dev.md"
+  examples:
+    - name: "新機能追加の流れ"
+      path: ".factory/workflows/openspec-driven-dev.md#新機能追加の手順"
+    
+    - name: "トラブルシューティング"
+      path: ".factory/workflows/openspec-driven-dev.md#トラブルシューティング"

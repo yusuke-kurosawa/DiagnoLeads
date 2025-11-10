@@ -1,0 +1,41 @@
+apiDefinitions:
+  main: openapi.json
+
+lint:
+  extends:
+    - recommended
+  
+  rules:
+    # OpenAPI best practices
+    operation-operationId: error
+    operation-summary: error
+    operation-description: warn
+    operation-tags: error
+    
+    # Schema validation
+    no-invalid-schema-examples: error
+    no-ambiguous-paths: error
+    no-path-trailing-slash: error
+    
+    # Security
+    no-server-example.com: warn
+    no-server-trailing-slash: error
+    
+    # Documentation
+    info-contact: warn
+    info-license: warn
+    tag-description: warn
+    
+    # Response validation
+    operation-2xx-response: error
+    operation-4xx-response: warn
+    
+    # Custom rules for DiagnoLeads
+    path-not-include-query: error
+    paths-kebab-case: error
+
+# Theme for documentation
+theme:
+  openapi:
+    schemaExpansionLevel: 2
+    jsonSampleExpandLevel: 2
