@@ -7,10 +7,10 @@ export interface Assessment {
   tenant_id: string;
   title: string;
   description?: string;
-  status: string;
+  status: 'draft' | 'published' | 'archived';
   topic?: string;
   industry?: string;
-  ai_generated: string;
+  ai_generated: 'manual' | 'ai' | 'hybrid';
   scoring_logic: Record<string, unknown>;
   created_by: string;
   updated_by?: string;
@@ -35,7 +35,7 @@ export interface UpdateAssessmentData {
   topic?: string;
   industry?: string;
   ai_generated?: string;
-  scoring_logic?: Record<string, any>;
+  scoring_logic?: Record<string, unknown>;
 }
 
 const getAuthHeaders = () => {
