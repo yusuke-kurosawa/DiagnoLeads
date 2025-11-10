@@ -3,6 +3,10 @@ import { useAuthStore } from './store/authStore';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import { LeadsPage } from './pages/leads/LeadsPage';
+import { CreateLeadPage } from './pages/leads/CreateLeadPage';
+import { EditLeadPage } from './pages/leads/EditLeadPage';
+import { LeadDetailPage } from './pages/leads/LeadDetailPage';
 import './App.css';
 
 // Protected Route wrapper
@@ -55,6 +59,40 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Lead routes */}
+        <Route
+          path="/tenants/:tenantId/leads"
+          element={
+            <ProtectedRoute>
+              <LeadsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/leads/create"
+          element={
+            <ProtectedRoute>
+              <CreateLeadPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/leads/:leadId"
+          element={
+            <ProtectedRoute>
+              <LeadDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/leads/:leadId/edit"
+          element={
+            <ProtectedRoute>
+              <EditLeadPage />
             </ProtectedRoute>
           }
         />

@@ -25,7 +25,7 @@ export interface CreateAssessmentData {
   topic?: string;
   industry?: string;
   ai_generated?: string;
-  scoring_logic?: Record<string, any>;
+  scoring_logic?: Record<string, unknown>;
 }
 
 export interface UpdateAssessmentData {
