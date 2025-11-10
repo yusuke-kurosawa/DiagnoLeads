@@ -42,6 +42,57 @@ def db_session():
 
 
 @pytest.fixture(scope="function")
+def test_tenant(db_session):
+    """Create a test tenant"""
+    from app.models.tenant import Tenant
+    tenant = Tenant(
+        name="Test Tenant",
+        slug="test-tenant",
+        plan="free",
+        settings={},
+    )
+    db_session.add(tenant)
+    db_session.commit()
+    db_session.refresh(tenant)
+    return tenant
+
+
+@pytest.fixture(scope="function")
+def test_tenant_2(db_session):
+    """Create a second test tenant for cross-tenant tests"""
+    from app.models.tenant import Tenant
+    tenant = Tenant(
+        name="Test Tenant 2",
+        slug="test-tenant-2",
+        plan="free",
+        settings={},
+    )
+    db_session.add(tenant)
+    db_session.commit()
+    db_session.refresh(tenant)
+    return tenant
+
+
+@pytest.fixture(scope="function")
+def test_user(db_session, test_tenant):
+    """Create a test user"""
+    from app.models.user import User
+    from app.services.auth import AuthService
+    
+    user = User(
+        email="test@example.com",
+        password_hash=AuthService.hash_password("password123"),
+        name="Test User",
+        tenant_id=test_tenant.id,
+        role="tenant_admin",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture(scope="function")
 def client(db_session):
     """Create a test client with overridden database session"""
 
