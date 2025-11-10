@@ -148,3 +148,15 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 - Advanced analytics
 - Custom integrations
 - Scale to 200+ tenants
+
+## Feature Specs (Index)
+
+- Features
+  - AI Support: ./features/ai-support.md
+  - Embed Widget: ./features/embed-widget.md
+  - Lead Management: ./features/lead-management.md
+  - Analytics Dashboard: ./features/analytics-dashboard.md
+  - Publishing & Versioning: ./features/publishing-and-versioning.md
+  - Integrations: ./features/integrations.md
+- API
+  - Endpoints Overview: ./api/endpoints-overview.md

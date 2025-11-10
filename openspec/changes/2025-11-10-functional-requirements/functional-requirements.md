@@ -1,6 +1,6 @@
 # DiagnoLeads 機能要件（OpenSpec 変更提案）
 
-ステータス: Proposal
+ステータス: Applied
 作成日: 2025-11-10
 責任者: プロダクトオーナー（DiagnoLeads）
 
@@ -289,3 +289,19 @@ Then 『オンボーディング手順の複雑さ』が主要阻害要因とし
 3) A/B/C 実験を標準装備（質問文/順序/色/コンポーネント差し替え）
 
 この仕様は、企業が「質問を作る」負担を最小化し、「学びと行動」を最大化するための約束である。私たちは、診断を最も速い顧客理解エンジンにする。
+
+---
+
+## 12. 適用リンク / コミット
+
+Applied Specs（2025-11-10）
+- specs/api/endpoints-overview.md
+- specs/features/ai-support.md
+- specs/features/embed-widget.md
+- specs/features/lead-management.md
+- specs/features/analytics-dashboard.md
+- specs/features/integrations.md
+- specs/features/publishing-and-versioning.md
+
+関連コミット
+- 57f9a20: spec: Add functional requirements proposal and feature specs（GitHub: https://github.com/yusuke-kurosawa/DiagnoLeads/commit/57f9a20 ）
