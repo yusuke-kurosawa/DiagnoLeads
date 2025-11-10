@@ -1,0 +1,113 @@
+"""
+Dependencies for FastAPI endpoints
+
+Provides database session, authentication, and authorization dependencies.
+"""
+
+from typing import Generator
+from uuid import UUID
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
+
+from app.core.database import SessionLocal
+from app.models.user import User
+from app.models.tenant import Tenant
+from app.services.auth import AuthService
+
+security = HTTPBearer()
+
+
+def get_db() -> Generator[Session, None, None]:
+    """Get database session"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> User:
+    """
+    Get current authenticated user from JWT token
+    
+    Raises:
+        HTTPException: If token is invalid or user not found
+    """
+    token = credentials.credentials
+
+    # Decode token
+    token_data = AuthService.decode_access_token(token)
+
+    if not token_data.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+
+    # Get user from database
+    user = AuthService.get_user_by_id(db, user_id=token_data.user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    return user
+
+
+def get_current_tenant(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> Tenant:
+    """
+    Get current user's tenant
+    
+    Raises:
+        HTTPException: If tenant not found
+    """
+    tenant = db.query(Tenant).filter(Tenant.id == current_user.tenant_id).first()
+
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found",
+        )
+
+    return tenant
+
+
+def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Get current active user (not disabled)
+    
+    Note: User model doesn't have is_active field yet.
+    This is a placeholder for future implementation.
+    """
+    # TODO: Add is_active field to User model
+    # if not current_user.is_active:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="Inactive user"
+    #     )
+    return current_user
+
+
+def verify_tenant_admin(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Verify current user is a tenant admin
+    
+    Raises:
+        HTTPException: If user is not a tenant admin
+    """
+    if current_user.role not in ["tenant_admin", "system_admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions. Tenant admin role required.",
+        )
+
+    return current_user

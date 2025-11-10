@@ -6,14 +6,14 @@ Combines all API endpoints under /api/v1
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth
-# from app.api.v1 import assessments, leads, analytics
+from app.api.v1 import auth, assessments
+# from app.api.v1 import leads, analytics
 
 api_router = APIRouter()
 
 # Include sub-routers
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-# api_router.include_router(assessments.router, prefix="/assessments", tags=["Assessments"])
+api_router.include_router(assessments.router, tags=["Assessments"])
 # api_router.include_router(leads.router, prefix="/leads", tags=["Leads"])
 # api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 
