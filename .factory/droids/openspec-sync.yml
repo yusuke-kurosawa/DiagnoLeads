@@ -1,0 +1,331 @@
+# OpenSpec仕様同期Droid
+# 仕様と実装の整合性を維持
+
+name: openspec-sync
+description: "OpenSpec仕様と実装の同期を管理し、仕様駆動開発をサポートするDroid"
+version: "1.0.0"
+
+# トリガー条件
+triggers:
+  - on_command: "/spec-check"
+  - on_command: "/spec-sync"
+  - on_pr_create: true
+  - on_code_change:
+      paths:
+        - "openspec/**/*.md"
+        - "backend/app/**/*.py"
+        - "frontend/src/**/*.{ts,tsx}"
+
+# 実行ステップ
+steps:
+  # 1. 仕様ファイルの検証
+  - name: "Specification Validation"
+    description: "OpenSpec仕様ファイルの整合性を確認"
+    steps:
+      - name: "Check Spec Structure"
+        run: |
+          echo "🔍 Validating OpenSpec structure..."
+          
+          # 必須ディレクトリの存在確認
+          required_dirs=("openspec/specs" "openspec/changes" "openspec/archive")
+          for dir in "${required_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "❌ ERROR: Missing required directory: $dir"
+              exit 1
+            fi
+          done
+          
+          echo "✅ OpenSpec directory structure is valid"
+        fail_on_error: true
+        
+      - name: "Validate Spec Files"
+        run: |
+          echo "🔍 Validating spec file format..."
+          
+          # specs/配下のMarkdownファイルを検証
+          spec_files=$(find openspec/specs -name "*.md" -type f)
+          
+          for file in $spec_files; do
+            echo "Checking: $file"
+            
+            # 必須セクションの確認
+            if ! grep -q "^# " "$file"; then
+              echo "⚠️  WARNING: $file missing main title"
+            fi
+            
+            # 空ファイルチェック
+            if [ ! -s "$file" ]; then
+              echo "⚠️  WARNING: $file is empty"
+            fi
+          done
+          
+          echo "✅ Spec files validated"
+        fail_on_error: false
+
+  # 2. 仕様と実装の同期チェック
+  - name: "Spec-Implementation Sync Check"
+    description: "仕様に対応する実装が存在するか確認"
+    steps:
+      - name: "Check API Endpoints"
+        run: |
+          echo "🔍 Checking API endpoints against spec..."
+          
+          # API仕様ファイルの確認
+          api_specs=$(find openspec/specs -path "*/api/*.md" -o -name "*api*.md" 2>/dev/null)
+          
+          if [ -n "$api_specs" ]; then
+            echo "Found API specifications:"
+            echo "$api_specs"
+            
+            # 実装済みエンドポイントを抽出
+            implemented_endpoints=$(grep -rh "@router\." backend/app/api/ | grep -oE "/(get|post|put|delete|patch)" | sort -u)
+            
+            echo ""
+            echo "Implemented endpoints:"
+            echo "$implemented_endpoints"
+          else
+            echo "INFO: No API specification files found in openspec/specs"
+          fi
+        fail_on_error: false
+        
+      - name: "Check Data Models"
+        run: |
+          echo "🔍 Checking data models against spec..."
+          
+          # データモデル仕様の確認
+          model_specs=$(find openspec/specs -name "*model*.md" -o -name "*schema*.md" 2>/dev/null)
+          
+          if [ -n "$model_specs" ]; then
+            echo "Found model specifications:"
+            echo "$model_specs"
+            
+            # 実装済みモデルを抽出
+            implemented_models=$(find backend/app/models -name "*.py" -type f ! -name "__init__.py" -exec basename {} .py \;)
+            
+            echo ""
+            echo "Implemented models:"
+            echo "$implemented_models"
+          else
+            echo "INFO: No model specification files found"
+          fi
+        fail_on_error: false
+        
+      - name: "Check Frontend Components"
+        run: |
+          echo "🔍 Checking frontend components against spec..."
+          
+          # UI仕様の確認
+          ui_specs=$(find openspec/specs -name "*ui*.md" -o -name "*component*.md" -o -name "*frontend*.md" 2>/dev/null)
+          
+          if [ -n "$ui_specs" ]; then
+            echo "Found UI specifications:"
+            echo "$ui_specs"
+            
+            # 実装済みコンポーネントを抽出
+            implemented_components=$(find frontend/src -name "*.tsx" -type f | wc -l)
+            
+            echo ""
+            echo "Implemented React components: $implemented_components"
+          else
+            echo "INFO: No UI specification files found"
+          fi
+        fail_on_error: false
+
+  # 3. 変更提案の追跡
+  - name: "Track Specification Changes"
+    description: "openspec/changes/ の変更提案を追跡"
+    steps:
+      - name: "List Pending Changes"
+        run: |
+          echo "🔍 Checking for pending specification changes..."
+          
+          pending_changes=$(find openspec/changes -name "*.md" -type f 2>/dev/null)
+          
+          if [ -n "$pending_changes" ]; then
+            echo "⚠️  Pending specification changes found:"
+            echo "$pending_changes"
+            echo ""
+            echo "These changes are awaiting review and approval."
+            echo "Once approved, move them to openspec/specs/"
+          else
+            echo "✅ No pending specification changes"
+          fi
+        fail_on_error: false
+        
+      - name: "Check for Outdated Changes"
+        run: |
+          echo "🔍 Checking for outdated change proposals..."
+          
+          # 30日以上前の変更提案をチェック
+          if [ -d "openspec/changes" ]; then
+            old_changes=$(find openspec/changes -name "*.md" -type f -mtime +30 2>/dev/null)
+            
+            if [ -n "$old_changes" ]; then
+              echo "⚠️  WARNING: The following change proposals are over 30 days old:"
+              echo "$old_changes"
+              echo ""
+              echo "Consider reviewing and either approving or archiving them."
+            fi
+          fi
+        fail_on_error: false
+
+  # 4. ドキュメント同期
+  - name: "Documentation Sync"
+    description: "仕様とドキュメントの同期を確認"
+    steps:
+      - name: "Check Documentation Links"
+        run: |
+          echo "🔍 Checking documentation references..."
+          
+          # README.mdがopenspec/specs/を参照しているか確認
+          if grep -q "openspec/specs" README.md; then
+            echo "✅ README.md references OpenSpec specs"
+          else
+            echo "⚠️  INFO: README.md doesn't reference OpenSpec specs"
+            echo "   Consider adding links to specification files"
+          fi
+          
+          # CLAUDE.mdがOpenSpecワークフローを含むか確認
+          if grep -q "openspec" CLAUDE.md; then
+            echo "✅ CLAUDE.md includes OpenSpec workflow"
+          else
+            echo "⚠️  INFO: CLAUDE.md missing OpenSpec workflow reference"
+          fi
+        fail_on_error: false
+        
+      - name: "Generate Spec Summary"
+        run: |
+          echo "🔍 Generating specification summary..."
+          
+          echo ""
+          echo "================================"
+          echo "OpenSpec Specification Summary"
+          echo "================================"
+          echo ""
+          
+          # 承認済み仕様の数
+          approved_specs=$(find openspec/specs -name "*.md" -type f | wc -l)
+          echo "Approved specifications: $approved_specs"
+          
+          # 変更提案の数
+          pending_changes=$(find openspec/changes -name "*.md" -type f 2>/dev/null | wc -l)
+          echo "Pending changes: $pending_changes"
+          
+          # アーカイブの数
+          archived_changes=$(find openspec/archive -name "*.md" -type f 2>/dev/null | wc -l)
+          echo "Archived changes: $archived_changes"
+          
+          echo ""
+          
+          # カテゴリ別の仕様数
+          if [ -d "openspec/specs" ]; then
+            echo "Specifications by category:"
+            for dir in openspec/specs/*/; do
+              if [ -d "$dir" ]; then
+                category=$(basename "$dir")
+                count=$(find "$dir" -name "*.md" -type f | wc -l)
+                if [ $count -gt 0 ]; then
+                  echo "  - $category: $count"
+                fi
+              fi
+            done
+          fi
+        fail_on_error: false
+
+  # 5. OpenSpecワークフローガイド
+  - name: "Workflow Guidance"
+    description: "OpenSpec使用ガイドを表示"
+    condition: "when: command == '/spec-help'"
+    steps:
+      - name: "Show OpenSpec Workflow"
+        run: |
+          echo "================================"
+          echo "OpenSpec Workflow Guide"
+          echo "================================"
+          echo ""
+          echo "📝 **Step 1: Propose a Change**"
+          echo "   Create a new spec file in openspec/changes/"
+          echo "   or use: /openspec-proposal \"feature description\""
+          echo ""
+          echo "👀 **Step 2: Review**"
+          echo "   Team reviews the specification"
+          echo "   Discuss and refine the proposal"
+          echo ""
+          echo "✅ **Step 3: Approve**"
+          echo "   Move approved spec to openspec/specs/"
+          echo "   This becomes the source of truth"
+          echo ""
+          echo "💻 **Step 4: Implement**"
+          echo "   Implement based on approved specification"
+          echo "   Use: /openspec-apply"
+          echo ""
+          echo "📦 **Step 5: Archive**"
+          echo "   After implementation, archive the change"
+          echo "   Use: /openspec-archive"
+          echo ""
+          echo "🔄 **Continuous Sync**"
+          echo "   Run /spec-check regularly to ensure sync"
+          echo "   between specifications and implementation"
+          echo ""
+
+# ヘルパーコマンド
+commands:
+  - name: "spec-check"
+    description: "仕様と実装の同期状態をチェック"
+    
+  - name: "spec-sync"
+    description: "仕様ファイルを分析し、実装状況をレポート"
+    
+  - name: "spec-help"
+    description: "OpenSpecワークフローガイドを表示"
+
+# 成功時のアクション
+on_success:
+  - action: "comment"
+    message: |
+      ✅ **OpenSpec Sync Check Passed!**
+      
+      - Specification structure: ✓
+      - Spec-implementation sync: ✓
+      - Documentation references: ✓
+      
+      **Quick Links:**
+      - [Approved Specs](./openspec/specs/)
+      - [Pending Changes](./openspec/changes/)
+      - [Workflow Guide](./openspec/README.md)
+
+  - action: "label"
+    labels: ["spec-compliant"]
+
+# 警告時のアクション
+on_warning:
+  - action: "comment"
+    message: |
+      ⚠️  **OpenSpec Sync Warnings**
+      
+      Some specification-related issues were detected:
+      - Check pending changes in `openspec/changes/`
+      - Verify spec-implementation alignment
+      - Review outdated change proposals
+      
+      Run `/spec-sync` for detailed analysis.
+
+  - action: "label"
+    labels: ["spec-review-suggested"]
+
+# 設定
+config:
+  timeout: 180  # 3分
+  retry_on_failure: false
+  
+  # OpenSpec設定
+  openspec:
+    specs_dir: "./openspec/specs"
+    changes_dir: "./openspec/changes"
+    archive_dir: "./openspec/archive"
+    
+  # 通知設定
+  notifications:
+    on_pending_changes: true
+    on_outdated_proposals: true
+    on_missing_implementation: false  # 情報提供のみ

@@ -1,0 +1,175 @@
+# Factory Droid Configuration for DiagnoLeads
+# マルチテナントB2B診断プラットフォーム with AI
+
+project:
+  name: DiagnoLeads
+  description: "B2B企業向けマルチテナント診断サービスプラットフォーム"
+  version: "0.1.0"
+  repository: "https://github.com/yusuke-kurosawa/DiagnoLeads"
+
+# プロジェクト構造
+structure:
+  backend: "./backend"
+  frontend: "./frontend"
+  embed: "./embed"
+  specs: "./openspec/specs"
+  docs: "./docs"
+
+# 技術スタック
+tech_stack:
+  backend:
+    language: "Python 3.11+"
+    framework: "FastAPI"
+    orm: "SQLAlchemy 2.0"
+    database: "PostgreSQL (Supabase)"
+    cache: "Redis (Upstash)"
+    testing: "pytest"
+    
+  frontend:
+    language: "TypeScript"
+    framework: "React 18 + Vite"
+    state_management: 
+      - "Zustand"
+      - "TanStack Query"
+    ui: 
+      - "Tailwind CSS"
+      - "shadcn/ui"
+    testing: "Vitest + React Testing Library"
+    
+  ai:
+    provider: "Anthropic"
+    model: "Claude 3.5 Sonnet"
+    use_cases:
+      - "診断生成"
+      - "リード分析"
+      - "レポート作成"
+
+# 開発ルール
+development_rules:
+  # マルチテナント必須ルール
+  multi_tenant:
+    critical: true
+    rules:
+      - "すべてのデータベースクエリでtenant_idフィルタリング必須"
+      - "APIエンドポイントでテナントスコープ検証必須"
+      - "テスト時にテナント分離を検証"
+      - "マイグレーション時にテナントデータ混在を防止"
+    
+  # セキュリティ
+  security:
+    - "すべてのユーザー入力をサニタイズ"
+    - "ORMのパラメータ化クエリを使用（SQLインジェクション対策）"
+    - "HTMLエスケープ（XSS対策）"
+    - "機密情報は.envで管理、.gitignoreに追加"
+    - "JWT検証を認証エンドポイントで実施"
+    
+  # コーディング規約
+  coding_standards:
+    python:
+      formatter: "ruff format"
+      linter: "ruff check"
+      type_checker: "mypy"
+      line_length: 100
+      
+    typescript:
+      formatter: "Prettier"
+      linter: "ESLint"
+      type_checker: "TypeScript strict mode"
+      
+  # テストカバレッジ目標
+  test_coverage:
+    backend: 80
+    frontend: 70
+    critical_paths: 100  # 認証、テナント分離、スコアリング
+
+# OpenSpec統合
+openspec:
+  enabled: true
+  specs_dir: "./openspec/specs"
+  changes_dir: "./openspec/changes"
+  archive_dir: "./openspec/archive"
+  workflow:
+    - "仕様提案: /openspec-proposal"
+    - "レビュー・調整"
+    - "実装: /openspec-apply"
+    - "アーカイブ: /openspec-archive"
+
+# AI開発支援設定
+ai_assistance:
+  context_files:
+    - "CLAUDE.md"
+    - "README.md"
+    - ".factory/context.md"
+    - "openspec/specs/OVERVIEW.md"
+    
+  code_review_focus:
+    - "テナント分離の検証"
+    - "セキュリティ脆弱性チェック"
+    - "パフォーマンス最適化"
+    - "エラーハンドリング"
+    
+  auto_suggest:
+    - "テストケース生成"
+    - "ドキュメント更新"
+    - "型定義の改善"
+
+# CI/CD
+ci_cd:
+  platform: "GitHub Actions"
+  workflows:
+    - name: "Backend Tests"
+      trigger: ["push", "pull_request"]
+      steps:
+        - "lint (ruff)"
+        - "type check (mypy)"
+        - "unit tests (pytest)"
+        - "integration tests"
+        
+    - name: "Frontend Tests"
+      trigger: ["push", "pull_request"]
+      steps:
+        - "lint (eslint)"
+        - "type check (tsc)"
+        - "unit tests (vitest)"
+        - "build check"
+        
+    - name: "Security Scan"
+      trigger: ["push"]
+      steps:
+        - "dependency audit"
+        - "secret scan"
+        - "SAST"
+
+# 環境
+environments:
+  development:
+    backend_url: "http://localhost:8000"
+    frontend_url: "http://localhost:5173"
+    
+  staging:
+    backend_url: "https://api-staging.diagnoleads.com"
+    frontend_url: "https://staging.diagnoleads.com"
+    
+  production:
+    backend_url: "https://api.diagnoleads.com"
+    frontend_url: "https://diagnoleads.com"
+
+# 外部サービス連携
+integrations:
+  required:
+    - name: "Supabase"
+      purpose: "Database + Auth"
+    - name: "Upstash Redis"
+      purpose: "Cache"
+    - name: "Anthropic Claude"
+      purpose: "AI機能"
+      
+  optional:
+    - name: "Salesforce"
+      purpose: "CRM連携"
+    - name: "HubSpot"
+      purpose: "マーケティング連携"
+    - name: "Slack"
+      purpose: "通知"
+    - name: "Trigger.dev"
+      purpose: "非同期ジョブ"

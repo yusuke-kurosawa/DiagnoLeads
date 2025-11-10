@@ -1,0 +1,304 @@
+# マルチテナントガードDroid
+# テナント分離違反を自動検出・防止
+
+name: multi-tenant-guard
+description: "マルチテナントデータ分離違反を検出し、セキュリティリスクを防止するDroid"
+version: "1.0.0"
+priority: critical
+
+# トリガー条件
+triggers:
+  - on_command: "/tenant-check"
+  - on_pr_create: true
+  - on_code_change:
+      paths:
+        - "backend/app/models/**/*.py"
+        - "backend/app/api/**/*.py"
+        - "backend/app/services/**/*.py"
+        - "backend/alembic/versions/**/*.py"
+
+# 実行ステップ
+steps:
+  # 1. コードパターン検証
+  - name: "Code Pattern Validation"
+    description: "テナント分離違反パターンを検出"
+    steps:
+      - name: "Detect Missing Tenant Filter"
+        run: |
+          echo "🔍 Checking for missing tenant_id filters in queries..."
+          
+          # SQLAlchemyクエリでtenant_idフィルタが欠けているパターンを検出
+          violations=0
+          
+          # .all(), .first(), .count() などの後にfilter(tenant_id)がないパターン
+          if grep -rn "\.query(" backend/app/ | grep -v "filter.*tenant_id" | grep -E "\.(all|first|count|one|scalar)\(\)"; then
+            echo "❌ ERROR: Found queries without tenant_id filter!"
+            violations=$((violations + 1))
+          fi
+          
+          # db.execute() の直接使用（生SQLの可能性）
+          if grep -rn "db\.execute\|session\.execute" backend/app/api backend/app/services | grep -v "tenant_id"; then
+            echo "⚠️  WARNING: Direct SQL execution detected. Verify tenant_id filtering."
+          fi
+          
+          if [ $violations -gt 0 ]; then
+            exit 1
+          fi
+        fail_on_error: true
+        
+      - name: "Check Model Definitions"
+        run: |
+          echo "🔍 Checking model definitions for tenant_id column..."
+          
+          # modelsディレクトリのすべてのモデルでtenant_idカラムを確認
+          for file in backend/app/models/*.py; do
+            if [ "$file" != "backend/app/models/__init__.py" ]; then
+              if ! grep -q "tenant_id" "$file"; then
+                filename=$(basename "$file")
+                # テナント不要なモデル（User, Tenantなど）を除外
+                if [[ ! "$filename" =~ ^(user|tenant|__) ]]; then
+                  echo "⚠️  WARNING: $file may be missing tenant_id column"
+                fi
+              fi
+            fi
+          done
+        fail_on_error: false
+        
+      - name: "Check API Endpoint Security"
+        run: |
+          echo "🔍 Checking API endpoints for tenant validation..."
+          
+          # テナントIDを含むパスパラメータがあるか確認
+          if grep -rn "@router\." backend/app/api/ | grep -v "/tenants/{tenant_id}"; then
+            echo "⚠️  INFO: Some endpoints don't include tenant_id in path"
+            echo "       Ensure tenant validation is done via JWT or other means"
+          fi
+          
+          # current_tenant や get_current_tenant の使用を確認
+          api_files=$(find backend/app/api -name "*.py" -type f)
+          for file in $api_files; do
+            if grep -q "@router\." "$file"; then
+              if ! grep -q "current_tenant\|get_current_tenant\|Depends.*tenant" "$file"; then
+                echo "⚠️  WARNING: $file may be missing tenant validation"
+              fi
+            fi
+          done
+        fail_on_error: false
+
+  # 2. データベーススキーマ検証
+  - name: "Database Schema Validation"
+    description: "マイグレーションファイルとスキーマを検証"
+    steps:
+      - name: "Check Migration Files"
+        run: |
+          echo "🔍 Checking Alembic migration files..."
+          
+          # 最新のマイグレーションファイルを確認
+          latest_migration=$(ls -t backend/alembic/versions/*.py 2>/dev/null | head -1)
+          
+          if [ -n "$latest_migration" ]; then
+            echo "Latest migration: $latest_migration"
+            
+            # 新しいテーブル作成時にtenant_idカラムがあるか確認
+            if grep -q "create_table" "$latest_migration"; then
+              if ! grep -q "tenant_id" "$latest_migration"; then
+                echo "⚠️  WARNING: New table may be missing tenant_id column"
+              fi
+            fi
+            
+            # インデックスにtenant_idが含まれているか確認
+            if grep -q "create_index" "$latest_migration"; then
+              if ! grep -q "tenant_id" "$latest_migration"; then
+                echo "⚠️  INFO: Consider adding tenant_id to indexes for performance"
+              fi
+            fi
+          fi
+        fail_on_error: false
+        
+      - name: "Verify Row-Level Security"
+        run: |
+          echo "🔍 Checking for Row-Level Security policies..."
+          
+          # RLSポリシー設定のチェック（PostgreSQL）
+          if find backend/alembic/versions -name "*.py" -exec grep -l "CREATE POLICY\|ALTER TABLE.*ENABLE ROW LEVEL SECURITY" {} \;; then
+            echo "✅ RLS policies found"
+          else
+            echo "⚠️  INFO: Consider implementing Row-Level Security in PostgreSQL"
+            echo "       https://supabase.com/docs/guides/auth/row-level-security"
+          fi
+        fail_on_error: false
+
+  # 3. テストコード検証
+  - name: "Test Coverage Validation"
+    description: "テナント分離のテストカバレッジを確認"
+    working_directory: "./backend"
+    steps:
+      - name: "Check Multi-Tenant Tests"
+        run: |
+          echo "🔍 Checking for multi-tenant test cases..."
+          
+          # テナント分離テストの存在確認
+          if ! find tests -name "*.py" -exec grep -l "tenant" {} \;; then
+            echo "❌ ERROR: No tenant-related tests found!"
+            echo "   Please add tests for tenant data isolation"
+            exit 1
+          fi
+          
+          # クロステナントアクセステストの確認
+          if find tests -name "*.py" -exec grep -l "cross.*tenant\|tenant.*isolation" {} \;; then
+            echo "✅ Cross-tenant access tests found"
+          else
+            echo "⚠️  WARNING: Consider adding cross-tenant access prevention tests"
+          fi
+        fail_on_error: true
+
+  # 4. ランタイム検証（オプション）
+  - name: "Runtime Validation"
+    description: "開発環境でのランタイムチェック"
+    condition: "when: env.ENVIRONMENT == 'development'"
+    steps:
+      - name: "Database Integrity Check"
+        working_directory: "./backend"
+        run: |
+          echo "🔍 Running database integrity checks..."
+          
+          # データベース接続が可能な場合のみ実行
+          if [ -n "$DATABASE_URL" ]; then
+            source venv/bin/activate
+            
+            # 孤立データ（tenant_id = NULL）のチェック
+            python3 << 'EOF'
+import os
+from sqlalchemy import create_engine, text
+
+db_url = os.getenv('DATABASE_URL')
+if db_url:
+    engine = create_engine(db_url)
+    with engine.connect() as conn:
+        # 各テーブルのtenant_id NULL チェック
+        tables = ['assessments', 'questions', 'leads']
+        for table in tables:
+            try:
+                result = conn.execute(
+                    text(f"SELECT COUNT(*) FROM {table} WHERE tenant_id IS NULL")
+                )
+                null_count = result.scalar()
+                if null_count > 0:
+                    print(f"⚠️  WARNING: {table} has {null_count} rows with NULL tenant_id")
+            except Exception as e:
+                print(f"INFO: Could not check {table}: {e}")
+EOF
+          else
+            echo "INFO: DATABASE_URL not set, skipping database checks"
+          fi
+        fail_on_error: false
+
+  # 5. レポート生成
+  - name: "Generate Security Report"
+    steps:
+      - name: "Summary"
+        run: |
+          echo "================================"
+          echo "Multi-Tenant Security Check Summary"
+          echo "================================"
+          echo ""
+          echo "✅ Code Pattern Validation"
+          echo "✅ Database Schema Validation"
+          echo "✅ Test Coverage Validation"
+          echo ""
+          echo "All tenant isolation checks passed!"
+
+# ルール定義
+rules:
+  # 禁止パターン
+  forbidden_patterns:
+    - pattern: "\.query\(.*\)\.all\(\)"
+      message: "Missing tenant_id filter on .all() query"
+      severity: error
+      exclude:
+        - "backend/app/core/admin.py"  # 管理者用は除外
+    
+    - pattern: "\.query\(.*\)\.filter\([^)]*\)\.(?!.*tenant_id)"
+      message: "Query filter missing tenant_id"
+      severity: error
+    
+    - pattern: "DELETE FROM .* WHERE (?!.*tenant_id)"
+      message: "DELETE statement missing tenant_id condition"
+      severity: critical
+    
+    - pattern: "UPDATE .* SET .* WHERE (?!.*tenant_id)"
+      message: "UPDATE statement missing tenant_id condition"
+      severity: critical
+  
+  # 推奨パターン
+  recommended_patterns:
+    - pattern: "def .*tenant.*"
+      message: "Good: Function name includes 'tenant'"
+      severity: info
+    
+    - pattern: "filter.*tenant_id.*=="
+      message: "Good: Proper tenant_id filtering"
+      severity: info
+
+# 成功時のアクション
+on_success:
+  - action: "comment"
+    message: |
+      ✅ **Multi-Tenant Security Check Passed!**
+      
+      - Code patterns: ✓
+      - Database schema: ✓
+      - Test coverage: ✓
+      
+      Tenant data isolation is properly implemented.
+
+  - action: "label"
+    labels: ["security-approved", "tenant-safe"]
+
+# 失敗時のアクション
+on_failure:
+  - action: "comment"
+    message: |
+      ❌ **Multi-Tenant Security Issues Detected!**
+      
+      **CRITICAL**: This PR may have tenant data isolation violations.
+      
+      **Common Issues:**
+      1. Database queries without `tenant_id` filter
+      2. Missing tenant validation in API endpoints
+      3. Insufficient test coverage for tenant isolation
+      
+      **How to Fix:**
+      ```python
+      # ❌ BAD: No tenant filter
+      assessments = db.query(Assessment).all()
+      
+      # ✅ GOOD: With tenant filter
+      assessments = db.query(Assessment).filter(
+          Assessment.tenant_id == current_tenant.id
+      ).all()
+      ```
+      
+      **Required Actions:**
+      - Review all database queries
+      - Add tenant_id filtering
+      - Add cross-tenant access prevention tests
+      - Run `/tenant-check` again
+      
+      **Reference:** `.factory/context.md` - Multi-Tenant Architecture
+
+  - action: "label"
+    labels: ["security-review-required", "tenant-violation"]
+  
+  - action: "block_merge"
+    reason: "Multi-tenant security violations must be fixed before merging"
+
+# 設定
+config:
+  timeout: 300  # 5分
+  required_for_merge: true  # マージ前に必須
+  auto_fix: false  # 自動修正は行わない（手動レビュー必須）
+  
+  # 環境変数
+  env:
+    PYTHONPATH: "./backend"

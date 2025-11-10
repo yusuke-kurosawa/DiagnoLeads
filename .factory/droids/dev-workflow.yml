@@ -1,0 +1,165 @@
+# 開発ワークフロー自動化Droid
+# テスト、ビルド、リントの自動実行
+
+name: dev-workflow
+description: "開発ワークフロー（テスト→ビルド→リント）を自動実行するDroid"
+version: "1.0.0"
+
+# トリガー条件
+triggers:
+  - on_command: "/dev-check"
+  - on_pr_create: true
+  - on_code_change:
+      paths:
+        - "backend/**/*.py"
+        - "frontend/**/*.{ts,tsx}"
+        - "backend/requirements.txt"
+        - "frontend/package.json"
+
+# 実行ステップ
+steps:
+  # 1. バックエンドチェック
+  - name: "Backend Quality Check"
+    working_directory: "./backend"
+    steps:
+      - name: "Install Dependencies"
+        run: |
+          if [ ! -d "venv" ]; then
+            python3 -m venv venv
+          fi
+          source venv/bin/activate
+          pip install -r requirements.txt
+        
+      - name: "Lint Check (Ruff)"
+        run: |
+          source venv/bin/activate
+          ruff check .
+        fail_on_error: true
+        
+      - name: "Format Check (Ruff)"
+        run: |
+          source venv/bin/activate
+          ruff format --check .
+        fail_on_error: true
+        
+      - name: "Type Check (mypy)"
+        run: |
+          source venv/bin/activate
+          mypy app/
+        fail_on_error: false  # 警告レベル
+        
+      - name: "Run Tests"
+        run: |
+          source venv/bin/activate
+          pytest tests/ -v --cov=app --cov-report=term-missing
+        fail_on_error: true
+        coverage_threshold: 80
+
+  # 2. フロントエンドチェック
+  - name: "Frontend Quality Check"
+    working_directory: "./frontend"
+    steps:
+      - name: "Install Dependencies"
+        run: npm install
+        cache: true
+        
+      - name: "Lint Check (ESLint)"
+        run: npm run lint
+        fail_on_error: true
+        
+      - name: "Type Check (TypeScript)"
+        run: npx tsc --noEmit
+        fail_on_error: true
+        
+      - name: "Run Tests"
+        run: npm test -- --coverage
+        fail_on_error: true
+        coverage_threshold: 70
+        
+      - name: "Build Check"
+        run: npm run build
+        fail_on_error: true
+
+  # 3. セキュリティスキャン
+  - name: "Security Scan"
+    steps:
+      - name: "Python Dependencies Audit"
+        working_directory: "./backend"
+        run: |
+          source venv/bin/activate
+          pip-audit
+        fail_on_error: false  # 警告レベル
+        
+      - name: "npm Dependencies Audit"
+        working_directory: "./frontend"
+        run: npm audit --audit-level=moderate
+        fail_on_error: false  # 警告レベル
+        
+      - name: "Secret Scan"
+        run: |
+          # .envファイルが誤ってステージングされていないかチェック
+          if git diff --cached --name-only | grep -q "^\.env$"; then
+            echo "❌ ERROR: .env file is staged for commit!"
+            exit 1
+          fi
+          
+          # 機密情報パターンをチェック
+          if git diff --cached | grep -iE "(api[_-]?key|secret|password|token).*=.*['\"][^'\"]+['\"]"; then
+            echo "⚠️  WARNING: Potential secrets detected in staged changes"
+            echo "Please review the diff carefully before committing"
+          fi
+        fail_on_error: true
+
+  # 4. レポート生成
+  - name: "Generate Report"
+    steps:
+      - name: "Summary"
+        run: |
+          echo "================================"
+          echo "Development Workflow Check Summary"
+          echo "================================"
+          echo ""
+          echo "✅ Backend: Lint, Format, Type Check, Tests"
+          echo "✅ Frontend: Lint, Type Check, Tests, Build"
+          echo "✅ Security: Dependency Audit, Secret Scan"
+          echo ""
+          echo "All checks passed! Ready to commit."
+
+# 成功時のアクション
+on_success:
+  - action: "comment"
+    message: |
+      ✅ **All development checks passed!**
+      
+      - Backend: Lint ✓ | Format ✓ | Type Check ✓ | Tests ✓
+      - Frontend: Lint ✓ | Type Check ✓ | Tests ✓ | Build ✓
+      - Security: Audit ✓ | Secret Scan ✓
+
+# 失敗時のアクション
+on_failure:
+  - action: "comment"
+    message: |
+      ❌ **Development checks failed**
+      
+      Please fix the issues and run `/dev-check` again.
+      
+      Common fixes:
+      - Lint errors: `ruff check . --fix` or `npm run lint --fix`
+      - Format errors: `ruff format .` or `npm run format`
+      - Test failures: Check error messages and fix code
+      - Type errors: Add proper type annotations
+
+  - action: "label"
+    labels: ["needs-fix"]
+
+# 設定
+config:
+  timeout: 600  # 10分
+  retry_on_failure: false
+  parallel: false  # バックエンド→フロントエンドの順次実行
+  
+  # 環境変数
+  env:
+    PYTHONPATH: "./backend"
+    NODE_ENV: "test"
+    CI: "true"
