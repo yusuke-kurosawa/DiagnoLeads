@@ -52,7 +52,10 @@ export default function Dashboard() {
             <p className="text-gray-600 text-sm mb-4">
               ノーコードで簡単に診断を作成できます
             </p>
-            <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+            <button
+              onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/assessments`)}
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
               作成開始 →
             </button>
           </div>
@@ -62,7 +65,10 @@ export default function Dashboard() {
             <p className="text-gray-600 text-sm mb-4">
               診断結果から収集したリードを管理
             </p>
-            <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+            <button
+              onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/leads`)}
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
               リード一覧 →
             </button>
           </div>
