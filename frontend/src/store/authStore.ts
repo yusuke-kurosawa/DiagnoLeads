@@ -19,7 +19,7 @@ interface AuthStore extends AuthState {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthStore>()(
             token,
             isAuthenticated: true,
           });
-        } catch (error) {
+        } catch {
           // Token is invalid
           localStorage.removeItem('access_token');
           set({

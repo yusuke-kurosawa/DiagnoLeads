@@ -17,6 +17,7 @@ api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 # api_router.include_router(leads.router, prefix="/leads", tags=["Leads"])
 # api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 
+
 # Placeholder endpoint
 @api_router.get("/")
 async def api_root():

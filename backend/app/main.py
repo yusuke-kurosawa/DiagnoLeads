@@ -9,7 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
-from app.core.middleware import TenantMiddleware
+
+# from app.core.middleware import TenantMiddleware  # TODO: Uncomment after implementation
 from app.api.v1 import api_router
 
 # Create FastAPI application

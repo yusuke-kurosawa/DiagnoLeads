@@ -34,8 +34,9 @@ export default function Login() {
     try {
       await login(formData);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      setError(error.response?.data?.detail || 'Login failed. Please try again.');
     }
   };
 

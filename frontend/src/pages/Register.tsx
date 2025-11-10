@@ -49,8 +49,9 @@ export default function Register() {
     try {
       await register(formData);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || '登録に失敗しました。もう一度お試しください。');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      setError(error.response?.data?.detail || '登録に失敗しました。もう一度お試しください。');
     }
   };
 
