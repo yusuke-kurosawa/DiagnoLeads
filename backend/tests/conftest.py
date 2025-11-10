@@ -14,59 +14,16 @@ from app.main import app
 from app.core.database import Base, get_db
 
 
-# Custom UUID type for SQLite compatibility
-class UUID(TypeDecorator):
-    """Platform-independent UUID type.
-    
-    Uses PostgreSQL's UUID type when available,
-    otherwise uses String(36) and stores as stringified hex values.
-    """
-    impl = String
-    cache_ok = True
+# Use PostgreSQL for testing (same as production)
+# This ensures tests are closer to production environment
+import os
 
-    def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql':
-            return dialect.type_descriptor(PGUUID())
-        else:
-            return dialect.type_descriptor(String(36))
-
-    def process_bind_param(self, value, dialect):
-        if value is None:
-            return value
-        elif dialect.name == 'postgresql':
-            return str(value)
-        else:
-            if not isinstance(value, uuid.UUID):
-                return str(value)
-            else:
-                return str(value)
-
-    def process_result_value(self, value, dialect):
-        if value is None:
-            return value
-        else:
-            if not isinstance(value, uuid.UUID):
-                return uuid.UUID(value)
-            else:
-                return value
-
-
-# Create in-memory SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5432/diagnoleads_test"
 )
 
-
-# Enable foreign key support for SQLite
-@event.listens_for(engine, "connect")
-def set_sqlite_pragma(dbapi_conn, connection_record):
-    cursor = dbapi_conn.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

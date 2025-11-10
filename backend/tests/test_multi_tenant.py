@@ -156,14 +156,20 @@ def test_tenant_cascade_delete(
     db_session: Session, tenant_a: Tenant, user_a: User
 ):
     """Test that deleting a tenant cascades to users"""
+    # Store user ID before deletion
+    user_id = user_a.id
+    
     # Verify user exists
-    user = db_session.query(User).filter(User.id == user_a.id).first()
+    user = db_session.query(User).filter(User.id == user_id).first()
     assert user is not None
 
     # Delete tenant
     db_session.delete(tenant_a)
     db_session.commit()
+    
+    # Expunge all to avoid stale object issues
+    db_session.expunge_all()
 
     # Verify user was also deleted (cascade)
-    user = db_session.query(User).filter(User.id == user_a.id).first()
+    user = db_session.query(User).filter(User.id == user_id).first()
     assert user is None

@@ -38,4 +38,4 @@ def test_openapi_schema_available(client: TestClient):
     assert response.status_code == 200
     data = response.json()
     assert "openapi" in data
-    assert data["info"]["title"] == "DiagnoLeads"
+    assert data["info"]["title"] == "DiagnoLeads API"
