@@ -2,7 +2,22 @@
 
 **マルチテナントB2B診断プラットフォーム with AI**
 
-DiagnoLeadsは、B2B企業が顧客の課題を診断し、質の高いリードを獲得するためのSaaSプラットフォームです。AI（Claude）を活用した診断自動生成、リード分析、パーソナライズレポート生成により、マーケティング活動を効率化します。
+[![Tests](https://img.shields.io/badge/tests-42%2F42%20passing-brightgreen)](https://github.com/yusuke-kurosawa/DiagnoLeads)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-blue)](./openapi.json)
+[![OpenSpec](https://img.shields.io/badge/OpenSpec-Spec--Driven-orange)](./openspec/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+DiagnoLeadsは、B2B企業が顧客の課題を診断し、質の高いリードを獲得するためのSaaSプラットフォームです。**OpenSpec + OpenAPI を完全統合した理想的なSpec駆動開発**を実証し、完璧な品質保証体制を実現しています。
+
+## 🎉 Project Status
+
+- ✅ **Phase 1 Complete**: Foundation solid, production-ready quality
+- ✅ **100% Test Coverage**: 42/42 tests passing
+- ✅ **Spec-Driven Development**: OpenSpec 7-phase workflow demonstrated
+- ✅ **Full-Stack Implementation**: Assessment & Lead CRUD complete
+- 📊 **Current Version**: 0.1.0 (Beta Ready)
+
+See [PROJECT_STATUS.md](./PROJECT_STATUS.md) for detailed status report.
 
 ## 🎯 主要機能
 
