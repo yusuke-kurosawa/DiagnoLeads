@@ -7,6 +7,7 @@ import { LeadsPage } from './pages/leads/LeadsPage';
 import { CreateLeadPage } from './pages/leads/CreateLeadPage';
 import { EditLeadPage } from './pages/leads/EditLeadPage';
 import { LeadDetailPage } from './pages/leads/LeadDetailPage';
+import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import './App.css';
 
 // Protected Route wrapper
@@ -93,6 +94,16 @@ function App() {
           element={
             <ProtectedRoute>
               <EditLeadPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Analytics routes */}
+        <Route
+          path="/tenants/:tenantId/analytics"
+          element={
+            <ProtectedRoute>
+              <AnalyticsPage />
             </ProtectedRoute>
           }
         />

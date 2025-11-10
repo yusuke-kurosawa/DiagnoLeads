@@ -46,7 +46,7 @@ export default function Dashboard() {
         </div>
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">診断作成</h3>
             <p className="text-gray-600 text-sm mb-4">
@@ -70,6 +70,19 @@ export default function Dashboard() {
               className="text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
               リード一覧 →
+            </button>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">アナリティクス</h3>
+            <p className="text-gray-600 text-sm mb-4">
+              リードと診断のパフォーマンスを分析
+            </p>
+            <button
+              onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/analytics`)}
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
+              ダッシュボード →
             </button>
           </div>
 
