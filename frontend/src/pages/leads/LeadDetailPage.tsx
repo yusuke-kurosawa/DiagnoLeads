@@ -7,9 +7,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { FlameIcon, MailIcon, PhoneIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { leadService } from '../../services/leadService';
 import { LeadStatusBadge } from '../../components/leads/LeadStatusBadge';
+import { ScoreBreakdown } from '../../components/leads/ScoreBreakdown';
+import { ActivityTimeline, generateTimelineFromLead } from '../../components/leads/ActivityTimeline';
+import { NotesSection, Note } from '../../components/leads/NotesSection';
 
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
@@ -40,6 +44,38 @@ export const LeadDetailPage: React.FC = () => {
 
   const handleDelete = () => {
     deleteMutation.mutate();
+  };
+
+  // Note handlers (simulated - would connect to API)
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  const handleAddNote = async (content: string) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const newNote: Note = {
+      id: `note-${Date.now()}`,
+      content,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: user?.email,
+    };
+    setNotes([newNote, ...notes]);
+  };
+
+  const handleEditNote = async (noteId: string, content: string) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setNotes(notes.map(note =>
+      note.id === noteId
+        ? { ...note, content, updated_at: new Date().toISOString() }
+        : note
+    ));
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setNotes(notes.filter(note => note.id !== noteId));
   };
 
   const getScoreColor = (score: number): string => {
@@ -80,41 +116,75 @@ export const LeadDetailPage: React.FC = () => {
     );
   }
 
+  const isHot = lead.score >= 80;
+  const timelineEvents = generateTimelineFromLead(lead);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
         <button
           onClick={() => navigate(`/tenants/${user.tenant_id}/leads`)}
-          className="text-blue-600 hover:text-blue-700 mb-4"
+          className="text-blue-600 hover:text-blue-700 mb-4 flex items-center gap-1"
         >
-          ← Back to Leads
+          ← リード一覧に戻る
         </button>
         
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{lead.name}</h1>
-            <div className="mt-2 flex items-center gap-3">
-              <LeadStatusBadge status={lead.status} />
-              <span className={`text-lg font-semibold ${getScoreColor(lead.score)}`}>
-                {lead.score} / 100 - {getScoreLabel(lead.score)}
-              </span>
-            </div>
-          </div>
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                {isHot && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full border border-orange-300">
+                    <FlameIcon className="w-5 h-5 animate-pulse" />
+                    <span className="text-sm font-semibold">ホットリード</span>
+                  </div>
+                )}
+                <h1 className="text-3xl font-bold text-gray-900">{lead.name}</h1>
+              </div>
+              
+              <div className="flex items-center gap-3 mb-4">
+                <LeadStatusBadge status={lead.status} />
+                <span className={`text-sm font-semibold ${getScoreColor(lead.score)}`}>
+                  スコア: {lead.score} / 100
+                </span>
+              </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate(`/tenants/${user.tenant_id}/leads/${leadId}/edit`)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
-              Delete
-            </button>
+              {/* Quick Contact Actions */}
+              <div className="flex gap-3 mt-4">
+                <a
+                  href={`mailto:${lead.email}`}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  <MailIcon className="w-4 h-4" />
+                  メール送信
+                </a>
+                {lead.phone && (
+                  <a
+                    href={`tel:${lead.phone}`}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    <PhoneIcon className="w-4 h-4" />
+                    電話する
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(`/tenants/${user.tenant_id}/leads/${leadId}/edit`)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 border border-gray-300"
+              >
+                編集
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 border border-red-300"
+              >
+                削除
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -145,11 +215,25 @@ export const LeadDetailPage: React.FC = () => {
 
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Info */}
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Score Breakdown */}
+          <ScoreBreakdown totalScore={lead.score} />
+
+          {/* Activity Timeline */}
+          <ActivityTimeline events={timelineEvents} />
+
+          {/* Notes Section */}
+          <NotesSection
+            notes={notes}
+            onAdd={handleAddNote}
+            onEdit={handleEditNote}
+            onDelete={handleDeleteNote}
+          />
+
           {/* Contact Information */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+          <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">連絡先情報</h2>
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <dt className="text-sm font-medium text-gray-500">Email</dt>
@@ -187,18 +271,10 @@ export const LeadDetailPage: React.FC = () => {
             </dl>
           </div>
 
-          {/* Notes */}
-          {lead.notes && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Notes</h2>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{lead.notes}</p>
-            </div>
-          )}
-
           {/* Tags */}
           {lead.tags && lead.tags.length > 0 && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Tags</h2>
+            <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">タグ</h2>
               <div className="flex flex-wrap gap-2">
                 {lead.tags.map((tag, index) => (
                   <span
@@ -215,61 +291,38 @@ export const LeadDetailPage: React.FC = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Score Card */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Lead Score</h3>
-            <div className="text-center">
-              <div className={`text-5xl font-bold ${getScoreColor(lead.score)}`}>
-                {lead.score}
-              </div>
-              <div className="mt-2 text-sm text-gray-600">{getScoreLabel(lead.score)}</div>
-              <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full ${
-                    lead.score >= 61
-                      ? 'bg-green-600'
-                      : lead.score >= 31
-                      ? 'bg-yellow-600'
-                      : 'bg-gray-600'
-                  }`}
-                  style={{ width: `${lead.score}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Activity */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity</h3>
+          {/* Quick Stats */}
+          <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">概要</h3>
             <dl className="space-y-3">
               <div>
-                <dt className="text-sm font-medium text-gray-500">Created</dt>
+                <dt className="text-sm font-medium text-gray-500">作成日</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(lead.created_at).toLocaleDateString()}
+                  {new Date(lead.created_at).toLocaleDateString('ja-JP')}
                 </dd>
               </div>
               
               <div>
-                <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
+                <dt className="text-sm font-medium text-gray-500">最終更新</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(lead.updated_at).toLocaleDateString()}
+                  {new Date(lead.updated_at).toLocaleDateString('ja-JP')}
                 </dd>
               </div>
 
               {lead.last_contacted_at && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Last Contacted</dt>
+                  <dt className="text-sm font-medium text-gray-500">最終コンタクト</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {new Date(lead.last_contacted_at).toLocaleDateString()}
+                    {new Date(lead.last_contacted_at).toLocaleDateString('ja-JP')}
                   </dd>
                 </div>
               )}
 
               {lead.last_activity_at && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Last Activity</dt>
+                  <dt className="text-sm font-medium text-gray-500">最終アクティビティ</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {new Date(lead.last_activity_at).toLocaleDateString()}
+                    {new Date(lead.last_activity_at).toLocaleDateString('ja-JP')}
                   </dd>
                 </div>
               )}
