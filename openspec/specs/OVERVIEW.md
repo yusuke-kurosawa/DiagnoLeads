@@ -151,6 +151,12 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 
 ## Feature Specs (Index)
 
+### UI/UX Specifications
+- **Design System**: [./ui-ux/design-system.md](./ui-ux/design-system.md) - Colors, typography, spacing, shadows
+- **Component Library**: [./ui-ux/component-library.md](./ui-ux/component-library.md) - Reusable UI components
+- **Usability Guidelines**: [./ui-ux/usability-guidelines.md](./ui-ux/usability-guidelines.md) - Accessibility & best practices
+- **Interaction Patterns**: [./ui-ux/interaction-patterns.md](./ui-ux/interaction-patterns.md) - Animations & micro-interactions
+
 ### Core Features
 - AI Support: [./features/ai-support.md](./features/ai-support.md)
 - Embed Widget: [./features/embed-widget.md](./features/embed-widget.md)
