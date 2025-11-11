@@ -14,13 +14,12 @@ from app.main import app
 from app.core.database import Base, get_db
 
 
-# Use PostgreSQL for testing (same as production)
-# This ensures tests are closer to production environment
+# Use PostgreSQL for testing
 import os
 
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/diagnoleads_test"
+    "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

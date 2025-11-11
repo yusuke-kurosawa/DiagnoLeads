@@ -16,7 +16,7 @@ from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.models import User, Tenant
-from app.schemas.auth import UserCreate, TokenData
+from app.schemas.auth import UserCreate, TokenData, RegistrationResponse
 
 
 # Password hashing context
@@ -101,7 +101,7 @@ class AuthService:
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
+                detail="このメールアドレスは既に使用されています",
             )
 
         # Check if tenant slug already exists
@@ -111,7 +111,7 @@ class AuthService:
         if existing_tenant:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Tenant slug already taken",
+                detail="このテナントスラッグは既に使用されています",
             )
 
         # Create new tenant

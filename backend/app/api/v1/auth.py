@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse
+from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse, RegistrationResponse
 from app.services.auth import AuthService
 
 
@@ -59,7 +59,7 @@ async def login(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="メールアドレスまたはパスワードが正しくありません",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -93,7 +93,7 @@ async def login_json(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="メールアドレスまたはパスワードが正しくありません",
         )
 
     # Generate access token

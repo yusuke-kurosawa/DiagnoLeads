@@ -4,10 +4,11 @@ Authentication Schemas
 Pydantic models for authentication requests and responses.
 """
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
+import re
 
 
 class UserLogin(BaseModel):
@@ -37,6 +38,26 @@ class UserCreate(BaseModel):
         description="URL-friendly tenant identifier",
     )
 
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        """
+        Validate password meets security requirements:
+        - At least 8 characters
+        - At least one uppercase letter
+        - At least one lowercase letter
+        - At least one number
+        """
+        if len(v) < 8:
+            raise ValueError("パスワードは8文字以上である必要があります")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("パスワードには英大文字を含む必要があります")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("パスワードには英小文字を含む必要があります")
+        if not re.search(r"\d", v):
+            raise ValueError("パスワードには数字を含む必要があります")
+        return v
+
 
 class UserResponse(BaseModel):
     """User response model"""
@@ -50,6 +71,14 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RegistrationResponse(BaseModel):
+    """Registration response (spec-compliant)"""
+
+    user_id: UUID
+    tenant_id: UUID
+    message: str = "登録が完了しました。ログインしてください。"
 
 
 class Token(BaseModel):
