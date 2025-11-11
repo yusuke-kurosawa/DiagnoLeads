@@ -151,12 +151,27 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 
 ## Feature Specs (Index)
 
-- Features
-  - AI Support: ./features/ai-support.md
-  - Embed Widget: ./features/embed-widget.md
-  - Lead Management: ./features/lead-management.md
-  - Analytics Dashboard: ./features/analytics-dashboard.md
-  - Publishing & Versioning: ./features/publishing-and-versioning.md
-  - Integrations: ./features/integrations.md
-- API
-  - Endpoints Overview: ./api/endpoints-overview.md
+### Core Features
+- AI Support: [./features/ai-support.md](./features/ai-support.md)
+- Embed Widget: [./features/embed-widget.md](./features/embed-widget.md)
+- Lead Management: [./features/lead-management.md](./features/lead-management.md)
+- Analytics Dashboard: [./features/analytics-dashboard.md](./features/analytics-dashboard.md)
+- Publishing & Versioning: [./features/publishing-and-versioning.md](./features/publishing-and-versioning.md)
+- Integrations (Base): [./features/integrations.md](./features/integrations.md)
+
+### Innovative Features (Phase 1-4)
+- **Microsoft Teams Integration**: [./features/microsoft-teams-integration.md](./features/microsoft-teams-integration.md) ⚡ Priority: Critical
+- **Multi-Channel Distribution**: [./features/multi-channel-distribution.md](./features/multi-channel-distribution.md) (LINE, SMS, Email, QR, NFC)
+- **AI Optimization Engine**: [./features/ai-optimization-engine.md](./features/ai-optimization-engine.md) (A/B Testing, Copywriting, Predictions)
+- **Real-time Collaboration**: [./features/realtime-collaboration.md](./features/realtime-collaboration.md) (Google Docs風)
+- Assessment Marketplace (Coming Soon)
+- Gamification Engine (Coming Soon)
+- Video & Voice Assessments (Coming Soon)
+- Assessment Funnel Chains (Coming Soon)
+- White-Label Solutions (Coming Soon)
+
+### API Reference
+- **Endpoints Overview**: [./api/endpoints-overview.md](./api/endpoints-overview.md) - Complete API documentation v2.0
+
+### Change Proposals
+- **Innovative Features Proposal**: [../changes/2025-11-10-innovative-features/innovative-features.md](../changes/2025-11-10-innovative-features/innovative-features.md) - 12の革新的機能提案
