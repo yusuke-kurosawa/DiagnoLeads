@@ -63,3 +63,11 @@ httpx==0.25.1
 ruff==0.1.6
 mypy==1.7.1
 black==23.11.0
+
+# QR Code Generation
+qrcode[pil]==7.4.2
+pillow==10.1.0
+
+# User Agent Parsing & GeoIP
+user-agents==2.2.0
+geoip2==4.7.0
