@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test - DiagnoLeads</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .login-button:active {
+            transform: translateY(0);
+        }
+        .demo-info {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        .demo-info p {
+            font-size: 12px;
+            color: #555;
+            margin: 5px 0;
+        }
+        .demo-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>DiagnoLeads</h1>
+        <p class="subtitle">AI-Powered Lead Generation Platform</p>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">メールアドレス</label>
+                <input type="email" id="email" name="email" required placeholder="you@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" name="password" required minlength="8" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="login-button" id="loginButton">
+                サインイン
+            </button>
+        </form>
+        
+        <div class="demo-info">
+            <p class="demo-title">デモアカウント:</p>
+            <p>📧 Email: demo@example.com</p>
+            <p>🔐 Password: password123</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const button = document.getElementById('loginButton');
+        const errorDiv = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            button.textContent = 'サインイン中...';
+            button.disabled = true;
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/login/json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('ログイン成功！\n\nユーザー: ' + data.user.name + '\nメール: ' + data.user.email);
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = '/';
+                } else {
+                    errorDiv.textContent = data.detail || 'ログインに失敗しました';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'サーバーに接続できませんでした';
+                errorDiv.style.display = 'block';
+            } finally {
+                button.textContent = 'サインイン';
+                button.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

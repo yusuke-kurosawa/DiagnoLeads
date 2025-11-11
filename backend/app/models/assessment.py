@@ -7,6 +7,7 @@ Represents a diagnostic assessment created by a tenant.
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text, JSON, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 
 from app.core.database import Base
@@ -49,6 +50,9 @@ class Assessment(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # Relationships
+    qr_codes = relationship("QRCode", back_populates="assessment", cascade="all, delete-orphan")
 
     # Indexes for performance
     __table_args__ = (

@@ -2,16 +2,31 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
+export interface AssessmentQuestion {
+  id: string;
+  order: number;
+  text: string;
+  type: 'single_choice' | 'multiple_choice' | 'text' | 'slider';
+  required: boolean;
+  options?: Array<{
+    id: string;
+    text: string;
+    score: number;
+  }>;
+  max_score?: number;
+}
+
 export interface Assessment {
   id: string;
   tenant_id: string;
   title: string;
   description?: string;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'published' | 'archived' | 'unpublished';
   topic?: string;
   industry?: string;
   ai_generated: 'manual' | 'ai' | 'hybrid';
   scoring_logic: Record<string, unknown>;
+  questions?: AssessmentQuestion[];
   created_by: string;
   updated_by?: string;
   created_at: string;

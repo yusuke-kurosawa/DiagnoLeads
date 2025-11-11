@@ -37,9 +37,11 @@ export function QuestionEditor({ question, onChange }: QuestionEditorProps) {
   const [localQuestion, setLocalQuestion] = useState<Question>(question);
 
   // Update local state when question prop changes
+  // Only update when question ID changes to avoid infinite loops
   useEffect(() => {
     setLocalQuestion(question);
-  }, [question.id]); // Only update when question ID changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question.id]);
 
   const handleChange = (updates: Partial<Question>) => {
     const updated = { ...localQuestion, ...updates };

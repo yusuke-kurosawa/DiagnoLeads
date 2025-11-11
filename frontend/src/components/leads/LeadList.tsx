@@ -7,10 +7,12 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, Users } from 'lucide-react';
 import { leadService } from '../../services/leadService';
 import { LeadFilters, type LeadFilterState } from './LeadFilters';
 import { LeadRow } from './LeadRow';
+import { SkeletonTable } from '@/components/ui/skeleton';
+import { EmptyState, NoResultsEmptyState, ErrorEmptyState } from '@/components/ui/empty-state';
 import type { components } from '../../types/api.generated';
 
 type LeadResponse = components['schemas']['LeadResponse'];
@@ -67,21 +69,7 @@ export const LeadList: React.FC<LeadListProps> = ({ tenantId }) => {
     });
   }, [leads, filters]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Loading leads...</div>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        Error loading leads: {(error as Error).message}
-      </div>
-    );
-  }
 
   const handleResetFilters = () => {
     setFilters({});
@@ -126,72 +114,108 @@ export const LeadList: React.FC<LeadListProps> = ({ tenantId }) => {
               placeholder="名前、メール、会社名で検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all"
+              aria-label="リードを検索"
             />
           </div>
 
-          {/* Results count */}
-          {displayLeads && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                <span className="font-semibold">{displayLeads.length}</span> 件のリード
-              </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
+              <SkeletonTable rows={5} />
             </div>
           )}
 
-          {/* Lead table */}
-          {displayLeads && displayLeads.length > 0 ? (
-            <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                      Hot
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      名前
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      会社
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      連絡先
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      スコア
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ステータス
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      獲得日
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {displayLeads.map((lead) => (
-                    <LeadRow 
-                      key={lead.id} 
-                      lead={lead} 
-                      tenantId={tenantId} 
-                    />
-                  ))}
-                </tbody>
-              </table>
+          {/* Error State */}
+          {error && (
+            <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
+              <ErrorEmptyState
+                onRetry={() => window.location.reload()}
+                errorMessage="リードの読み込みに失敗しました。ネットワーク接続を確認してください。"
+              />
             </div>
-          ) : (
-            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500 mb-2">リードが見つかりません</p>
-              <p className="text-sm text-gray-400 mb-4">
-                フィルターをリセットするか、新しいリードを作成してください
-              </p>
-              <button
-                onClick={() => navigate(`/tenants/${tenantId}/leads/create`)}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                最初のリードを作成
-              </button>
-            </div>
+          )}
+
+          {/* Results */}
+          {!isLoading && !error && (
+            <>
+              {/* Results count */}
+              {displayLeads && displayLeads.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-semibold">{displayLeads.length}</span> 件のリード
+                  </div>
+                </div>
+              )}
+
+              {/* Lead table */}
+              {displayLeads && displayLeads.length > 0 ? (
+                <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                          Hot
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          名前
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          会社
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          連絡先
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          スコア
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          ステータス
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          獲得日
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {displayLeads.map((lead) => (
+                        <LeadRow 
+                          key={lead.id} 
+                          lead={lead} 
+                          tenantId={tenantId} 
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <>
+                  {/* No Results */}
+                  {searchQuery || Object.keys(filters).length > 0 ? (
+                    <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
+                      <NoResultsEmptyState
+                        searchQuery={searchQuery}
+                        onClear={handleResetFilters}
+                      />
+                    </div>
+                  ) : (
+                    /* No Data */
+                    <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
+                      <EmptyState
+                        icon={<Users className="w-16 h-16" />}
+                        title="リードがありません"
+                        description="まだリードが獲得されていません。診断を公開してリード獲得を開始しましょう。"
+                        action={{
+                          label: '新規リードを作成',
+                          onClick: () => navigate(`/tenants/${tenantId}/leads/create`),
+                          variant: 'primary',
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </>
           )}
         </div>
       </div>

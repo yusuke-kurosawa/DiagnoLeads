@@ -12,31 +12,9 @@ import { useState, useEffect } from 'react';
 import { QuestionList } from './QuestionList';
 import { QuestionEditor } from './QuestionEditor';
 import { SettingsPanel } from './SettingsPanel';
+import type { Assessment, AssessmentQuestion } from '../../services/assessmentService';
 
-interface Question {
-  id: string;
-  order: number;
-  text: string;
-  type: 'single_choice' | 'multiple_choice' | 'text' | 'slider';
-  required: boolean;
-  options?: QuestionOption[];
-  max_score?: number;
-}
-
-interface QuestionOption {
-  id: string;
-  text: string;
-  score: number;
-}
-
-interface Assessment {
-  id: string;
-  title: string;
-  description?: string;
-  status: 'draft' | 'published' | 'unpublished';
-  questions: Question[];
-  scoring_rules?: Record<string, unknown>;
-}
+type Question = AssessmentQuestion;
 
 interface AssessmentBuilderProps {
   assessment: Assessment;

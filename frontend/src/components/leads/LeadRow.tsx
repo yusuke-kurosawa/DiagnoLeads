@@ -17,13 +17,15 @@ interface Lead {
   id: string;
   name: string;
   email: string;
-  company?: string;
-  job_title?: string;
-  phone?: string;
+  company?: string | null;
+  job_title?: string | null;
+  phone?: string | null;
   score: number;
   status: string;
   created_at: string;
   tenant_id?: string;
+  last_contacted_at?: string | null;
+  last_activity_at?: string | null;
 }
 
 interface LeadRowProps {

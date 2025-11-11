@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Float, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base_class import Base
+from app.core.database import Base
 
 
 class QRCodeScan(Base):

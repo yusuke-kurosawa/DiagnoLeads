@@ -17,19 +17,7 @@ import {
   CheckCircle2Icon,
   XCircleIcon
 } from 'lucide-react';
-
-interface Assessment {
-  id: string;
-  title: string;
-  description?: string;
-  status: 'draft' | 'published' | 'unpublished';
-  questions: Array<{
-    id: string;
-    text: string;
-    type: string;
-    options?: Array<{ text: string; score: number }>;
-  }>;
-}
+import type { Assessment } from '../../services/assessmentService';
 
 interface SettingsPanelProps {
   assessment: Assessment;
@@ -59,7 +47,7 @@ export function SettingsPanel({
     alert('公開URLをコピーしました');
   };
 
-  const canPublish = assessment.questions.length > 0;
+  const canPublish = (assessment.questions?.length ?? 0) > 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -203,7 +191,7 @@ export function SettingsPanel({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">質問数</span>
-            <span className="font-medium">{assessment.questions.length}</span>
+            <span className="font-medium">{assessment.questions?.length ?? 0}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">回答数</span>

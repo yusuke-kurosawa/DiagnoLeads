@@ -7,6 +7,7 @@ Represents a lead (prospect) in the sales funnel.
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text, JSON, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 
 from app.core.database import Base
@@ -58,6 +59,9 @@ class Lead(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # Relationships
+    qr_code_scans = relationship("QRCodeScan", back_populates="lead")
 
     # Indexes for performance
     __table_args__ = (

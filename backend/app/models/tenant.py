@@ -7,6 +7,7 @@ Represents a tenant (organization/company) in the multi-tenant system.
 from sqlalchemy import Column, String, DateTime, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 
 from app.core.database import Base
@@ -32,6 +33,9 @@ class Tenant(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # Relationships
+    qr_codes = relationship("QRCode", back_populates="tenant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant(id={self.id}, name={self.name}, plan={self.plan})>"

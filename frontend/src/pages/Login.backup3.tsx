@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import type { LoginCredentials } from '../types/auth';
 
 export default function Login() {
+  const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
 
   const [formData, setFormData] = useState<LoginCredentials>({
@@ -24,17 +25,19 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    console.log('🔐 Login attempt started...');
+    console.log('Login attempt started...');
 
     try {
       await login(formData);
-      console.log('✅ Login successful! Token and user stored.');
+      console.log('Login successful, navigating to dashboard...');
       
-      // Use window.location for reliable full page redirect
-      console.log('🚀 Redirecting to dashboard...');
-      window.location.href = '/dashboard';
+      // Force navigation with a small delay to ensure state is updated
+      setTimeout(() => {
+        console.log('Executing navigation...');
+        navigate('/dashboard', { replace: true });
+      }, 100);
     } catch (err: unknown) {
-      console.error('❌ Login failed:', err);
+      console.error('Login failed:', err);
       const error = err as { response?: { data?: { detail?: string } } };
       setError(error.response?.data?.detail || 'ログインに失敗しました。もう一度お試しください。');
     }
@@ -102,7 +105,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'サインイン中...' : 'サインイン'}
               </button>

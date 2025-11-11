@@ -1,6 +1,5 @@
 import { useParams } from 'react-router-dom';
 import AssessmentList from '../../components/assessments/AssessmentList';
-import { Layout } from '../../components/layout/Layout';
 
 export function AssessmentsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -10,11 +9,9 @@ export function AssessmentsPage() {
   }
 
   return (
-    <Layout>
-      <div className="container mx-auto">
-        <AssessmentList tenantId={tenantId} />
-      </div>
-    </Layout>
+    <div className="container mx-auto">
+      <AssessmentList tenantId={tenantId} />
+    </div>
   );
 }
 

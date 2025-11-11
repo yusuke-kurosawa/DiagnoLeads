@@ -80,7 +80,7 @@ export default function Dashboard() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   DiagnoLeads
                 </h1>
-                <p className="text-xs text-muted-foreground">AI-Powered Lead Generation</p>
+                <p className="text-xs text-gray-600">AI-Powered Lead Generation</p>
               </div>
             </div>
             <Button variant="outline" onClick={handleLogout} className="gap-2">
@@ -105,7 +105,7 @@ export default function Dashboard() {
                   今日も素晴らしいリードを獲得しましょう
                 </CardDescription>
               </div>
-              <Badge variant="secondary" className="bg-white/20 text-white border-0">
+              <Badge variant="default" className="bg-white/20 text-white border-0">
                 {user?.role}
               </Badge>
             </div>
@@ -145,7 +145,7 @@ export default function Dashboard() {
                       <feature.icon className="w-6 h-6 text-white" />
                     </div>
                     {feature.badge && (
-                      <Badge variant="secondary" className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
+                      <Badge variant="warning" className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
                         {feature.badge}
                       </Badge>
                     )}

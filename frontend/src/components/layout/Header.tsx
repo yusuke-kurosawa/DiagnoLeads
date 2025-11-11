@@ -1,49 +1,52 @@
-import { useAuthStore } from '../../store/authStore';
-import { useNavigate } from 'react-router-dom';
-import { LogOutIcon, UserIcon } from 'lucide-react';
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { Bell, Settings, User } from 'lucide-react';
 
-export function Header() {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
+const Header: React.FC = () => {
+  const { tenantId } = useParams();
+  
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Left: Page title will be here (from context) */}
-        <div>
-          {/* This can be filled by page-specific content */}
+        {/* Left side - could add breadcrumbs or page title */}
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-semibold text-gray-900">
+            DiagnoLeads
+          </h1>
         </div>
-
-        {/* Right: User menu */}
-        <div className="flex items-center gap-4">
-          {user && (
-            <>
-              <div className="flex items-center gap-2 text-sm">
-                <UserIcon className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">{user.name || user.email}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="
-                  flex items-center gap-2 px-3 py-2 
-                  text-sm text-gray-700 
-                  hover:bg-gray-100 rounded-lg
-                  transition-colors duration-200
-                "
-                title="ログアウト"
-              >
-                <LogOutIcon className="w-4 h-4" />
-                <span>ログアウト</span>
-              </button>
-            </>
-          )}
+        
+        {/* Right side - user actions */}
+        <div className="flex items-center space-x-4">
+          {/* Notifications */}
+          <button
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="通知"
+          >
+            <Bell className="w-5 h-5" />
+          </button>
+          
+          {/* Settings */}
+          <button
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="設定"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+          
+          {/* User Profile */}
+          <button
+            className="flex items-center space-x-2 p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            title="プロフィール"
+          >
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-sm font-medium">ユーザー</span>
+          </button>
         </div>
       </div>
     </header>
   );
-}
+};
+
+export default Header;

@@ -80,22 +80,12 @@ export function EditAssessmentPage() {
     );
   }
 
-  const handleUpdate = (updatedAssessment: {
-    id: string;
-    title: string;
-    description?: string;
-    status: string;
-    questions: Array<{ id: string; text: string; type: string }>;
-  }) => {
+  const handleUpdate = (updatedAssessment: typeof assessment) => {
     // Optimistic update (optional)
     queryClient.setQueryData(['assessment', tenantId, assessmentId], updatedAssessment);
   };
 
-  const handleSave = async (updatedAssessment: {
-    title: string;
-    description?: string;
-    status: string;
-  }) => {
+  const handleSave = async (updatedAssessment: typeof assessment) => {
     await updateMutation.mutateAsync({
       title: updatedAssessment.title,
       description: updatedAssessment.description,

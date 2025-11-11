@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { ToastProvider } from './contexts/ToastContext';
+import { Layout } from './components/layout/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -16,7 +17,7 @@ import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import ComponentsShowcase from './pages/ComponentsShowcase';
 import './App.css';
 
-// Protected Route wrapper
+// Protected Route wrapper with Layout
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
 
@@ -24,7 +25,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <Layout>{children}</Layout>;
 }
 
 // Public Route wrapper (redirect to dashboard if already authenticated)
@@ -43,7 +44,7 @@ function App() {
     <ToastProvider>
       <Router>
         <Routes>
-        {/* Public routes */}
+        {/* Public routes - no layout */}
         <Route
           path="/login"
           element={
@@ -61,7 +62,7 @@ function App() {
           }
         />
 
-        {/* Protected routes */}
+        {/* Protected routes - all wrapped with Layout */}
         <Route
           path="/dashboard"
           element={

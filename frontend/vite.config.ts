@@ -11,6 +11,24 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React関連ライブラリを分離
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI関連ライブラリを分離
+          'ui-vendor': ['framer-motion', 'lucide-react', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+          // データフェッチ関連を分離
+          'data-vendor': ['@tanstack/react-query', 'axios'],
+          // フォーム関連を分離
+          'form-vendor': ['react-hook-form', 'zod'],
+        },
+      },
+    },
+    // チャンクサイズ警告の閾値を引き上げ（500KB → 1000KB）
+    chunkSizeWarningLimit: 1000,
+  },
   test: {
     globals: true,
     environment: 'jsdom',
