@@ -1,8 +1,9 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { assessmentService } from '../../services/assessmentService';
+import { Layout } from '../../components/layout/Layout';
 
-export default function AssessmentDetailPage() {
+export function AssessmentDetailPage() {
   const { tenantId, assessmentId } = useParams<{ tenantId: string; assessmentId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -58,7 +59,8 @@ export default function AssessmentDetailPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <Layout>
+      <div className="container mx-auto max-w-4xl">
       {deleteMutation.error && (
         <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
           <p className="font-bold">Error deleting assessment</p>
@@ -170,6 +172,10 @@ export default function AssessmentDetailPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 }
+
+
+export default AssessmentDetailPage;

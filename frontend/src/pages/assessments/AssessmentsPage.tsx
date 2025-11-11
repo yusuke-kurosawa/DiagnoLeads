@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 import AssessmentList from '../../components/assessments/AssessmentList';
+import { Layout } from '../../components/layout/Layout';
 
-export default function AssessmentsPage() {
+export function AssessmentsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
 
   if (!tenantId) {
@@ -9,8 +10,12 @@ export default function AssessmentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <AssessmentList tenantId={tenantId} />
-    </div>
+    <Layout>
+      <div className="container mx-auto">
+        <AssessmentList tenantId={tenantId} />
+      </div>
+    </Layout>
   );
 }
+
+export default AssessmentsPage;

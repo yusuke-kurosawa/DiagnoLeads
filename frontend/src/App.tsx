@@ -3,6 +3,10 @@ import { useAuthStore } from './store/authStore';
 import Login from './pages/LoginNew';
 import Register from './pages/Register';
 import Dashboard from './pages/DashboardNew';
+import { AssessmentsPage } from './pages/assessments/AssessmentsPage';
+import { CreateAssessmentPage } from './pages/assessments/CreateAssessmentPage';
+import { EditAssessmentPage } from './pages/assessments/EditAssessmentPage';
+import { AssessmentDetailPage } from './pages/assessments/AssessmentDetailPage';
 import { LeadsPage } from './pages/leads/LeadsPage';
 import { CreateLeadPage } from './pages/leads/CreateLeadPage';
 import { EditLeadPage } from './pages/leads/EditLeadPage';
@@ -60,6 +64,40 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Assessment routes */}
+        <Route
+          path="/tenants/:tenantId/assessments"
+          element={
+            <ProtectedRoute>
+              <AssessmentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/assessments/create"
+          element={
+            <ProtectedRoute>
+              <CreateAssessmentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/assessments/:assessmentId"
+          element={
+            <ProtectedRoute>
+              <AssessmentDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/assessments/:assessmentId/edit"
+          element={
+            <ProtectedRoute>
+              <EditAssessmentPage />
             </ProtectedRoute>
           }
         />

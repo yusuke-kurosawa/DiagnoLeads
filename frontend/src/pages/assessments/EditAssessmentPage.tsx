@@ -2,8 +2,9 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import AssessmentForm from '../../components/assessments/AssessmentForm';
 import { assessmentService } from '../../services/assessmentService';
+import { Layout } from '../../components/layout/Layout';
 
-export default function EditAssessmentPage() {
+export function EditAssessmentPage() {
   const { tenantId, assessmentId } = useParams<{ tenantId: string; assessmentId: string }>();
 
   const { data: assessment, isLoading, error } = useQuery({
@@ -36,22 +37,26 @@ export default function EditAssessmentPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Edit Assessment</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Update the assessment details.
-        </p>
-      </div>
+    <Layout>
+      <div className="container mx-auto max-w-4xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Edit Assessment</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Update the assessment details.
+          </p>
+        </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <AssessmentForm 
-          tenantId={tenantId} 
-          assessmentId={assessmentId}
-          initialData={assessment}
-          mode="edit" 
-        />
+        <div className="bg-white shadow rounded-lg p-6">
+          <AssessmentForm 
+            tenantId={tenantId} 
+            assessmentId={assessmentId}
+            initialData={assessment}
+            mode="edit" 
+          />
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }
+
+export default EditAssessmentPage;

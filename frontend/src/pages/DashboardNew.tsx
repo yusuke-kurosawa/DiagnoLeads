@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Layout } from '@/components/layout/Layout';
 import { 
   BarChart3, 
   Users, 
   ClipboardList, 
   Sparkles, 
-  LogOut,
   TrendingUp,
   Target,
   Zap,
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
