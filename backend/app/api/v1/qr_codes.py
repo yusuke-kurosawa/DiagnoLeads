@@ -322,3 +322,142 @@ async def regenerate_qr_image(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to regenerate QR image: {str(e)}"
         )
+
+
+@router.get(
+    "/{qr_code_id}/analytics",
+    summary="Get QR Code Analytics",
+    description="Get comprehensive analytics for a QR code"
+)
+async def get_qr_analytics(
+    qr_code_id: UUID,
+    days: int = Query(30, ge=1, le=90, description="Number of days to analyze"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Get analytics for a QR code.
+    
+    Includes:
+    - Summary statistics
+    - Scans by date
+    - Scans by device type
+    - Scans by country
+    - Conversion funnel
+    
+    Args:
+        qr_code_id: QR code UUID
+        days: Number of days to analyze (1-90)
+        current_user: Authenticated user
+        db: Database session
+    
+    Returns:
+        Analytics data
+    
+    Raises:
+        404: QR code not found
+    """
+    from datetime import timedelta
+    from sqlalchemy import func as sql_func, case
+    from app.models.qr_code_scan import QRCodeScan
+    
+    # Verify QR code exists and belongs to tenant
+    qr_result = await db.execute(
+        select(QRCode).where(
+            and_(
+                QRCode.id == qr_code_id,
+                QRCode.tenant_id == current_user.tenant_id
+            )
+        )
+    )
+    qr_code = qr_result.scalar_one_or_none()
+    
+    if not qr_code:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"QR code {qr_code_id} not found"
+        )
+    
+    # Date range
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+    
+    # Get all scans in date range
+    scans_result = await db.execute(
+        select(QRCodeScan).where(
+            and_(
+                QRCodeScan.qr_code_id == qr_code_id,
+                QRCodeScan.scanned_at >= start_date
+            )
+        )
+    )
+    scans = scans_result.scalars().all()
+    
+    # Summary statistics
+    total_scans = len(scans)
+    started = sum(1 for s in scans if s.assessment_started)
+    completed = sum(1 for s in scans if s.assessment_completed)
+    leads = sum(1 for s in scans if s.lead_created)
+    
+    conversion_rate = (completed / total_scans * 100) if total_scans > 0 else 0.0
+    
+    summary = {
+        "total_scans": total_scans,
+        "unique_scans": qr_code.unique_scan_count,
+        "assessment_started": started,
+        "assessment_completed": completed,
+        "leads_created": leads,
+        "conversion_rate": round(conversion_rate, 2)
+    }
+    
+    # Scans by date
+    scans_by_date_dict = {}
+    for scan in scans:
+        date_str = scan.scanned_at.strftime("%Y-%m-%d")
+        scans_by_date_dict[date_str] = scans_by_date_dict.get(date_str, 0) + 1
+    
+    scans_by_date = [
+        {"date": date, "scans": count}
+        for date, count in sorted(scans_by_date_dict.items())
+    ]
+    
+    # Scans by device
+    device_counts = {"mobile": 0, "tablet": 0, "desktop": 0, "unknown": 0}
+    for scan in scans:
+        device_type = scan.device_type or "unknown"
+        if device_type in device_counts:
+            device_counts[device_type] += 1
+        else:
+            device_counts["unknown"] += 1
+    
+    scans_by_device = device_counts
+    
+    # Scans by country
+    country_counts = {}
+    for scan in scans:
+        if scan.country:
+            country_counts[scan.country] = country_counts.get(scan.country, 0) + 1
+    
+    scans_by_country = {
+        "country_scans": dict(sorted(
+            country_counts.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:10])  # Top 10 countries
+    }
+    
+    # Conversion funnel
+    funnel = {
+        "scanned": total_scans,
+        "started": started,
+        "completed": completed,
+        "converted": leads
+    }
+    
+    return {
+        "summary": summary,
+        "scans_by_date": scans_by_date,
+        "scans_by_device": scans_by_device,
+        "scans_by_country": scans_by_country,
+        "funnel": funnel
+    }
