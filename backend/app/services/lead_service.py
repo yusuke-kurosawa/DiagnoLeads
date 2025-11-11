@@ -7,13 +7,24 @@ Business logic for lead management with multi-tenant support.
 from uuid import UUID
 from typing import List, Optional
 from datetime import datetime
+import os
+import asyncio
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc, or_
 from fastapi import HTTPException, status
 
 from app.models.lead import Lead
+from app.models.tenant import Tenant
 from app.schemas.lead import LeadCreate, LeadUpdate, LeadStatusUpdate, LeadScoreUpdate
+
+# Teams integration
+try:
+    from app.integrations.microsoft.teams_webhook_client import TeamsWebhookClient
+    TEAMS_INTEGRATION_AVAILABLE = True
+except ImportError:
+    TEAMS_INTEGRATION_AVAILABLE = False
+    print("⚠️  Teams integration not available")
 
 
 class LeadService:
@@ -25,6 +36,58 @@ class LeadService:
 
     def __init__(self, db: Session):
         self.db = db
+        self._teams_notification_enabled = TEAMS_INTEGRATION_AVAILABLE
+    
+    async def _send_teams_notification(self, lead: Lead, tenant: Tenant) -> None:
+        """
+        Send Teams notification for hot lead (async)
+        
+        Args:
+            lead: Lead object
+            tenant: Tenant object
+        """
+        if not self._teams_notification_enabled:
+            return
+        
+        # Get webhook URL from tenant settings or environment
+        webhook_url = tenant.settings.get("teams_webhook_url") or os.getenv("TEAMS_WEBHOOK_URL")
+        
+        if not webhook_url:
+            print(f"⚠️  No Teams webhook URL configured for tenant {tenant.name}")
+            return
+        
+        # Check if lead is hot (score >= 80)
+        if lead.score < 80:
+            return
+        
+        try:
+            teams_client = TeamsWebhookClient(webhook_url)
+            
+            # Prepare lead data
+            lead_data = {
+                "lead_id": str(lead.id),
+                "company_name": lead.company or "N/A",
+                "contact_name": lead.name,
+                "job_title": lead.job_title or "N/A",
+                "email": lead.email,
+                "phone": lead.phone or "未提供",
+                "score": lead.score,
+                "assessment_title": "診断完了",  # TODO: Get from assessment
+            }
+            
+            # TODO: Construct actual dashboard URL
+            dashboard_url = f"https://app.diagnoleads.com/leads/{lead.id}"
+            
+            await teams_client.send_hot_lead_notification(
+                lead_data=lead_data,
+                dashboard_url=dashboard_url
+            )
+            
+            print(f"✅ Teams notification sent for lead {lead.id} (score: {lead.score})")
+            
+        except Exception as e:
+            # Log error but don't fail lead creation
+            print(f"⚠️  Failed to send Teams notification: {str(e)}")
 
     def list_by_tenant(
         self,
@@ -120,6 +183,17 @@ class LeadService:
         self.db.add(lead)
         self.db.commit()
         self.db.refresh(lead)
+        
+        # Send Teams notification if hot lead (async, non-blocking)
+        if lead.score >= 80:
+            tenant = self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
+            if tenant:
+                try:
+                    # Run async notification in background
+                    asyncio.create_task(self._send_teams_notification(lead, tenant))
+                except RuntimeError:
+                    # No event loop running, skip notification
+                    print("⚠️  Cannot send Teams notification: no event loop")
 
         return lead
 
@@ -198,18 +272,32 @@ class LeadService:
         self, lead_id: UUID, data: LeadScoreUpdate, tenant_id: UUID
     ) -> Optional[Lead]:
         """
-        Update lead score
+        Update lead score and send Teams notification if hot lead
         """
         lead = self.get_by_id(lead_id=lead_id, tenant_id=tenant_id)
 
         if not lead:
             return None
 
-        lead.score = data.score
+        old_score = lead.score
+        new_score = data.score
+        
+        lead.score = new_score
         lead.last_activity_at = datetime.utcnow()
 
         self.db.commit()
         self.db.refresh(lead)
+        
+        # Send Teams notification if lead becomes hot (score crosses threshold)
+        if old_score < 80 and new_score >= 80:
+            tenant = self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
+            if tenant:
+                try:
+                    # Run async notification in background
+                    asyncio.create_task(self._send_teams_notification(lead, tenant))
+                except RuntimeError:
+                    # No event loop running, skip notification
+                    print("⚠️  Cannot send Teams notification: no event loop")
 
         return lead
 

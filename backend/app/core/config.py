@@ -56,6 +56,14 @@ class Settings(BaseSettings):
     SALESFORCE_CLIENT_SECRET: str = ""
     HUBSPOT_API_KEY: str = ""
     SLACK_WEBHOOK_URL: str = ""
+    
+    # Microsoft Teams Integration
+    MICROSOFT_CLIENT_ID: str = ""
+    MICROSOFT_CLIENT_SECRET: str = ""
+    MICROSOFT_TENANT_ID: str = ""
+    BOT_APP_ID: str = ""
+    BOT_APP_PASSWORD: str = ""
+    TEAMS_WEBHOOK_URL: str = ""
 
     class Config:
         env_file = ".env"
