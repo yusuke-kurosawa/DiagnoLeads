@@ -1,16 +1,45 @@
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import AssessmentForm from '../../components/assessments/AssessmentForm';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AssessmentBuilder } from '../../components/assessments/AssessmentBuilder';
 import { assessmentService } from '../../services/assessmentService';
-import { Layout } from '../../components/layout/Layout';
 
 export function EditAssessmentPage() {
   const { tenantId, assessmentId } = useParams<{ tenantId: string; assessmentId: string }>();
+  const queryClient = useQueryClient();
 
   const { data: assessment, isLoading, error } = useQuery({
     queryKey: ['assessment', tenantId, assessmentId],
     queryFn: () => assessmentService.get(tenantId!, assessmentId!),
     enabled: !!tenantId && !!assessmentId,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return assessmentService.update(tenantId!, assessmentId!, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assessment', tenantId, assessmentId] });
+    },
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async () => {
+      return assessmentService.publish(tenantId!, assessmentId!);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assessment', tenantId, assessmentId] });
+      queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
+    },
+  });
+
+  const unpublishMutation = useMutation({
+    mutationFn: async () => {
+      return assessmentService.unpublish(tenantId!, assessmentId!);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assessment', tenantId, assessmentId] });
+      queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
+    },
   });
 
   if (!tenantId || !assessmentId) {
@@ -19,43 +48,65 @@ export function EditAssessmentPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">診断を読み込み中...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-          <p className="font-bold">Error loading assessment</p>
+      <div className="flex justify-center items-center h-screen">
+        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg max-w-md">
+          <p className="font-bold mb-2">エラーが発生しました</p>
           <p className="text-sm">{(error as Error).message}</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <Layout>
-      <div className="container mx-auto max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Assessment</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Update the assessment details.
-          </p>
-        </div>
-
-        <div className="bg-white shadow rounded-lg p-6">
-          <AssessmentForm 
-            tenantId={tenantId} 
-            assessmentId={assessmentId}
-            initialData={assessment}
-            mode="edit" 
-          />
-        </div>
+  if (!assessment) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-gray-600">診断が見つかりません</p>
       </div>
-    </Layout>
+    );
+  }
+
+  const handleUpdate = (updatedAssessment: any) => {
+    // Optimistic update (optional)
+    queryClient.setQueryData(['assessment', tenantId, assessmentId], updatedAssessment);
+  };
+
+  const handleSave = async (updatedAssessment: any) => {
+    await updateMutation.mutateAsync({
+      title: updatedAssessment.title,
+      description: updatedAssessment.description,
+      status: updatedAssessment.status,
+      // Note: Backend needs to support questions field
+      // For now, we'll just save basic fields
+    });
+  };
+
+  const handlePublish = async () => {
+    await publishMutation.mutateAsync();
+  };
+
+  const handleUnpublish = async () => {
+    await unpublishMutation.mutateAsync();
+  };
+
+  return (
+    <AssessmentBuilder
+      assessment={assessment as any}
+      onUpdate={handleUpdate}
+      onSave={handleSave}
+      onPublish={handlePublish}
+      onUnpublish={handleUnpublish}
+    />
   );
 }
 

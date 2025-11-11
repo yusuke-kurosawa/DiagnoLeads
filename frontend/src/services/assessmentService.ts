@@ -109,4 +109,26 @@ export const assessmentService = {
     );
     return response.data;
   },
+
+  async publish(tenantId: string, assessmentId: string) {
+    const response = await axios.post<Assessment>(
+      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}/publish`,
+      {},
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  },
+
+  async unpublish(tenantId: string, assessmentId: string) {
+    const response = await axios.post<Assessment>(
+      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}/unpublish`,
+      {},
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  },
 };

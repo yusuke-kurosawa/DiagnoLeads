@@ -42,12 +42,16 @@ interface AssessmentBuilderProps {
   assessment: Assessment;
   onUpdate?: (assessment: Assessment) => void;
   onSave?: (assessment: Assessment) => Promise<void>;
+  onPublish?: () => Promise<void>;
+  onUnpublish?: () => Promise<void>;
 }
 
 export function AssessmentBuilder({ 
   assessment, 
   onUpdate,
-  onSave 
+  onSave,
+  onPublish,
+  onUnpublish
 }: AssessmentBuilderProps) {
   const [questions, setQuestions] = useState<Question[]>(assessment.questions || []);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(
@@ -214,7 +218,11 @@ export function AssessmentBuilder({
 
         {/* Right: Settings Panel */}
         <div className="w-80 bg-gray-50 border-l border-gray-200 overflow-y-auto">
-          <SettingsPanel assessment={assessment} />
+          <SettingsPanel 
+            assessment={assessment} 
+            onPublish={onPublish}
+            onUnpublish={onUnpublish}
+          />
         </div>
       </div>
     </div>
