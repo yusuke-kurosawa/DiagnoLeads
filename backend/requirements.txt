@@ -20,6 +20,28 @@ python-dotenv==1.0.0
 # AI - Anthropic Claude
 anthropic==0.7.7
 
+# Microsoft 365 Integration (Phase 1)
+msal==1.25.0
+msgraph-sdk==1.2.0
+
+# LINE Messaging API (Phase 1)
+line-bot-sdk==3.6.0
+
+# SMS - Twilio (Phase 1)
+twilio==8.10.0
+
+# QR Code Generation (Phase 1)
+qrcode[pil]==7.4.2
+pillow==10.1.0
+
+# A/B Testing & Statistics (Phase 1)
+scipy==1.11.4
+numpy==1.26.2
+
+# Bot Framework (Phase 1)
+botbuilder-core==4.15.0
+botbuilder-schema==4.15.0
+
 # HTTP Client
 httpx==0.25.1
 
