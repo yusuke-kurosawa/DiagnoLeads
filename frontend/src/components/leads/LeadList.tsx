@@ -7,8 +7,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { SearchIcon } from 'lucide-react';
 import { leadService } from '../../services/leadService';
-import { LeadStatusBadge } from './LeadStatusBadge';
+import { LeadFilters, LeadFilterState } from './LeadFilters';
+import { LeadRow } from './LeadRow';
 import type { components } from '../../types/api.generated';
 
 type LeadResponse = components['schemas']['LeadResponse'];
@@ -20,43 +22,50 @@ interface LeadListProps {
 export const LeadList: React.FC<LeadListProps> = ({ tenantId }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [showHotLeadsOnly, setShowHotLeadsOnly] = useState(false);
+  const [filters, setFilters] = useState<LeadFilterState>({});
 
-  // Fetch leads
+  // Fetch leads with filters
   const { data: leads, isLoading, error } = useQuery<LeadResponse[]>({
-    queryKey: ['leads', tenantId, statusFilter, showHotLeadsOnly],
+    queryKey: ['leads', tenantId, filters, searchQuery],
     queryFn: async () => {
-      if (showHotLeadsOnly) {
+      if (searchQuery.length > 0) {
+        return leadService.search(tenantId, searchQuery);
+      }
+      if (filters.is_hot) {
         return leadService.getHotLeads(tenantId);
       }
       return leadService.list(tenantId, {
-        status: statusFilter || undefined,
+        status: filters.status?.[0] || undefined,
         limit: 100,
       });
     },
   });
 
-  // Search leads
-  const { data: searchResults } = useQuery<LeadResponse[]>({
-    queryKey: ['leads-search', tenantId, searchQuery],
-    queryFn: () => leadService.search(tenantId, searchQuery),
-    enabled: searchQuery.length > 0,
-  });
-
-  const displayLeads = searchQuery.length > 0 ? searchResults : leads;
-
-  const getScoreColor = (score: number): string => {
-    if (score >= 61) return 'text-green-600 font-semibold';
-    if (score >= 31) return 'text-yellow-600';
-    return 'text-gray-600';
-  };
-
-  const getScoreLabel = (score: number): string => {
-    if (score >= 61) return 'Hot';
-    if (score >= 31) return 'Warm';
-    return 'Cold';
-  };
+  // Apply client-side filters
+  const displayLeads = React.useMemo(() => {
+    if (!leads) return [];
+    
+    return leads.filter((lead) => {
+      // Score filter
+      if (filters.score_min !== undefined && lead.score < filters.score_min) return false;
+      if (filters.score_max !== undefined && lead.score > filters.score_max) return false;
+      
+      // Status filter
+      if (filters.status && filters.status.length > 0) {
+        if (!filters.status.includes(lead.status)) return false;
+      }
+      
+      // Date filter
+      if (filters.created_after) {
+        if (new Date(lead.created_at) < new Date(filters.created_after)) return false;
+      }
+      if (filters.created_before) {
+        if (new Date(lead.created_at) > new Date(filters.created_before)) return false;
+      }
+      
+      return true;
+    });
+  }, [leads, filters]);
 
   if (isLoading) {
     return (
@@ -74,135 +83,118 @@ export const LeadList: React.FC<LeadListProps> = ({ tenantId }) => {
     );
   }
 
+  const handleResetFilters = () => {
+    setFilters({});
+    setSearchQuery('');
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Leads</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">リード管理</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            獲得したリードを管理し、商談につなげます
+          </p>
+        </div>
         <button
           onClick={() => navigate(`/tenants/${tenantId}/leads/create`)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-sm"
         >
-          Create Lead
+          + 新規リード
         </button>
       </div>
 
-      {/* Filters and search */}
-      <div className="flex gap-4 flex-wrap">
-        <input
-          type="text"
-          placeholder="Search by name, email, or company..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 min-w-[300px] px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-        />
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">All Statuses</option>
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="converted">Converted</option>
-          <option value="disqualified">Disqualified</option>
-        </select>
-
-        <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showHotLeadsOnly}
-            onChange={(e) => setShowHotLeadsOnly(e.target.checked)}
-            className="rounded text-blue-600 focus:ring-blue-500"
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left: Filters */}
+        <div className="col-span-3">
+          <LeadFilters 
+            filters={filters} 
+            onChange={setFilters}
+            onReset={handleResetFilters}
           />
-          <span className="text-sm font-medium text-gray-700">Hot Leads Only</span>
-        </label>
-      </div>
-
-      {/* Results count */}
-      {displayLeads && (
-        <div className="text-sm text-gray-600">
-          {displayLeads.length} lead{displayLeads.length !== 1 ? 's' : ''} found
         </div>
-      )}
 
-      {/* Lead list */}
-      {displayLeads && displayLeads.length > 0 ? (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
-            {displayLeads.map((lead) => (
-              <li
-                key={lead.id}
-                onClick={() => navigate(`/tenants/${tenantId}/leads/${lead.id}`)}
-                className="hover:bg-gray-50 cursor-pointer transition-colors"
+        {/* Right: List */}
+        <div className="col-span-9 space-y-4">
+          {/* Search bar */}
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="名前、メール、会社名で検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Results count */}
+          {displayLeads && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                <span className="font-semibold">{displayLeads.length}</span> 件のリード
+              </div>
+            </div>
+          )}
+
+          {/* Lead table */}
+          {displayLeads && displayLeads.length > 0 ? (
+            <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                      Hot
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      名前
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      会社
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      連絡先
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      スコア
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ステータス
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      獲得日
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {displayLeads.map((lead) => (
+                    <LeadRow 
+                      key={lead.id} 
+                      lead={lead as any} 
+                      tenantId={tenantId} 
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+              <p className="text-gray-500 mb-2">リードが見つかりません</p>
+              <p className="text-sm text-gray-400 mb-4">
+                フィルターをリセットするか、新しいリードを作成してください
+              </p>
+              <button
+                onClick={() => navigate(`/tenants/${tenantId}/leads/create`)}
+                className="text-blue-600 hover:text-blue-700 font-medium"
               >
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {lead.name}
-                        </h3>
-                        <LeadStatusBadge status={lead.status} />
-                        <span className={`text-sm ${getScoreColor(lead.score)}`}>
-                          {lead.score} pts ({getScoreLabel(lead.score)})
-                        </span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-                        <span>{lead.email}</span>
-                        {lead.company && (
-                          <>
-                            <span>•</span>
-                            <span>{lead.company}</span>
-                          </>
-                        )}
-                        {lead.job_title && (
-                          <>
-                            <span>•</span>
-                            <span>{lead.job_title}</span>
-                          </>
-                        )}
-                      </div>
-                      {lead.tags && lead.tags.length > 0 && (
-                        <div className="mt-2 flex gap-2">
-                          {lead.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right text-sm text-gray-500">
-                      <div>Created: {new Date(lead.created_at).toLocaleDateString()}</div>
-                      {lead.last_contacted_at && (
-                        <div>
-                          Last contact: {new Date(lead.last_contacted_at).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                最初のリードを作成
+              </button>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-500">No leads found</p>
-          <button
-            onClick={() => navigate(`/tenants/${tenantId}/leads/create`)}
-            className="mt-4 text-blue-600 hover:text-blue-700"
-          >
-            Create your first lead
-          </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
