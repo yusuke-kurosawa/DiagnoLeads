@@ -1208,6 +1208,216 @@
         }
       }
     },
+    "/api/v1/tenants/{tenant_id}/analytics/overview": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get overview analytics",
+        "description": "Get overview analytics for dashboard\n\nReturns:\n    - Lead statistics (total, status distribution, score distribution)\n    - Assessment statistics (total, status distribution, AI generation)\n    - Conversion metrics",
+        "operationId": "getOverviewAnalytics",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tenants/{tenant_id}/analytics/leads": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get lead analytics",
+        "description": "Get detailed lead analytics\n\nReturns:\n    - Total leads\n    - Status distribution (new, contacted, qualified, converted, disqualified)\n    - Score distribution (hot, warm, cold)\n    - Average score\n    - Conversion rate",
+        "operationId": "getLeadAnalytics",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tenants/{tenant_id}/analytics/assessments": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get assessment analytics",
+        "description": "Get detailed assessment analytics\n\nReturns:\n    - Total assessments\n    - Status distribution (draft, published, archived)\n    - AI generation vs manual creation",
+        "operationId": "getAssessmentAnalytics",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tenants/{tenant_id}/analytics/trends": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get trend data",
+        "description": "Get trend data for a specific metric\n\nArgs:\n    period: Time period (7d, 30d, 90d)\n    metric: Metric type (leads, assessments)\n\nReturns:\n    - Data points with date and value\n    - Summary statistics",
+        "operationId": "getTrendData",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(7d|30d|90d)$",
+              "default": "30d",
+              "title": "Period"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(leads|assessments)$",
+              "default": "leads",
+              "title": "Metric"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/": {
       "get": {
         "summary": "Api Root",
