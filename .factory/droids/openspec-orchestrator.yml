@@ -1,0 +1,406 @@
+name: openspec-orchestrator
+version: 2.0.0
+description: |
+  OpenSpec統合オーケストレーター
+  
+  OpenSpec（機能仕様）とOpenAPI（API仕様）を連携させ、
+  仕様駆動開発のライフサイクル全体を自動化します。
+  
+  Proposal → Review → Approve → Implement → Archive → Verify
+
+activation:
+  # OpenSpec仕様変更時
+  file_patterns:
+    - "openspec/**/*.md"
+    - "openapi.json"
+  
+  # 手動コマンド
+  commands:
+    - "/openspec-status"      # 仕様ステータスの確認
+    - "/openspec-impact"      # 変更影響範囲の分析
+    - "/openspec-implement"   # 仕様から実装骨組みを生成
+    - "/openspec-verify"      # 実装が仕様を満たすか検証
+    - "/openspec-report"      # 完全レポート生成
+
+workflows:
+  # 1. 仕様ステータス確認
+  status_check:
+    description: OpenSpec仕様の現在状態を可視化
+    steps:
+      - name: "Spec Inventory"
+        command: |
+          echo "📊 OpenSpec Inventory"
+          echo "===================="
+          echo ""
+          echo "✅ Approved Specs: $(find openspec/specs -name '*.md' -type f | wc -l)"
+          echo "⏳ Pending Changes: $(find openspec/changes -name '*.md' -type f 2>/dev/null | wc -l)"
+          echo "📦 Archived: $(find openspec/archive -name '*.md' -type f 2>/dev/null | wc -l)"
+          echo ""
+          echo "📂 Specs by Category:"
+          for dir in openspec/specs/*/; do
+            if [ -d "$dir" ]; then
+              category=$(basename "$dir")
+              count=$(find "$dir" -name "*.md" -type f | wc -l)
+              echo "  - $category: $count specs"
+            fi
+          done
+        on_error: warn
+      
+      - name: "Implementation Coverage"
+        command: |
+          echo ""
+          echo "🔍 Implementation Coverage Analysis"
+          echo "===================================="
+          
+          # API仕様の実装カバレッジ
+          api_specs=$(find openspec/specs -path "*/api/*.md" 2>/dev/null | wc -l)
+          api_endpoints=$(find backend/app/api -name "*.py" ! -name "__init__.py" | wc -l)
+          echo "API Endpoints: $api_endpoints files for $api_specs specs"
+          
+          # 機能仕様の実装カバレッジ
+          feature_specs=$(find openspec/specs/features -name "*.md" 2>/dev/null | wc -l)
+          echo "Features: $feature_specs specs"
+          
+          # データモデルの実装カバレッジ
+          model_files=$(find backend/app/models -name "*.py" ! -name "__init__.py" | wc -l)
+          echo "Data Models: $model_files implemented"
+        on_error: warn
+
+  # 2. 変更影響範囲分析
+  impact_analysis:
+    description: 仕様変更の影響範囲を分析
+    steps:
+      - name: "Detect Changed Specs"
+        command: |
+          echo "🔍 Detecting Changed Specifications"
+          echo "===================================="
+          
+          # Git差分から変更された仕様を抽出
+          changed_specs=$(git diff --name-only HEAD openspec/specs/ | grep "\.md$" || echo "")
+          
+          if [ -z "$changed_specs" ]; then
+            echo "No specification changes detected."
+            exit 0
+          fi
+          
+          echo "Changed specs:"
+          echo "$changed_specs"
+          echo ""
+          
+          # 各仕様ファイルの変更内容を分析
+          for spec in $changed_specs; do
+            echo "Analyzing: $spec"
+            
+            # API仕様の場合、関連エンドポイントを検索
+            if echo "$spec" | grep -q "api"; then
+              echo "  → API specification change detected"
+              echo "  → Affected: backend/app/api/"
+              echo "  → Action: Regenerate OpenAPI spec"
+            fi
+            
+            # 機能仕様の場合、関連コンポーネントを検索
+            if echo "$spec" | grep -q "features"; then
+              feature_name=$(basename "$spec" .md)
+              echo "  → Feature specification change: $feature_name"
+              
+              # バックエンドの関連ファイルを検索
+              backend_files=$(grep -rl "$feature_name" backend/ --include="*.py" 2>/dev/null | head -5 || echo "")
+              if [ -n "$backend_files" ]; then
+                echo "  → Backend files may need update:"
+                echo "$backend_files" | sed 's/^/      /'
+              fi
+              
+              # フロントエンドの関連ファイルを検索
+              frontend_files=$(grep -rl "$feature_name" frontend/src --include="*.tsx" --include="*.ts" 2>/dev/null | head -5 || echo "")
+              if [ -n "$frontend_files" ]; then
+                echo "  → Frontend files may need update:"
+                echo "$frontend_files" | sed 's/^/      /'
+              fi
+            fi
+            echo ""
+          done
+        on_error: warn
+      
+      - name: "Suggest Actions"
+        command: |
+          echo "💡 Suggested Actions"
+          echo "===================="
+          echo ""
+          echo "1. Review the changes in openspec/specs/"
+          echo "2. Update related implementation files"
+          echo "3. Regenerate OpenAPI spec: /openapi生成"
+          echo "4. Run tests: /dev-check"
+          echo "5. Update documentation if needed"
+        on_error: ignore
+
+  # 3. 仕様から実装骨組み生成
+  scaffold_from_spec:
+    description: OpenSpec仕様から実装の骨組みを生成
+    steps:
+      - name: "Parse Spec File"
+        command: |
+          echo "🏗️  Generating Implementation Scaffold"
+          echo "======================================"
+          echo ""
+          echo "Note: This is a template generator."
+          echo "Manual implementation is still required."
+          echo ""
+          
+          # 最新の変更提案を確認
+          latest_change=$(find openspec/changes -name "*.md" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+          
+          if [ -n "$latest_change" ]; then
+            echo "Latest change proposal: $latest_change"
+            echo ""
+            echo "Analyzing specification..."
+            
+            # 仕様からキーワードを抽出
+            if grep -q "API" "$latest_change"; then
+              echo "  → API specification detected"
+              echo "  → Generate: backend/app/api/[endpoint].py"
+              echo "  → Template: .factory/templates/api_endpoint.py"
+            fi
+            
+            if grep -q -i "model\|schema\|entity" "$latest_change"; then
+              echo "  → Data model specification detected"
+              echo "  → Generate: backend/app/models/[model].py"
+              echo "  → Template: .factory/templates/model.py"
+            fi
+            
+            if grep -q -i "component\|ui\|frontend" "$latest_change"; then
+              echo "  → UI component specification detected"
+              echo "  → Generate: frontend/src/components/[Component].tsx"
+              echo "  → Template: .factory/templates/component.tsx"
+            fi
+          else
+            echo "No pending changes found in openspec/changes/"
+          fi
+        on_error: warn
+
+  # 4. 実装検証
+  verify_implementation:
+    description: 実装が仕様を満たすか検証
+    steps:
+      - name: "Check Spec Coverage"
+        command: |
+          echo "✅ Verifying Implementation Coverage"
+          echo "===================================="
+          echo ""
+          
+          # 各カテゴリの仕様と実装を比較
+          
+          # 1. API仕様の検証
+          echo "1. API Specifications"
+          api_spec_count=$(find openspec/specs -path "*/api/*.md" 2>/dev/null | wc -l)
+          api_impl_count=$(find backend/app/api -name "*.py" ! -name "__init__.py" | wc -l)
+          echo "   Specs: $api_spec_count | Implementations: $api_impl_count"
+          
+          # 2. 機能仕様の検証
+          echo "2. Feature Specifications"
+          feature_spec_count=$(find openspec/specs/features -name "*.md" 2>/dev/null | wc -l)
+          echo "   Specs: $feature_spec_count"
+          
+          # 3. 認証仕様の検証
+          echo "3. Auth Specifications"
+          auth_spec_count=$(find openspec/specs/auth -name "*.md" 2>/dev/null | wc -l)
+          echo "   Specs: $auth_spec_count"
+          
+          echo ""
+          echo "Run /dev-check for detailed validation"
+        on_error: warn
+      
+      - name: "Check OpenAPI Sync"
+        command: |
+          echo ""
+          echo "📄 OpenAPI Specification Sync"
+          echo "=============================="
+          
+          if [ -f "openapi.json" ]; then
+            spec_mtime=$(stat -c %Y openapi.json 2>/dev/null || stat -f %m openapi.json 2>/dev/null)
+            backend_mtime=$(find backend/app/api -name "*.py" -type f -printf '%T@\n' 2>/dev/null | sort -rn | head -1 | cut -d. -f1)
+            
+            if [ "$backend_mtime" -gt "$spec_mtime" ]; then
+              echo "⚠️  WARNING: Backend code is newer than OpenAPI spec"
+              echo "    Run: /openapi生成"
+            else
+              echo "✅ OpenAPI spec is up to date"
+            fi
+          else
+            echo "⚠️  WARNING: openapi.json not found"
+            echo "    Run: cd backend && python scripts/generate_openapi.py"
+          fi
+        on_error: warn
+
+  # 5. 完全レポート生成
+  full_report:
+    description: OpenSpec統合レポートを生成
+    steps:
+      - name: "Generate Comprehensive Report"
+        command: |
+          cat << 'EOF'
+          ╔════════════════════════════════════════════════════╗
+          ║       OpenSpec Integration Report                  ║
+          ╚════════════════════════════════════════════════════╝
+          
+          📊 SPECIFICATION INVENTORY
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          EOF
+          
+          approved=$(find openspec/specs -name "*.md" -type f | wc -l)
+          pending=$(find openspec/changes -name "*.md" -type f 2>/dev/null | wc -l)
+          archived=$(find openspec/archive -name "*.md" -type f 2>/dev/null | wc -l)
+          
+          echo "  Approved Specifications: $approved"
+          echo "  Pending Changes: $pending"
+          echo "  Archived Changes: $archived"
+          echo ""
+          
+          cat << 'EOF'
+          🔍 IMPLEMENTATION STATUS
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          EOF
+          
+          api_endpoints=$(find backend/app/api -name "*.py" ! -name "__init__.py" | wc -l)
+          models=$(find backend/app/models -name "*.py" ! -name "__init__.py" | wc -l)
+          services=$(find backend/app/services -name "*.py" ! -name "__init__.py" | wc -l)
+          components=$(find frontend/src -name "*.tsx" -type f | wc -l)
+          
+          echo "  Backend API Endpoints: $api_endpoints"
+          echo "  Data Models: $models"
+          echo "  Services: $services"
+          echo "  Frontend Components: $components"
+          echo ""
+          
+          cat << 'EOF'
+          📂 SPECIFICATION CATEGORIES
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          EOF
+          
+          for dir in openspec/specs/*/; do
+            if [ -d "$dir" ]; then
+              category=$(basename "$dir")
+              count=$(find "$dir" -name "*.md" -type f | wc -l)
+              if [ $count -gt 0 ]; then
+                printf "  %-20s : %2d specs\n" "$category" "$count"
+              fi
+            fi
+          done
+          echo ""
+          
+          cat << 'EOF'
+          🎯 NEXT ACTIONS
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          EOF
+          
+          if [ $pending -gt 0 ]; then
+            echo "  → Review $pending pending change(s) in openspec/changes/"
+          fi
+          
+          if [ -f "openapi.json" ]; then
+            backend_newer=$(find backend/app/api -name "*.py" -type f -newer openapi.json | wc -l)
+            if [ $backend_newer -gt 0 ]; then
+              echo "  → Regenerate OpenAPI spec (backend code has changed)"
+            fi
+          fi
+          
+          echo "  → Run /dev-check for quality validation"
+          echo "  → Run /openspec-verify for detailed coverage"
+          echo ""
+        on_error: ignore
+
+# 統合機能
+integration:
+  # OpenSpec → OpenAPI 連携
+  openspec_to_openapi:
+    enabled: true
+    trigger: "on_spec_approval"
+    action: "suggest_openapi_update"
+  
+  # 実装検証
+  verification:
+    enabled: true
+    on_commit: false
+    on_pr: true
+  
+  # レポート自動生成
+  reporting:
+    enabled: true
+    schedule: "weekly"
+    format: "markdown"
+
+# 通知設定
+notifications:
+  on_spec_change:
+    enabled: true
+    message: |
+      📝 OpenSpec Change Detected
+      
+      A specification has been modified.
+      Run /openspec-impact to analyze the impact.
+  
+  on_pending_changes:
+    enabled: true
+    threshold: 3  # 3つ以上の未承認変更で通知
+    message: |
+      ⚠️  Multiple Pending Specifications
+      
+      There are {count} pending changes awaiting review.
+      Consider reviewing and approving them.
+
+# ベストプラクティス
+best_practices:
+  - rule: "Spec Before Code"
+    description: "実装前に必ず仕様を承認する"
+    enforcement: "recommend"
+  
+  - rule: "Spec-Implementation Sync"
+    description: "仕様と実装を常に同期させる"
+    enforcement: "error"
+  
+  - rule: "OpenSpec + OpenAPI"
+    description: "機能仕様（OpenSpec）とAPI仕様（OpenAPI）を両方維持"
+    enforcement: "recommend"
+  
+  - rule: "Regular Verification"
+    description: "定期的に /openspec-verify を実行"
+    enforcement: "recommend"
+
+# ヘルプ
+help:
+  commands:
+    - command: "/openspec-status"
+      description: "仕様の現在状態と統計を表示"
+    
+    - command: "/openspec-impact"
+      description: "仕様変更の影響範囲を分析"
+    
+    - command: "/openspec-implement"
+      description: "仕様から実装の骨組みを生成"
+    
+    - command: "/openspec-verify"
+      description: "実装カバレッジを検証"
+    
+    - command: "/openspec-report"
+      description: "統合レポートを生成"
+  
+  quick_start: |
+    # OpenSpec Orchestrator Quick Start
+    
+    1. 仕様の状態を確認:
+       /openspec-status
+    
+    2. 新機能を提案:
+       - openspec/changes/ に仕様ファイルを作成
+       - チームでレビュー
+    
+    3. 承認後に実装:
+       - 仕様を openspec/specs/ に移動
+       - /openspec-implement で骨組み生成
+       - 実装を完成
+    
+    4. 検証:
+       /openspec-verify
+       /dev-check
+    
+    5. アーカイブ:
+       - 完了した仕様を openspec/archive/ に移動
