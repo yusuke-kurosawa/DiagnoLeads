@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import Login from './pages/LoginNew';
+import { ToastProvider } from './contexts/ToastContext';
+import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/DashboardNew';
+import Dashboard from './pages/Dashboard';
 import { AssessmentsPage } from './pages/assessments/AssessmentsPage';
 import { CreateAssessmentPage } from './pages/assessments/CreateAssessmentPage';
 import { EditAssessmentPage } from './pages/assessments/EditAssessmentPage';
@@ -38,8 +39,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ToastProvider>
+      <Router>
+        <Routes>
         {/* Public routes */}
         <Route
           path="/login"
@@ -150,6 +152,7 @@ function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
+    </ToastProvider>
   );
 }
 
