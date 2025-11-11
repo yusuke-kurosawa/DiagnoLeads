@@ -9,8 +9,8 @@
  * - Optimistic updates
  */
 
-import React, { useState } from 'react';
-import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
+import { useState } from 'react';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 
 export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'negotiation' | 'won' | 'lost';
 

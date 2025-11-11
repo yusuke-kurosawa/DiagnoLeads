@@ -8,7 +8,7 @@
  * - Display notes chronologically
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PlusIcon, EditIcon, TrashIcon, SaveIcon, XIcon, StickyNoteIcon } from 'lucide-react';
 
 export interface Note {

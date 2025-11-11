@@ -8,13 +8,12 @@
  * - Contact events
  */
 
-import React from 'react';
+
 import {
   ClipboardCheckIcon,
   RefreshCwIcon,
   MessageSquareIcon,
   MailIcon,
-  PhoneIcon,
   UserPlusIcon,
   CalendarIcon,
 } from 'lucide-react';
@@ -26,7 +25,7 @@ export interface TimelineEvent {
   description?: string;
   timestamp: string;
   user?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface ActivityTimelineProps {
@@ -160,7 +159,21 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
 }
 
 // Helper function to generate timeline from lead data
-export function generateTimelineFromLead(lead: any): TimelineEvent[] {
+export function generateTimelineFromLead(lead: {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  score: number;
+  status: string;
+  assessment_responses?: Array<{
+    id: string;
+    assessment_title?: string;
+    completed_at?: string;
+    created_at: string;
+  }>;
+  last_contacted_at?: string;
+}): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
   // Created event
@@ -174,7 +187,7 @@ export function generateTimelineFromLead(lead: any): TimelineEvent[] {
 
   // Assessment completion (if available)
   if (lead.assessment_responses && lead.assessment_responses.length > 0) {
-    lead.assessment_responses.forEach((response: any, index: number) => {
+    lead.assessment_responses.forEach((response) => {
       events.push({
         id: `assessment-${response.id}`,
         type: 'assessment',

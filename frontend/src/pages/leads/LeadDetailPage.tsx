@@ -10,12 +10,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlameIcon, MailIcon, PhoneIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { leadService } from '../../services/leadService';
-import { LeadStatusBadge } from '../../components/leads/LeadStatusBadge';
+
 import { ScoreBreakdown } from '../../components/leads/ScoreBreakdown';
 import { ActivityTimeline, generateTimelineFromLead } from '../../components/leads/ActivityTimeline';
-import { NotesSection, Note } from '../../components/leads/NotesSection';
-import { StatusDropdown, LeadStatus } from '../../components/leads/StatusDropdown';
-import { StatusHistory, StatusChange } from '../../components/leads/StatusHistory';
+import { NotesSection, type Note } from '../../components/leads/NotesSection';
+import { StatusDropdown, type LeadStatus } from '../../components/leads/StatusDropdown';
+import { StatusHistory, type StatusChange } from '../../components/leads/StatusHistory';
 
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
@@ -117,11 +117,7 @@ export const LeadDetailPage: React.FC = () => {
     return 'text-gray-600';
   };
 
-  const getScoreLabel = (score: number): string => {
-    if (score >= 61) return 'Hot Lead';
-    if (score >= 31) return 'Warm Lead';
-    return 'Cold Lead';
-  };
+
 
   if (!user || !user.tenant_id) {
     return (

@@ -14,7 +14,11 @@ export function EditAssessmentPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: {
+      title?: string;
+      description?: string;
+      status?: string;
+    }) => {
       return assessmentService.update(tenantId!, assessmentId!, data);
     },
     onSuccess: () => {
@@ -76,12 +80,22 @@ export function EditAssessmentPage() {
     );
   }
 
-  const handleUpdate = (updatedAssessment: any) => {
+  const handleUpdate = (updatedAssessment: {
+    id: string;
+    title: string;
+    description?: string;
+    status: string;
+    questions: Array<{ id: string; text: string; type: string }>;
+  }) => {
     // Optimistic update (optional)
     queryClient.setQueryData(['assessment', tenantId, assessmentId], updatedAssessment);
   };
 
-  const handleSave = async (updatedAssessment: any) => {
+  const handleSave = async (updatedAssessment: {
+    title: string;
+    description?: string;
+    status: string;
+  }) => {
     await updateMutation.mutateAsync({
       title: updatedAssessment.title,
       description: updatedAssessment.description,
@@ -101,7 +115,7 @@ export function EditAssessmentPage() {
 
   return (
     <AssessmentBuilder
-      assessment={assessment as any}
+      assessment={assessment}
       onUpdate={handleUpdate}
       onSave={handleSave}
       onPublish={handlePublish}

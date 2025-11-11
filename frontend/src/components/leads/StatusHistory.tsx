@@ -8,7 +8,7 @@
  * - Notes/reasons
  */
 
-import React from 'react';
+
 import { ArrowRightIcon, ClockIcon } from 'lucide-react';
 
 export interface StatusChange {

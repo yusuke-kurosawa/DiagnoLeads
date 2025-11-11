@@ -13,6 +13,7 @@ import { CreateLeadPage } from './pages/leads/CreateLeadPage';
 import { EditLeadPage } from './pages/leads/EditLeadPage';
 import { LeadDetailPage } from './pages/leads/LeadDetailPage';
 import AnalyticsPage from './pages/analytics/AnalyticsPage';
+import ComponentsShowcase from './pages/ComponentsShowcase';
 import './App.css';
 
 // Protected Route wrapper
@@ -147,6 +148,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Components Showcase (Demo) */}
+        <Route path="/components" element={<ComponentsShowcase />} />
 
         {/* Default redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

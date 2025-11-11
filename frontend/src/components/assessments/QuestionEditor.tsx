@@ -9,7 +9,7 @@
  * - Required flag
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 
 interface Question {

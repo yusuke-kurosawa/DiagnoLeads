@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { SearchIcon } from 'lucide-react';
 import { leadService } from '../../services/leadService';
-import { LeadFilters, LeadFilterState } from './LeadFilters';
+import { LeadFilters, type LeadFilterState } from './LeadFilters';
 import { LeadRow } from './LeadRow';
 import type { components } from '../../types/api.generated';
 
@@ -172,7 +172,7 @@ export const LeadList: React.FC<LeadListProps> = ({ tenantId }) => {
                   {displayLeads.map((lead) => (
                     <LeadRow 
                       key={lead.id} 
-                      lead={lead as any} 
+                      lead={lead} 
                       tenantId={tenantId} 
                     />
                   ))}

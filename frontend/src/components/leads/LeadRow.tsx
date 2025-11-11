@@ -8,7 +8,7 @@
  * - Quick actions
  */
 
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { FlameIcon, MailIcon, PhoneIcon, BuildingIcon } from 'lucide-react';
 import { LeadStatusBadge } from './LeadStatusBadge';

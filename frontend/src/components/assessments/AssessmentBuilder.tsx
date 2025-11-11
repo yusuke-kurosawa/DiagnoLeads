@@ -8,7 +8,7 @@
  * - Auto-save functionality
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { QuestionList } from './QuestionList';
 import { QuestionEditor } from './QuestionEditor';
 import { SettingsPanel } from './SettingsPanel';
@@ -35,7 +35,7 @@ interface Assessment {
   description?: string;
   status: 'draft' | 'published' | 'unpublished';
   questions: Question[];
-  scoring_rules?: any;
+  scoring_rules?: Record<string, unknown>;
 }
 
 interface AssessmentBuilderProps {

@@ -8,7 +8,7 @@
  * - Preview link
  */
 
-import React from 'react';
+
 import { 
   EyeIcon, 
   CodeIcon, 
@@ -23,7 +23,12 @@ interface Assessment {
   title: string;
   description?: string;
   status: 'draft' | 'published' | 'unpublished';
-  questions: any[];
+  questions: Array<{
+    id: string;
+    text: string;
+    type: string;
+    options?: Array<{ text: string; score: number }>;
+  }>;
 }
 
 interface SettingsPanelProps {

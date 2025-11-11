@@ -9,7 +9,7 @@
  * - Hot leads toggle
  */
 
-import React from 'react';
+
 import { FilterIcon, XIcon } from 'lucide-react';
 
 export interface LeadFilterState {
