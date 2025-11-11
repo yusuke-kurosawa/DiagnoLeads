@@ -14,6 +14,8 @@ import { LeadStatusBadge } from '../../components/leads/LeadStatusBadge';
 import { ScoreBreakdown } from '../../components/leads/ScoreBreakdown';
 import { ActivityTimeline, generateTimelineFromLead } from '../../components/leads/ActivityTimeline';
 import { NotesSection, Note } from '../../components/leads/NotesSection';
+import { StatusDropdown, LeadStatus } from '../../components/leads/StatusDropdown';
+import { StatusHistory, StatusChange } from '../../components/leads/StatusHistory';
 
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
@@ -48,6 +50,37 @@ export const LeadDetailPage: React.FC = () => {
 
   // Note handlers (simulated - would connect to API)
   const [notes, setNotes] = useState<Note[]>([]);
+
+  // Status management
+  const [statusHistory, setStatusHistory] = useState<StatusChange[]>([]);
+
+  const handleStatusChange = async (newStatus: LeadStatus, note?: string) => {
+    if (!lead) return;
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Add to history
+    const change: StatusChange = {
+      id: `change-${Date.now()}`,
+      from_status: lead.status,
+      to_status: newStatus,
+      changed_at: new Date().toISOString(),
+      changed_by: user?.email,
+      note,
+    };
+    setStatusHistory([change, ...statusHistory]);
+    
+    // Update lead status (in real app, this would be from API response)
+    queryClient.setQueryData(['leads', user?.tenant_id, leadId], {
+      ...lead,
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    });
+    
+    // Invalidate to refetch from server
+    queryClient.invalidateQueries({ queryKey: ['leads', user?.tenant_id, leadId] });
+  };
 
   const handleAddNote = async (content: string) => {
     // Simulate API call
@@ -144,7 +177,10 @@ export const LeadDetailPage: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-3 mb-4">
-                <LeadStatusBadge status={lead.status} />
+                <StatusDropdown
+                  currentStatus={lead.status as LeadStatus}
+                  onChange={handleStatusChange}
+                />
                 <span className={`text-sm font-semibold ${getScoreColor(lead.score)}`}>
                   スコア: {lead.score} / 100
                 </span>
@@ -222,6 +258,9 @@ export const LeadDetailPage: React.FC = () => {
 
           {/* Activity Timeline */}
           <ActivityTimeline events={timelineEvents} />
+
+          {/* Status History */}
+          <StatusHistory history={statusHistory} />
 
           {/* Notes Section */}
           <NotesSection
