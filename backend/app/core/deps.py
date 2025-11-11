@@ -5,7 +5,6 @@ Provides database session, authentication, and authorization dependencies.
 """
 
 from typing import Generator
-from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

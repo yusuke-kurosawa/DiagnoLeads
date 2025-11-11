@@ -1,0 +1,130 @@
+name: Product Management Droid
+description: プロダクト開発とリリース管理を統合的にサポート
+version: 1.0.0
+
+triggers:
+  commands:
+    - /product-check
+    - /release-ready
+    - /qa-full
+    - /product-metrics
+  
+  events:
+    - pull_request_opened
+    - release_created
+    - tag_pushed
+
+capabilities:
+  - feature_planning
+  - release_management
+  - quality_assurance
+  - documentation_generation
+  - deployment_readiness
+
+rules:
+  - id: release-readiness-check
+    name: リリース準備確認
+    description: リリース前の必須チェック項目を検証
+    severity: critical
+    checks:
+      - name: テストカバレッジ
+        threshold: 80
+        command: "pytest --cov=. --cov-report=term"
+        
+      - name: E2Eテスト
+        required: true
+        command: "npm run test:e2e"
+        
+      - name: セキュリティ監査
+        command: "npm audit && pip-audit"
+        
+      - name: ビルド検証
+        command: "npm run build && docker-compose build"
+        
+      - name: 環境変数確認
+        files:
+          - .env.example
+          - docker-compose.yml
+          
+      - name: マイグレーション確認
+        command: "alembic check"
+        
+      - name: ドキュメント生成
+        files:
+          - openapi.json
+          - README.md
+          
+  - id: qa-comprehensive
+    name: 総合QAチェック
+    description: 包括的な品質保証
+    severity: high
+    checks:
+      - name: パフォーマンステスト
+        command: "k6 run tests/performance/*.js"
+        
+      - name: アクセシビリティ監査
+        command: "npm run test:a11y"
+        
+      - name: レスポンシブデザイン検証
+        viewports:
+          - mobile: 375x667
+          - tablet: 768x1024
+          - desktop: 1920x1080
+          
+  - id: product-metrics
+    name: プロダクトメトリクス
+    description: コード品質とプロダクトヘルスの可視化
+    checks:
+      - name: コード複雑度
+        command: "radon cc backend/app -a"
+        
+      - name: 重複コード検出
+        command: "radon raw backend/app"
+        
+      - name: バグトレンド分析
+        source: github_issues
+        
+      - name: テストカバレッジトレンド
+        history_days: 30
+
+actions:
+  on_success:
+    - generate_release_notes
+    - update_changelog
+    - notify_team
+    
+  on_failure:
+    - create_issue
+    - block_merge
+    - notify_maintainers
+
+outputs:
+  format: markdown
+  sections:
+    - summary
+    - detailed_findings
+    - action_items
+    - metrics_dashboard
+    
+reports:
+  - name: Release Readiness Report
+    template: |
+      # 🚀 リリース準備レポート
+      
+      ## ✅ 実行済みチェック
+      {checks_summary}
+      
+      ## 📊 メトリクス
+      - テストカバレッジ: {coverage}%
+      - E2Eテスト: {e2e_status}
+      - セキュリティ監査: {security_status}
+      - ビルド: {build_status}
+      
+      ## ⚠️ 注意事項
+      {warnings}
+      
+      ## 🔴 ブロッカー
+      {blockers}
+      
+      ## ✨ 次のステップ
+      {next_steps}

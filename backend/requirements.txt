@@ -25,22 +25,22 @@ msal==1.25.0
 msgraph-sdk==1.2.0
 
 # LINE Messaging API (Phase 1)
-line-bot-sdk==3.6.0
+line-bot-sdk>=3.0.0
 
 # SMS - Twilio (Phase 1)
-twilio==8.10.0
+twilio>=8.0.0
 
 # QR Code Generation (Phase 1)
-qrcode[pil]==7.4.2
-pillow==10.1.0
+qrcode[pil]>=7.4.0
+pillow>=10.0.0
 
 # A/B Testing & Statistics (Phase 1)
-scipy==1.11.4
-numpy==1.26.2
+scipy>=1.11.0
+numpy>=1.26.0
 
-# Bot Framework (Phase 1)
-botbuilder-core==4.15.0
-botbuilder-schema==4.15.0
+# Bot Framework (Phase 1) - Note: Version constraints relaxed to resolve urllib3 conflict
+botbuilder-core>=4.14.0
+botbuilder-schema>=4.14.0
 
 # HTTP Client
 httpx==0.25.1

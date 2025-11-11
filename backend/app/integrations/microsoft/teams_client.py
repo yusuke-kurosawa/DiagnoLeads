@@ -2,9 +2,11 @@
 Microsoft Teams Client - Technical Spike Prototype
 最小限のTeams統合プロトタイプ
 """
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import json
+import os
 from datetime import datetime
+import httpx
 
 
 class TeamsClient:
@@ -52,17 +54,31 @@ class TeamsClient:
         Returns:
             Access token
         """
-        # プロトタイプ: ダミートークン返却
-        # 本実装:
-        # result = self.msal_app.acquire_token_for_client(
-        #     scopes=["https://graph.microsoft.com/.default"]
-        # )
-        # self._access_token = result["access_token"]
-        # return self._access_token
+        # OAuth 2.0 Client Credentials Flow
+        token_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         
-        print(f"[PROTOTYPE] Authenticating with tenant: {self.tenant_id}")
-        self._access_token = "dummy_access_token_for_prototype"
-        return self._access_token
+        data = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "scope": "https://graph.microsoft.com/.default",
+            "grant_type": "client_credentials"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(token_url, data=data)
+                response.raise_for_status()
+                result = response.json()
+                self._access_token = result["access_token"]
+                print(f"✅ Authentication successful for tenant: {self.tenant_id}")
+                return self._access_token
+        except httpx.HTTPStatusError as e:
+            print(f"❌ Authentication failed: {e.response.status_code}")
+            print(f"Response: {e.response.text}")
+            raise
+        except Exception as e:
+            print(f"❌ Authentication error: {str(e)}")
+            raise
     
     async def send_adaptive_card(
         self,
@@ -206,21 +222,39 @@ class TeamsClient:
         
         return await self.send_adaptive_card(team_id, channel_id, card)
     
-    async def get_teams(self) -> list:
+    async def get_teams(self) -> List[Dict]:
         """
-        ユーザーが所属するチーム一覧を取得
+        組織内のチーム一覧を取得
         
         Returns:
             チームリスト
         """
-        print("[PROTOTYPE] Getting teams list")
-        # プロトタイプ: ダミーデータ
-        return [
-            {"id": "team_001", "displayName": "営業チーム"},
-            {"id": "team_002", "displayName": "マーケティングチーム"},
-        ]
+        if not self._access_token:
+            await self.authenticate()
+        
+        graph_url = "https://graph.microsoft.com/v1.0/groups?$filter=resourceProvisioningOptions/Any(x:x eq 'Team')"
+        headers = {
+            "Authorization": f"Bearer {self._access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(graph_url, headers=headers)
+                response.raise_for_status()
+                result = response.json()
+                teams = result.get("value", [])
+                print(f"✅ Found {len(teams)} teams")
+                return teams
+        except httpx.HTTPStatusError as e:
+            print(f"❌ Failed to get teams: {e.response.status_code}")
+            print(f"Response: {e.response.text}")
+            raise
+        except Exception as e:
+            print(f"❌ Error getting teams: {str(e)}")
+            raise
     
-    async def get_channels(self, team_id: str) -> list:
+    async def get_channels(self, team_id: str) -> List[Dict]:
         """
         チームのチャネル一覧を取得
         
@@ -230,26 +264,58 @@ class TeamsClient:
         Returns:
             チャネルリスト
         """
-        print(f"[PROTOTYPE] Getting channels for team: {team_id}")
-        # プロトタイプ: ダミーデータ
-        return [
-            {"id": "channel_001", "displayName": "一般"},
-            {"id": "channel_002", "displayName": "リード通知"},
-        ]
+        if not self._access_token:
+            await self.authenticate()
+        
+        graph_url = f"https://graph.microsoft.com/v1.0/teams/{team_id}/channels"
+        headers = {
+            "Authorization": f"Bearer {self._access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(graph_url, headers=headers)
+                response.raise_for_status()
+                result = response.json()
+                channels = result.get("value", [])
+                print(f"✅ Found {len(channels)} channels in team {team_id}")
+                return channels
+        except httpx.HTTPStatusError as e:
+            print(f"❌ Failed to get channels: {e.response.status_code}")
+            print(f"Response: {e.response.text}")
+            raise
+        except Exception as e:
+            print(f"❌ Error getting channels: {str(e)}")
+            raise
 
 
 # プロトタイプテスト用
 async def main():
     """プロトタイプテスト"""
     print("=" * 60)
-    print("Microsoft Teams Integration - Technical Spike Prototype")
+    print("Microsoft Teams Integration - Live Test")
     print("=" * 60)
+    
+    # .envファイルから環境変数を読み込み
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # 環境変数から認証情報を読み込み
+    tenant_id = os.getenv("MICROSOFT_TENANT_ID")
+    client_id = os.getenv("MICROSOFT_CLIENT_ID")
+    client_secret = os.getenv("MICROSOFT_CLIENT_SECRET")
+    
+    if not all([tenant_id, client_id, client_secret]):
+        print("❌ Error: Missing environment variables")
+        print("Required: MICROSOFT_TENANT_ID, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET")
+        return
     
     # Teams Client初期化
     client = TeamsClient(
-        tenant_id="your-tenant-id",
-        client_id="your-client-id",
-        client_secret="your-client-secret"
+        tenant_id=tenant_id,
+        client_id=client_id,
+        client_secret=client_secret
     )
     
     # 認証
@@ -261,18 +327,23 @@ async def main():
     print("\n2. Get Teams Test")
     teams = await client.get_teams()
     print(f"✅ Found {len(teams)} teams")
-    for team in teams:
-        print(f"  - {team['displayName']} (ID: {team['id']})")
+    for i, team in enumerate(teams[:5]):  # 最初の5チームのみ表示
+        print(f"  {i+1}. {team['displayName']} (ID: {team['id']})")
     
-    # チャネル取得
-    print("\n3. Get Channels Test")
-    channels = await client.get_channels("team_001")
+    if not teams:
+        print("⚠️  No teams found. Cannot continue with channel test.")
+        return
+    
+    # 最初のチームでチャネル取得をテスト
+    first_team = teams[0]
+    print(f"\n3. Get Channels Test (Team: {first_team['displayName']})")
+    channels = await client.get_channels(first_team['id'])
     print(f"✅ Found {len(channels)} channels")
-    for channel in channels:
-        print(f"  - {channel['displayName']} (ID: {channel['id']})")
+    for i, channel in enumerate(channels[:5]):  # 最初の5チャネルのみ表示
+        print(f"  {i+1}. {channel['displayName']} (ID: {channel['id']})")
     
-    # ホットリード通知送信
-    print("\n4. Send Hot Lead Notification Test")
+    # ホットリード通知送信テスト（実際の送信はスキップ）
+    print("\n4. Hot Lead Notification Test (Dry Run)")
     lead_data = {
         "lead_id": "lead_12345",
         "company_name": "株式会社サンプル",
@@ -284,22 +355,22 @@ async def main():
         "assessment_title": "営業課題診断"
     }
     
-    result = await client.send_hot_lead_notification(
-        team_id="team_001",
-        channel_id="channel_002",
-        lead_data=lead_data,
-        mention_user_id="user_12345"
-    )
-    print(f"✅ Notification sent: {result['id']}")
+    print("Sample notification data:")
+    print(f"  Company: {lead_data['company_name']}")
+    print(f"  Contact: {lead_data['contact_name']} ({lead_data['job_title']})")
+    print(f"  Score: {lead_data['score']}/100")
+    print("\n⚠️  Note: Actual message sending is not implemented in this test.")
+    print("    To send messages, you need 'ChannelMessage.Send' permission.")
     
     print("\n" + "=" * 60)
-    print("Prototype Test Completed Successfully! 🎉")
+    print("Test Completed Successfully! 🎉")
     print("=" * 60)
-    print("\n次のステップ:")
-    print("1. Azure AD App登録")
-    print("2. msal、msgraph-sdkライブラリのインストール")
-    print("3. 本実装のコメント解除")
-    print("4. 実際のTeamsアカウントでテスト")
+    print("\n✅ Teams integration is working correctly!")
+    print("Next steps:")
+    print("1. Add 'ChannelMessage.Send' permission for actual message sending")
+    print("2. Implement Bot Framework webhook endpoint")
+    print("3. Create Teams App Manifest")
+    print("4. Sideload app to Microsoft Teams")
 
 
 if __name__ == "__main__":

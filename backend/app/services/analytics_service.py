@@ -9,7 +9,7 @@ from typing import Dict, List, Any
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import and_
 
 from app.models.lead import Lead
 from app.models.assessment import Assessment

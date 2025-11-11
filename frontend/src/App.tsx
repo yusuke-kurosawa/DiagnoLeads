@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import Login from './pages/Login';
+import Login from './pages/LoginNew';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/DashboardNew';
 import { LeadsPage } from './pages/leads/LeadsPage';
 import { CreateLeadPage } from './pages/leads/CreateLeadPage';
 import { EditLeadPage } from './pages/leads/EditLeadPage';

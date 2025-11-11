@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, get_current_user
 from app.models.user import User
-from app.models.assessment import Assessment
 from app.schemas.assessment import (
     AssessmentCreate,
     AssessmentUpdate,
