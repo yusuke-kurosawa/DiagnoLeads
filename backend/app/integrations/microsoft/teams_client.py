@@ -8,6 +8,20 @@ import os
 from datetime import datetime
 import httpx
 
+# Import retry policy
+try:
+    from .retry_policy import with_retry
+except ImportError:
+    # Fallback for direct script execution
+    try:
+        from app.integrations.microsoft.retry_policy import with_retry
+    except ImportError:
+        # Final fallback: define a simple decorator
+        def with_retry(*args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+
 
 class TeamsClient:
     """
@@ -80,6 +94,7 @@ class TeamsClient:
             print(f"❌ Authentication error: {str(e)}")
             raise
     
+    @with_retry(max_retries=3, initial_delay=2.0)
     async def send_adaptive_card(
         self,
         team_id: str,
@@ -97,32 +112,54 @@ class TeamsClient:
         Returns:
             送信結果
         """
-        # プロトタイプ: ログ出力のみ
-        # 本実装:
-        # from msgraph import GraphServiceClient
-        # message = {
-        #     "body": {
-        #         "contentType": "html",
-        #         "content": "<attachment id='card'></attachment>"
-        #     },
-        #     "attachments": [{
-        #         "id": "card",
-        #         "contentType": "application/vnd.microsoft.card.adaptive",
-        #         "content": json.dumps(card)
-        #     }]
-        # }
-        # result = await self.graph_client.teams.by_team_id(team_id)\
-        #     .channels.by_channel_id(channel_id)\
-        #     .messages.post(message)
+        if not self._access_token:
+            await self.authenticate()
         
-        print(f"[PROTOTYPE] Sending Adaptive Card to team={team_id}, channel={channel_id}")
-        print(f"Card content: {json.dumps(card, indent=2, ensure_ascii=False)}")
+        # Microsoft Graph API endpoint for posting messages to a channel
+        graph_url = f"https://graph.microsoft.com/v1.0/teams/{team_id}/channels/{channel_id}/messages"
         
-        return {
-            "id": "msg_prototype_123",
-            "created_at": datetime.now().isoformat(),
-            "status": "sent"
+        # Create message with Adaptive Card attachment
+        message = {
+            "body": {
+                "contentType": "html",
+                "content": "<attachment id='adaptive-card'></attachment>"
+            },
+            "attachments": [{
+                "id": "adaptive-card",
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": json.dumps(card)
+            }]
         }
+        
+        headers = {
+            "Authorization": f"Bearer {self._access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(graph_url, headers=headers, json=message)
+                response.raise_for_status()
+                result = response.json()
+                print(f"✅ Adaptive Card sent successfully to channel {channel_id}")
+                return {
+                    "id": result.get("id"),
+                    "created_at": result.get("createdDateTime"),
+                    "web_url": result.get("webUrl"),
+                    "status": "sent"
+                }
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 403:
+                print(f"❌ Permission denied: ChannelMessage.Send permission required")
+                print(f"Response: {e.response.text}")
+                raise Exception("Missing ChannelMessage.Send permission. Please add this permission in Azure Portal.")
+            else:
+                print(f"❌ Failed to send message: {e.response.status_code}")
+                print(f"Response: {e.response.text}")
+                raise
+        except Exception as e:
+            print(f"❌ Error sending message: {str(e)}")
+            raise
     
     async def send_hot_lead_notification(
         self,
@@ -222,6 +259,7 @@ class TeamsClient:
         
         return await self.send_adaptive_card(team_id, channel_id, card)
     
+    @with_retry(max_retries=3, initial_delay=1.0)
     async def get_teams(self) -> List[Dict]:
         """
         組織内のチーム一覧を取得
@@ -254,6 +292,7 @@ class TeamsClient:
             print(f"❌ Error getting teams: {str(e)}")
             raise
     
+    @with_retry(max_retries=3, initial_delay=1.0)
     async def get_channels(self, team_id: str) -> List[Dict]:
         """
         チームのチャネル一覧を取得
