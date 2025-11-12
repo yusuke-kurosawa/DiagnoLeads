@@ -23,7 +23,11 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
-# CORS Middleware
+# Multi-tenant Middleware (enforce tenant isolation)
+# NOTE: This must be added AFTER CORS middleware so CORS headers are set first
+app.add_middleware(TenantMiddleware)
+
+# CORS Middleware - MUST be added last so it wraps everything
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -31,9 +35,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Multi-tenant Middleware (enforce tenant isolation)
-app.add_middleware(TenantMiddleware)
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
