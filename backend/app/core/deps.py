@@ -37,6 +37,12 @@ def get_current_user(
     Raises:
         HTTPException: If token is invalid or user not found
     """
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization credentials",
+        )
+    
     token = credentials.credentials
 
     # Decode token
@@ -45,7 +51,7 @@ def get_current_user(
     if not token_data.user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail="Invalid token: missing user_id",
         )
 
     # Get user from database
@@ -54,7 +60,7 @@ def get_current_user(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail=f"User not found for id {token_data.user_id}",
         )
 
     return user
