@@ -20,6 +20,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
+        # Handle CORS preflight requests (OPTIONS)
+        if request.method == "OPTIONS":
+            return await call_next(request)
+        
         # Skip authentication for public endpoints
         public_paths = [
             "/health",
@@ -28,6 +32,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             "/api/redoc",
             "/api/openapi.json",
             "/api/v1/auth/login",
+            "/api/v1/auth/login/json",
             "/api/v1/auth/register",
         ]
 
