@@ -8,7 +8,6 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   BarChart3, 
@@ -121,7 +120,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500">AI-Powered Lead Generation</p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout} leftIcon={<LogOut className="w-4 h-4" />}>
+            <Button variant="outline" onClick={handleLogout} leftIcon={<LogOut className="w-4 h-4" />} className="border-gray-300 text-gray-700 hover:bg-gray-100">
               ログアウト
             </Button>
           </div>
@@ -138,43 +137,39 @@ export default function Dashboard() {
         >
           {/* Welcome Section */}
           <motion.div variants={itemVariants}>
-            <Card variant="elevated" className="border-0 shadow-primary bg-gradient-to-br from-primary-600 to-primary-700 text-white overflow-hidden">
-              <CardHeader className="pb-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-3xl text-white mb-2">
-                      ようこそ、{user?.name}さん！👋
-                    </CardTitle>
-                    <CardDescription className="text-primary-100 text-base">
-                      今日も素晴らしいリードを獲得しましょう
-                    </CardDescription>
-                  </div>
-                  <Badge className="bg-white/20 text-white border-0">
-                    {user?.role}
-                  </Badge>
+            <div className="border-0 shadow-xl bg-gray-50 text-gray-900 overflow-hidden rounded-lg p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    ようこそ、{user?.name}さん！👋
+                  </h1>
+                  <p className="text-gray-600 text-base">
+                    今日も素晴らしいリードを獲得しましょう
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  {quickStats.map((stat, idx) => (
-                    <motion.div
-                      key={idx}
-                      whileHover={{ scale: 1.05 }}
-                      className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 cursor-pointer"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <stat.icon className="w-5 h-5 text-primary-100" />
-                        <span className={`text-xs font-semibold ${stat.positive ? 'text-success-300' : 'text-error-300'}`}>
-                          {stat.change}
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                      <div className="text-sm text-primary-100">{stat.label}</div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium border-0">
+                  {user?.role}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                {quickStats.map((stat, idx) => (
+                  <motion.div
+                    key={idx}
+                    whileHover={{ scale: 1.05 }}
+                    className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <stat.icon className="w-5 h-5 text-blue-600" />
+                      <span className={`text-xs font-semibold ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>
+                        {stat.change}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                    <div className="text-sm text-gray-600">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
           {/* Feature Cards */}
@@ -198,14 +193,12 @@ export default function Dashboard() {
                   whileHover={{ y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card
-                    variant="elevated"
-                    interactive
-                    className="border-0 overflow-hidden h-full"
+                  <div
+                    className="bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden h-full cursor-pointer"
                     onClick={() => feature.href !== '#' && navigate(feature.href)}
                   >
                     <div className={`h-2 bg-gradient-to-r ${feature.gradient}`} />
-                    <CardHeader>
+                    <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <motion.div 
                           whileHover={{ rotate: 360, scale: 1.2 }}
@@ -215,19 +208,17 @@ export default function Dashboard() {
                           <feature.icon className="w-6 h-6 text-white" />
                         </motion.div>
                         {feature.badge && (
-                          <Badge className="bg-gradient-to-r from-warning-400 to-warning-500 text-white border-0">
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0">
                             {feature.badge}
                           </Badge>
                         )}
                       </div>
-                      <CardTitle className="text-xl group-hover:text-primary-600 transition-colors">
+                      <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors mb-2">
                         {feature.title}
-                      </CardTitle>
-                      <CardDescription className="text-base">
+                      </h3>
+                      <p className="text-base text-gray-600 mb-4">
                         {feature.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                      </p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <div>
@@ -239,8 +230,8 @@ export default function Dashboard() {
                           <ArrowRight className="w-5 h-5 text-gray-400" />
                         </motion.div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -248,50 +239,46 @@ export default function Dashboard() {
 
           {/* Getting Started */}
           <motion.div variants={itemVariants}>
-            <Card variant="filled" className="border-primary-200 bg-gradient-to-br from-primary-50 to-primary-100">
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center shadow-primary">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-primary-900">はじめましょう！</CardTitle>
-                    <CardDescription>DiagnoLeadsで最高のリード獲得体験を</CardDescription>
-                  </div>
+            <div className="border border-gray-200 bg-white rounded-lg p-6 shadow-md">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { step: 1, title: '診断を作成', desc: 'AIビルダーでトピックを入力するだけ' },
-                    { step: 2, title: 'Webサイトに埋め込み', desc: 'ワンクリックでコードをコピー' },
-                    { step: 3, title: 'リードを獲得', desc: 'AIが自動で分析・スコアリング' }
-                  ].map((item) => (
-                    <motion.div
-                      key={item.step}
-                      whileHover={{ x: 10 }}
-                      className="flex items-start space-x-3 cursor-pointer"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {item.step}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{item.title}</p>
-                        <p className="text-sm text-gray-600">{item.desc}</p>
-                      </div>
-                    </motion.div>
-                  ))}
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">はじめましょう！</h2>
+                  <p className="text-gray-600">DiagnoLeadsで最高のリード獲得体験を</p>
                 </div>
-                <Button 
-                  variant="primary" 
-                  fullWidth 
-                  className="mt-6 shadow-primary"
-                  onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/assessments`)}
-                >
-                  診断作成を開始
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { step: 1, title: '診断を作成', desc: 'AIビルダーでトピックを入力するだけ' },
+                  { step: 2, title: 'Webサイトに埋め込み', desc: 'ワンクリックでコードをコピー' },
+                  { step: 3, title: 'リードを獲得', desc: 'AIが自動で分析・スコアリング' }
+                ].map((item) => (
+                  <motion.div
+                    key={item.step}
+                    whileHover={{ x: 10 }}
+                    className="flex items-start space-x-3 cursor-pointer"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      {item.step}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{item.title}</p>
+                      <p className="text-sm text-gray-600">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              <Button 
+                variant="primary" 
+                fullWidth 
+                className="mt-6 bg-blue-600 text-white hover:bg-blue-700"
+                onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/assessments`)}
+              >
+                診断作成を開始
+              </Button>
+            </div>
           </motion.div>
         </motion.div>
       </main>
