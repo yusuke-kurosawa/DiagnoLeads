@@ -1,0 +1,994 @@
+{
+  "entities": [
+    {
+      "name": "Tenant",
+      "table": "tenants",
+      "description": "Organization/company account",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Unique tenant identifier"
+        },
+        {
+          "name": "name",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Organization name"
+        },
+        {
+          "name": "slug",
+          "type": "String(100)",
+          "constraints": [
+            "UNIQUE",
+            "NOT NULL"
+          ],
+          "description": "URL-friendly slug"
+        },
+        {
+          "name": "plan",
+          "type": "String",
+          "constraints": [
+            "NOT NULL",
+            "Enum"
+          ],
+          "description": "Subscription plan (starter, growth, enterprise)"
+        },
+        {
+          "name": "settings",
+          "type": "JSON",
+          "constraints": [
+            "DEFAULT {}"
+          ],
+          "description": "Configuration and preferences"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Account creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Last update date"
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "table": "users",
+      "description": "Tenant members with role-based access",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "User identifier"
+        },
+        {
+          "name": "tenant_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Tenant)",
+            "NOT NULL"
+          ],
+          "description": "Multi-tenant reference"
+        },
+        {
+          "name": "email",
+          "type": "String(255)",
+          "constraints": [
+            "UNIQUE",
+            "NOT NULL"
+          ],
+          "description": "Email address"
+        },
+        {
+          "name": "password_hash",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Bcrypt hashed password"
+        },
+        {
+          "name": "name",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Full name"
+        },
+        {
+          "name": "role",
+          "type": "String",
+          "constraints": [
+            "NOT NULL",
+            "Enum"
+          ],
+          "description": "Role (admin, manager, user, viewer)"
+        },
+        {
+          "name": "password_reset_token",
+          "type": "String(255)",
+          "constraints": [
+            ""
+          ],
+          "description": "Token for password reset"
+        },
+        {
+          "name": "password_reset_expires_at",
+          "type": "Timestamp",
+          "constraints": [
+            ""
+          ],
+          "description": "Expiration time for reset token"
+        },
+        {
+          "name": "failed_login_attempts",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "Count for rate limiting"
+        },
+        {
+          "name": "locked_until",
+          "type": "Timestamp",
+          "constraints": [
+            ""
+          ],
+          "description": "Account lock expiration"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Account creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Last update date"
+        }
+      ]
+    },
+    {
+      "name": "Assessment",
+      "table": "assessments",
+      "description": "Diagnostic questionnaires/surveys",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Assessment identifier"
+        },
+        {
+          "name": "tenant_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Tenant)",
+            "NOT NULL"
+          ],
+          "description": "Tenant ownership"
+        },
+        {
+          "name": "created_by",
+          "type": "UUID",
+          "constraints": [
+            "FK(User)"
+          ],
+          "description": "Creator user ID"
+        },
+        {
+          "name": "updated_by",
+          "type": "UUID",
+          "constraints": [
+            "FK(User)"
+          ],
+          "description": "Last editor user ID"
+        },
+        {
+          "name": "title",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Assessment title"
+        },
+        {
+          "name": "description",
+          "type": "Text",
+          "constraints": [
+            ""
+          ],
+          "description": "Assessment description"
+        },
+        {
+          "name": "status",
+          "type": "String",
+          "constraints": [
+            "NOT NULL",
+            "Enum"
+          ],
+          "description": "Status (draft, published, archived)"
+        },
+        {
+          "name": "industry",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Target industry"
+        },
+        {
+          "name": "topic",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Main topic"
+        },
+        {
+          "name": "scoring_type",
+          "type": "String",
+          "constraints": [
+            "Enum"
+          ],
+          "description": "Scoring method (point_based, percentage)"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Last update date"
+        }
+      ]
+    },
+    {
+      "name": "Question",
+      "table": "questions",
+      "description": "Individual questions within assessments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Question identifier"
+        },
+        {
+          "name": "assessment_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Assessment)",
+            "NOT NULL"
+          ],
+          "description": "Parent assessment"
+        },
+        {
+          "name": "text",
+          "type": "Text",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Question text"
+        },
+        {
+          "name": "type",
+          "type": "String",
+          "constraints": [
+            "NOT NULL",
+            "Enum"
+          ],
+          "description": "Type (single_choice, multiple_choice, text, slider)"
+        },
+        {
+          "name": "order",
+          "type": "Integer",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Display order"
+        },
+        {
+          "name": "points",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "Points for this question"
+        },
+        {
+          "name": "explanation",
+          "type": "Text",
+          "constraints": [
+            ""
+          ],
+          "description": "Optional explanation"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Creation date"
+        }
+      ]
+    },
+    {
+      "name": "QuestionOption",
+      "table": "question_options",
+      "description": "Answer choices for multiple choice questions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Option identifier"
+        },
+        {
+          "name": "question_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Question)",
+            "NOT NULL"
+          ],
+          "description": "Parent question"
+        },
+        {
+          "name": "text",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Option text"
+        },
+        {
+          "name": "points",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "Points for selecting this option"
+        },
+        {
+          "name": "order",
+          "type": "Integer",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Display order"
+        }
+      ]
+    },
+    {
+      "name": "Response",
+      "table": "responses",
+      "description": "User responses to assessments (session/attempt)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Response record identifier"
+        },
+        {
+          "name": "assessment_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Assessment)",
+            "NOT NULL"
+          ],
+          "description": "Assessment taken"
+        },
+        {
+          "name": "session_id",
+          "type": "String",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Unique session identifier"
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Email of respondent"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Name of respondent"
+        },
+        {
+          "name": "status",
+          "type": "String",
+          "constraints": [
+            "Enum"
+          ],
+          "description": "Status (in_progress, completed, abandoned)"
+        },
+        {
+          "name": "total_score",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "Total score achieved"
+        },
+        {
+          "name": "ip_address",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Client IP address"
+        },
+        {
+          "name": "user_agent",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Browser user agent"
+        },
+        {
+          "name": "started_at",
+          "type": "Timestamp",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT now()"
+          ],
+          "description": "Assessment start time"
+        },
+        {
+          "name": "completed_at",
+          "type": "Timestamp",
+          "constraints": [
+            ""
+          ],
+          "description": "Assessment completion time"
+        }
+      ]
+    },
+    {
+      "name": "Answer",
+      "table": "answers",
+      "description": "Individual question answers within a response",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Answer record identifier"
+        },
+        {
+          "name": "response_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Response)",
+            "NOT NULL"
+          ],
+          "description": "Parent response"
+        },
+        {
+          "name": "question_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Question)",
+            "NOT NULL"
+          ],
+          "description": "Question answered"
+        },
+        {
+          "name": "answer_text",
+          "type": "Text",
+          "constraints": [
+            ""
+          ],
+          "description": "Answer text or selected value"
+        },
+        {
+          "name": "points_awarded",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "Points for this answer"
+        },
+        {
+          "name": "answered_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Answer timestamp"
+        }
+      ]
+    },
+    {
+      "name": "Lead",
+      "table": "leads",
+      "description": "Qualified leads generated from assessments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Lead identifier"
+        },
+        {
+          "name": "tenant_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Tenant)",
+            "NOT NULL"
+          ],
+          "description": "Tenant ownership"
+        },
+        {
+          "name": "response_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Response)"
+          ],
+          "description": "Source assessment response"
+        },
+        {
+          "name": "email",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Lead email"
+        },
+        {
+          "name": "name",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Lead name"
+        },
+        {
+          "name": "company",
+          "type": "String(255)",
+          "constraints": [
+            ""
+          ],
+          "description": "Company name"
+        },
+        {
+          "name": "phone",
+          "type": "String(20)",
+          "constraints": [
+            ""
+          ],
+          "description": "Contact phone"
+        },
+        {
+          "name": "lead_score",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "AI-generated lead score (0-100)"
+        },
+        {
+          "name": "status",
+          "type": "String",
+          "constraints": [
+            "NOT NULL",
+            "Enum"
+          ],
+          "description": "Status (new, contacted, qualified, customer, lost)"
+        },
+        {
+          "name": "assigned_to",
+          "type": "UUID",
+          "constraints": [
+            "FK(User)"
+          ],
+          "description": "Assigned salesperson"
+        },
+        {
+          "name": "notes",
+          "type": "Text",
+          "constraints": [
+            ""
+          ],
+          "description": "Internal notes"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Lead creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Last update date"
+        }
+      ]
+    },
+    {
+      "name": "QRCode",
+      "table": "qr_codes",
+      "description": "QR codes for embedding assessments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "QR code identifier"
+        },
+        {
+          "name": "tenant_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Tenant)",
+            "NOT NULL"
+          ],
+          "description": "Tenant ownership"
+        },
+        {
+          "name": "assessment_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Assessment)",
+            "NOT NULL"
+          ],
+          "description": "Assessment to embed"
+        },
+        {
+          "name": "code",
+          "type": "String",
+          "constraints": [
+            "UNIQUE",
+            "NOT NULL"
+          ],
+          "description": "Unique code string"
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Full URL to assessment"
+        },
+        {
+          "name": "name",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Display name"
+        },
+        {
+          "name": "description",
+          "type": "Text",
+          "constraints": [
+            ""
+          ],
+          "description": "Description"
+        },
+        {
+          "name": "status",
+          "type": "String",
+          "constraints": [
+            "Enum"
+          ],
+          "description": "Status (active, inactive, expired)"
+        },
+        {
+          "name": "expires_at",
+          "type": "Timestamp",
+          "constraints": [
+            ""
+          ],
+          "description": "Expiration date"
+        },
+        {
+          "name": "scans_count",
+          "type": "Integer",
+          "constraints": [
+            "DEFAULT 0"
+          ],
+          "description": "Total scans count"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Creation date"
+        }
+      ]
+    },
+    {
+      "name": "QRCodeScan",
+      "table": "qr_code_scans",
+      "description": "Analytics for QR code scans",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Scan record identifier"
+        },
+        {
+          "name": "qr_code_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(QRCode)",
+            "NOT NULL"
+          ],
+          "description": "QR code scanned"
+        },
+        {
+          "name": "ip_address",
+          "type": "String",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Client IP address"
+        },
+        {
+          "name": "user_agent",
+          "type": "String",
+          "constraints": [
+            ""
+          ],
+          "description": "Browser user agent"
+        },
+        {
+          "name": "timestamp",
+          "type": "Timestamp",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT now()"
+          ],
+          "description": "Scan timestamp"
+        }
+      ]
+    },
+    {
+      "name": "Integration",
+      "table": "integrations",
+      "description": "External service integrations (Salesforce, HubSpot, Slack, etc.)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": [
+            "PK"
+          ],
+          "description": "Integration identifier"
+        },
+        {
+          "name": "tenant_id",
+          "type": "UUID",
+          "constraints": [
+            "FK(Tenant)",
+            "NOT NULL"
+          ],
+          "description": "Tenant ownership"
+        },
+        {
+          "name": "service_type",
+          "type": "String",
+          "constraints": [
+            "NOT NULL",
+            "Enum"
+          ],
+          "description": "Service (salesforce, hubspot, slack, webhook)"
+        },
+        {
+          "name": "name",
+          "type": "String(255)",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Integration name"
+        },
+        {
+          "name": "config",
+          "type": "JSON",
+          "constraints": [
+            "NOT NULL"
+          ],
+          "description": "Configuration and API credentials"
+        },
+        {
+          "name": "is_active",
+          "type": "Boolean",
+          "constraints": [
+            "DEFAULT true"
+          ],
+          "description": "Whether integration is enabled"
+        },
+        {
+          "name": "last_sync_at",
+          "type": "Timestamp",
+          "constraints": [
+            ""
+          ],
+          "description": "Last successful sync"
+        },
+        {
+          "name": "created_at",
+          "type": "Timestamp",
+          "constraints": [
+            "DEFAULT now()"
+          ],
+          "description": "Creation date"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Tenant",
+      "to": "User",
+      "cardinality": "1:N",
+      "reference": "Tenant.id → User.tenant_id",
+      "on_delete": "Cascade",
+      "description": "Tenant has many users"
+    },
+    {
+      "from": "Tenant",
+      "to": "Assessment",
+      "cardinality": "1:N",
+      "reference": "Tenant.id → Assessment.tenant_id",
+      "on_delete": "Cascade",
+      "description": "Tenant owns many assessments"
+    },
+    {
+      "from": "Tenant",
+      "to": "Lead",
+      "cardinality": "1:N",
+      "reference": "Tenant.id → Lead.tenant_id",
+      "on_delete": "Cascade",
+      "description": "Tenant has many leads"
+    },
+    {
+      "from": "Tenant",
+      "to": "QRCode",
+      "cardinality": "1:N",
+      "reference": "Tenant.id → QRCode.tenant_id",
+      "on_delete": "Cascade",
+      "description": "Tenant creates many QR codes"
+    },
+    {
+      "from": "Tenant",
+      "to": "Integration",
+      "cardinality": "1:N",
+      "reference": "Tenant.id → Integration.tenant_id",
+      "on_delete": "Cascade",
+      "description": "Tenant configures many integrations"
+    },
+    {
+      "from": "Assessment",
+      "to": "Question",
+      "cardinality": "1:N",
+      "reference": "Assessment.id → Question.assessment_id",
+      "on_delete": "Cascade",
+      "description": "Assessment contains many questions"
+    },
+    {
+      "from": "Assessment",
+      "to": "Response",
+      "cardinality": "1:N",
+      "reference": "Assessment.id → Response.assessment_id",
+      "on_delete": "Cascade",
+      "description": "Assessment receives many responses"
+    },
+    {
+      "from": "Assessment",
+      "to": "QRCode",
+      "cardinality": "1:N",
+      "reference": "Assessment.id → QRCode.assessment_id",
+      "on_delete": "Cascade",
+      "description": "Assessment can have multiple QR codes"
+    },
+    {
+      "from": "Question",
+      "to": "QuestionOption",
+      "cardinality": "1:N",
+      "reference": "Question.id → QuestionOption.question_id",
+      "on_delete": "Cascade",
+      "description": "Question has multiple choice options"
+    },
+    {
+      "from": "Question",
+      "to": "Answer",
+      "cardinality": "1:N",
+      "reference": "Question.id → Answer.question_id",
+      "on_delete": "Cascade",
+      "description": "Question receives many answers"
+    },
+    {
+      "from": "Response",
+      "to": "Answer",
+      "cardinality": "1:N",
+      "reference": "Response.id → Answer.response_id",
+      "on_delete": "Cascade",
+      "description": "Response contains many answers"
+    },
+    {
+      "from": "Response",
+      "to": "Lead",
+      "cardinality": "1:N",
+      "reference": "Response.id → Lead.response_id",
+      "on_delete": "Set NULL",
+      "description": "Response may generate leads"
+    },
+    {
+      "from": "QRCode",
+      "to": "QRCodeScan",
+      "cardinality": "1:N",
+      "reference": "QRCode.id → QRCodeScan.qr_code_id",
+      "on_delete": "Cascade",
+      "description": "QRCode has many scans"
+    }
+  ]
+}

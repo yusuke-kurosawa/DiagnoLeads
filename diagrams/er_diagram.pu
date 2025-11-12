@@ -1,0 +1,148 @@
+@startuml
+!define ENTITY_BG #FFF9C4
+entity Tenant {
+  * id : UUID [PK]
+  * name : String(255) [NOT NULL]
+  * slug : String(100) [UNIQUE NOT NULL]
+  * plan : String [NOT NULL Enum]
+  * settings : JSON [DEFAULT {}]
+  * created_at : Timestamp [DEFAULT now()]
+  * updated_at : Timestamp [DEFAULT now()]
+}
+
+entity User {
+  * id : UUID [PK]
+  * tenant_id : UUID [FK(Tenant) NOT NULL]
+  * email : String(255) [UNIQUE NOT NULL]
+  * password_hash : String(255) [NOT NULL]
+  * name : String(255) [NOT NULL]
+  * role : String [NOT NULL Enum]
+  * password_reset_token : String(255)
+  * password_reset_expires_at : Timestamp
+  * failed_login_attempts : Integer [DEFAULT 0]
+  * locked_until : Timestamp
+  * created_at : Timestamp [DEFAULT now()]
+  * updated_at : Timestamp [DEFAULT now()]
+}
+
+entity Assessment {
+  * id : UUID [PK]
+  * tenant_id : UUID [FK(Tenant) NOT NULL]
+  * created_by : UUID [FK(User)]
+  * updated_by : UUID [FK(User)]
+  * title : String(255) [NOT NULL]
+  * description : Text
+  * status : String [NOT NULL Enum]
+  * industry : String
+  * topic : String
+  * scoring_type : String [Enum]
+  * created_at : Timestamp [DEFAULT now()]
+  * updated_at : Timestamp [DEFAULT now()]
+}
+
+entity Question {
+  * id : UUID [PK]
+  * assessment_id : UUID [FK(Assessment) NOT NULL]
+  * text : Text [NOT NULL]
+  * type : String [NOT NULL Enum]
+  * order : Integer [NOT NULL]
+  * points : Integer [DEFAULT 0]
+  * explanation : Text
+  * created_at : Timestamp [DEFAULT now()]
+}
+
+entity QuestionOption {
+  * id : UUID [PK]
+  * question_id : UUID [FK(Question) NOT NULL]
+  * text : String(255) [NOT NULL]
+  * points : Integer [DEFAULT 0]
+  * order : Integer [NOT NULL]
+}
+
+entity Response {
+  * id : UUID [PK]
+  * assessment_id : UUID [FK(Assessment) NOT NULL]
+  * session_id : String [NOT NULL]
+  * email : String
+  * name : String
+  * status : String [Enum]
+  * total_score : Integer [DEFAULT 0]
+  * ip_address : String
+  * user_agent : String
+  * started_at : Timestamp [NOT NULL DEFAULT now()]
+  * completed_at : Timestamp
+}
+
+entity Answer {
+  * id : UUID [PK]
+  * response_id : UUID [FK(Response) NOT NULL]
+  * question_id : UUID [FK(Question) NOT NULL]
+  * answer_text : Text
+  * points_awarded : Integer [DEFAULT 0]
+  * answered_at : Timestamp [DEFAULT now()]
+}
+
+entity Lead {
+  * id : UUID [PK]
+  * tenant_id : UUID [FK(Tenant) NOT NULL]
+  * response_id : UUID [FK(Response)]
+  * email : String(255) [NOT NULL]
+  * name : String(255) [NOT NULL]
+  * company : String(255)
+  * phone : String(20)
+  * lead_score : Integer [DEFAULT 0]
+  * status : String [NOT NULL Enum]
+  * assigned_to : UUID [FK(User)]
+  * notes : Text
+  * created_at : Timestamp [DEFAULT now()]
+  * updated_at : Timestamp [DEFAULT now()]
+}
+
+entity QRCode {
+  * id : UUID [PK]
+  * tenant_id : UUID [FK(Tenant) NOT NULL]
+  * assessment_id : UUID [FK(Assessment) NOT NULL]
+  * code : String [UNIQUE NOT NULL]
+  * url : String [NOT NULL]
+  * name : String(255) [NOT NULL]
+  * description : Text
+  * status : String [Enum]
+  * expires_at : Timestamp
+  * scans_count : Integer [DEFAULT 0]
+  * created_at : Timestamp [DEFAULT now()]
+}
+
+entity QRCodeScan {
+  * id : UUID [PK]
+  * qr_code_id : UUID [FK(QRCode) NOT NULL]
+  * ip_address : String [NOT NULL]
+  * user_agent : String
+  * timestamp : Timestamp [NOT NULL DEFAULT now()]
+}
+
+entity Integration {
+  * id : UUID [PK]
+  * tenant_id : UUID [FK(Tenant) NOT NULL]
+  * service_type : String [NOT NULL Enum]
+  * name : String(255) [NOT NULL]
+  * config : JSON [NOT NULL]
+  * is_active : Boolean [DEFAULT true]
+  * last_sync_at : Timestamp
+  * created_at : Timestamp [DEFAULT now()]
+}
+
+Tenant ||--o{ User : Tenant has many users
+Tenant ||--o{ Assessment : Tenant owns many assessments
+Tenant ||--o{ Lead : Tenant has many leads
+Tenant ||--o{ QRCode : Tenant creates many QR codes
+Tenant ||--o{ Integration : Tenant configures many integrations
+Assessment ||--o{ Question : Assessment contains many questions
+Assessment ||--o{ Response : Assessment receives many responses
+Assessment ||--o{ QRCode : Assessment can have multiple QR codes
+Question ||--o{ QuestionOption : Question has multiple choice options
+Question ||--o{ Answer : Question receives many answers
+Response ||--o{ Answer : Response contains many answers
+Response ||--o{ Lead : Response may generate leads
+QRCode ||--o{ QRCodeScan : QRCode has many scans
+
+@enduml
