@@ -4,25 +4,7 @@
  * API client for analytics and reporting endpoints
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-
-/**
- * Get authentication token from localStorage
- */
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('access_token');
-};
-
-/**
- * Build headers with authentication
- */
-const getHeaders = (): HeadersInit => {
-  const token = getAuthToken();
-  return {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
+import api from './api';
 
 export interface OverviewAnalytics {
   tenant_id: string;
@@ -75,82 +57,46 @@ const analyticsService = {
   /**
    * Get overview analytics
    */
-  getOverview: async (tenantId: string): Promise<OverviewAnalytics> => {
-    const response = await fetch(
-      `${API_BASE}/tenants/${tenantId}/analytics/overview`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
+  async getOverview(tenantId: string): Promise<OverviewAnalytics> {
+    const response = await api.get<OverviewAnalytics>(
+      `/tenants/${tenantId}/analytics/overview`
     );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch overview analytics: ${response.statusText}`);
-    }
-
-    return response.json();
+    return response.data;
   },
 
   /**
    * Get lead analytics
    */
-  getLeadAnalytics: async (tenantId: string): Promise<LeadAnalytics> => {
-    const response = await fetch(
-      `${API_BASE}/tenants/${tenantId}/analytics/leads`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
+  async getLeadAnalytics(tenantId: string): Promise<LeadAnalytics> {
+    const response = await api.get<LeadAnalytics>(
+      `/tenants/${tenantId}/analytics/leads`
     );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch lead analytics: ${response.statusText}`);
-    }
-
-    return response.json();
+    return response.data;
   },
 
   /**
    * Get assessment analytics
    */
-  getAssessmentAnalytics: async (tenantId: string): Promise<AssessmentAnalytics> => {
-    const response = await fetch(
-      `${API_BASE}/tenants/${tenantId}/analytics/assessments`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
+  async getAssessmentAnalytics(tenantId: string): Promise<AssessmentAnalytics> {
+    const response = await api.get<AssessmentAnalytics>(
+      `/tenants/${tenantId}/analytics/assessments`
     );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch assessment analytics: ${response.statusText}`);
-    }
-
-    return response.json();
+    return response.data;
   },
 
   /**
    * Get trend data
    */
-  getTrends: async (
+  async getTrends(
     tenantId: string,
     period: '7d' | '30d' | '90d' = '30d',
     metric: 'leads' | 'assessments' = 'leads'
-  ): Promise<TrendData> => {
-    const url = new URL(`${API_BASE}/tenants/${tenantId}/analytics/trends`);
-    url.searchParams.append('period', period);
-    url.searchParams.append('metric', metric);
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch trends: ${response.statusText}`);
-    }
-
-    return response.json();
+  ): Promise<TrendData> {
+    const response = await api.get<TrendData>(
+      `/tenants/${tenantId}/analytics/trends`,
+      { params: { period, metric } }
+    );
+    return response.data;
   },
 };
 

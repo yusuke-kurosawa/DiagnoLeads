@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+import api from './api';
 
 export interface AssessmentQuestion {
   id: string;
@@ -53,96 +51,64 @@ export interface UpdateAssessmentData {
   scoring_logic?: Record<string, unknown>;
 }
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('access_token');
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
+
 
 export const assessmentService = {
   async list(tenantId: string, params?: { skip?: number; limit?: number; status?: string }) {
-    const response = await axios.get<Assessment[]>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments`,
-      {
-        headers: getAuthHeaders(),
-        params,
-      }
+    const response = await api.get<Assessment[]>(
+      `/tenants/${tenantId}/assessments`,
+      { params }
     );
     return response.data;
   },
 
   async get(tenantId: string, assessmentId: string) {
-    const response = await axios.get<Assessment>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}`,
-      {
-        headers: getAuthHeaders(),
-      }
+    const response = await api.get<Assessment>(
+      `/tenants/${tenantId}/assessments/${assessmentId}`
     );
     return response.data;
   },
 
   async create(tenantId: string, data: CreateAssessmentData) {
-    const response = await axios.post<Assessment>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments`,
-      data,
-      {
-        headers: getAuthHeaders(),
-      }
+    const response = await api.post<Assessment>(
+      `/tenants/${tenantId}/assessments`,
+      data
     );
     return response.data;
   },
 
   async update(tenantId: string, assessmentId: string, data: UpdateAssessmentData) {
-    const response = await axios.put<Assessment>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}`,
-      data,
-      {
-        headers: getAuthHeaders(),
-      }
+    const response = await api.put<Assessment>(
+      `/tenants/${tenantId}/assessments/${assessmentId}`,
+      data
     );
     return response.data;
   },
 
   async delete(tenantId: string, assessmentId: string) {
-    await axios.delete(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}`,
-      {
-        headers: getAuthHeaders(),
-      }
-    );
+    await api.delete(`/tenants/${tenantId}/assessments/${assessmentId}`);
   },
 
   async search(tenantId: string, query: string, limit = 10) {
-    const response = await axios.get<Assessment[]>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments/search`,
-      {
-        headers: getAuthHeaders(),
-        params: { q: query, limit },
-      }
+    const response = await api.get<Assessment[]>(
+      `/tenants/${tenantId}/assessments/search`,
+      { params: { q: query, limit } }
     );
     return response.data;
   },
 
   async publish(tenantId: string, assessmentId: string) {
-    const response = await axios.post<Assessment>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}/publish`,
-      {},
-      {
-        headers: getAuthHeaders(),
-      }
+    const response = await api.post<Assessment>(
+      `/tenants/${tenantId}/assessments/${assessmentId}/publish`,
+      {}
     );
     return response.data;
   },
 
   async unpublish(tenantId: string, assessmentId: string) {
-    const response = await axios.post<Assessment>(
-      `${API_BASE_URL}/tenants/${tenantId}/assessments/${assessmentId}/unpublish`,
-      {},
-      {
-        headers: getAuthHeaders(),
-      }
+    const response = await api.post<Assessment>(
+      `/tenants/${tenantId}/assessments/${assessmentId}/unpublish`,
+      {}
     );
     return response.data;
   },
