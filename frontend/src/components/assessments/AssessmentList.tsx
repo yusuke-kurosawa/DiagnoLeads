@@ -29,11 +29,13 @@ export default function AssessmentList({ tenantId }: AssessmentListProps) {
             診断コンテンツを作成・管理します
           </p>
         </div>
-        <Link to={`/tenants/${tenantId}/assessments/create`}>
-          <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
-            診断を作成
-          </Button>
-        </Link>
+        <div style={{ visibility: 'visible', display: 'inline-block' }}>
+          <Link to={`/tenants/${tenantId}/assessments/create`}>
+            <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
+              診断を作成
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Loading State */}
