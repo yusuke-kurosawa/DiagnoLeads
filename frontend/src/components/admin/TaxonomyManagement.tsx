@@ -152,6 +152,58 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
 
   const label = type === 'topics' ? 'トピック' : '業界';
 
+  const handleDragEnd = async (draggedItemId: string, targetItemId: string) => {
+    if (draggedItemId === targetItemId) {
+      setDraggedId(null);
+      return;
+    }
+
+    try {
+      // Find indices
+      const draggedIndex = items.findIndex((item) => item.id === draggedItemId);
+      const targetIndex = items.findIndex((item) => item.id === targetItemId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      // Create new sorted array
+      const newItems = [...items];
+      [newItems[draggedIndex], newItems[targetIndex]] = [
+        newItems[targetIndex],
+        newItems[draggedIndex],
+      ];
+
+      // Update sort_order for all items
+      const updates = newItems.map((item, index) => ({
+        ...item,
+        sort_order: index,
+      }));
+
+      // Optimistically update UI
+      setItems(updates);
+
+      // Send updates to server
+      if (!tenantId) return;
+
+      for (const item of updates) {
+        if (type === 'topics') {
+          await updateTopic(tenantId, item.id, { sort_order: item.sort_order } as any);
+        } else {
+          await updateIndustry(tenantId, item.id, { sort_order: item.sort_order } as any);
+        }
+      }
+
+      setSuccessMessage('並び順を更新しました');
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.detail || err.message || '並び順の更新に失敗しました';
+      setError(errorMsg);
+      console.error('Error updating sort order:', err);
+      // Reload to revert
+      await loadItems();
+    } finally {
+      setDraggedId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -290,8 +342,9 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
             draggable
             onDragStart={() => setDraggedId(item.id)}
             onDragOver={(e) => e.preventDefault()}
+            onDrop={() => draggedId && handleDragEnd(draggedId, item.id)}
             className={`flex items-center gap-4 p-4 bg-white border rounded hover:bg-gray-50 cursor-move transition-colors ${
-              draggedId === item.id ? 'opacity-50 bg-gray-100' : ''
+              draggedId === item.id ? 'opacity-50 bg-gray-100' : draggedId ? 'border-blue-300 bg-blue-50' : ''
             }`}
           >
             <GripVertical size={18} className="text-gray-400" />

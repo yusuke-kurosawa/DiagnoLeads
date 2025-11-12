@@ -1,9 +1,12 @@
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { assessmentService, type CreateAssessmentData } from '../../services/assessmentService';
 import { useNavigate } from 'react-router-dom';
+import { assessmentService, type CreateAssessmentData } from '../../services/assessmentService';
+import { getTopics, getIndustries } from '../../services/taxonomyService';
+import type { Topic, Industry } from '../../types/taxonomy';
 
 const assessmentSchema = z.object({
   title: z.string().min(1, '診断名は必須です').max(255, '診断名は255文字以下である必要があります'),
@@ -31,6 +34,30 @@ export default function AssessmentForm({
 }: AssessmentFormProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [loadingTaxonomy, setLoadingTaxonomy] = useState(false);
+
+  useEffect(() => {
+    const loadTaxonomy = async () => {
+      try {
+        setLoadingTaxonomy(true);
+        const [topicsData, industriesData] = await Promise.all([
+          getTopics(tenantId),
+          getIndustries(tenantId),
+        ]);
+        // Sort by sort_order
+        setTopics(topicsData.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+        setIndustries(industriesData.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      } catch (err) {
+        console.error('Failed to load taxonomy:', err);
+      } finally {
+        setLoadingTaxonomy(false);
+      }
+    };
+
+    loadTaxonomy();
+  }, [tenantId]);
 
   const {
     register,
@@ -119,13 +146,19 @@ export default function AssessmentForm({
           <label htmlFor="topic" className="block text-left text-sm font-medium text-gray-700 mb-2">
             トピック
           </label>
-          <input
+          <select
             {...register('topic')}
-            type="text"
             id="topic"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="例：マーケティング戦略"
-          />
+            disabled={loadingTaxonomy}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+          >
+            <option value="">-- 選択してください --</option>
+            {topics.map((topic) => (
+              <option key={topic.id} value={topic.name}>
+                {topic.name}
+              </option>
+            ))}
+          </select>
           {errors.topic && (
             <p className="mt-1 text-sm text-red-600">{errors.topic.message}</p>
           )}
@@ -135,13 +168,19 @@ export default function AssessmentForm({
           <label htmlFor="industry" className="block text-left text-sm font-medium text-gray-700 mb-2">
             業界
           </label>
-          <input
+          <select
             {...register('industry')}
-            type="text"
             id="industry"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="例：テクノロジー"
-          />
+            disabled={loadingTaxonomy}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+          >
+            <option value="">-- 選択してください --</option>
+            {industries.map((industry) => (
+              <option key={industry.id} value={industry.name}>
+                {industry.name}
+              </option>
+            ))}
+          </select>
           {errors.industry && (
             <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>
           )}
