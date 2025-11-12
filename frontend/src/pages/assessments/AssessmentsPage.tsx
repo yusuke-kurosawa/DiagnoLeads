@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
+import { Layout } from '../../components/layout/Layout';
 import AssessmentList from '../../components/assessments/AssessmentList';
 
 export function AssessmentsPage() {
@@ -20,9 +21,11 @@ export function AssessmentsPage() {
   }
 
   return (
-    <div className="container mx-auto">
-      <AssessmentList tenantId={tenantId} />
-    </div>
+    <Layout>
+      <div className="container mx-auto">
+        <AssessmentList tenantId={tenantId} />
+      </div>
+    </Layout>
   );
 }
 
