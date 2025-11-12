@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 
-# from app.core.middleware import TenantMiddleware  # TODO: Uncomment after implementation
+from app.core.middleware import TenantMiddleware
 from app.api.v1 import api_router
 
 # Create FastAPI application
@@ -32,8 +32,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Multi-tenant Middleware
-# app.add_middleware(TenantMiddleware)  # TODO: Uncomment after implementation
+# Multi-tenant Middleware (enforce tenant isolation)
+app.add_middleware(TenantMiddleware)
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")

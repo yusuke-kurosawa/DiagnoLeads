@@ -4,7 +4,8 @@ Dependencies for FastAPI endpoints
 Provides database session, authentication, and authorization dependencies.
 """
 
-from typing import Generator
+from typing import Generator, Optional
+from contextvars import ContextVar
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -17,11 +18,24 @@ from app.services.auth import AuthService
 
 security = HTTPBearer()
 
+# Context variable to store current tenant_id (set by TenantMiddleware)
+current_tenant_id: ContextVar[Optional[str]] = ContextVar('current_tenant_id', default=None)
+
 
 def get_db() -> Generator[Session, None, None]:
-    """Get database session"""
+    """Get database session with tenant context for RLS"""
     db = SessionLocal()
     try:
+        # Get tenant_id from context variable (set by TenantMiddleware)
+        tenant_id = current_tenant_id.get()
+        
+        # Set tenant context for Row-Level Security (RLS)
+        if tenant_id:
+            from sqlalchemy import text
+            # Use parameterized query to prevent SQL injection
+            db.execute(text("SELECT set_config('app.current_tenant_id', :tenant_id, false)"), 
+                      {"tenant_id": tenant_id})
+        
         yield db
     finally:
         db.close()

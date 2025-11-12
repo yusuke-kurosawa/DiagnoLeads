@@ -9,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from jose import jwt, JWTError
 
 from app.core.config import settings
+from app.core.deps import current_tenant_id
 
 
 class TenantMiddleware(BaseHTTPMiddleware):
@@ -62,6 +63,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # Attach tenant_id and user_id to request state
             request.state.tenant_id = tenant_id
             request.state.user_id = user_id
+            
+            # Set context variable for RLS (database-level tenant isolation)
+            current_tenant_id.set(str(tenant_id))
 
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
