@@ -15,6 +15,9 @@ import { EditLeadPage } from './pages/leads/EditLeadPage';
 import { LeadDetailPage } from './pages/leads/LeadDetailPage';
 import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import ComponentsShowcase from './pages/ComponentsShowcase';
+import AdminMasterPage from './pages/admin/AdminMasterPage';
+import AuditLogPage from './pages/admin/AuditLogPage';
+import TaxonomyPage from './pages/settings/TaxonomyPage';
 import './App.css';
 
 // Protected Route wrapper with Layout
@@ -146,6 +149,36 @@ function App() {
           element={
             <ProtectedRoute>
               <AnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Master Management routes */}
+        <Route
+          path="/tenants/:tenantId/admin/masters"
+          element={
+            <ProtectedRoute>
+              <AdminMasterPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Audit Log routes */}
+        <Route
+          path="/tenants/:tenantId/admin/audit-logs"
+          element={
+            <ProtectedRoute>
+              <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Settings routes */}
+        <Route
+          path="/tenants/:tenantId/settings"
+          element={
+            <ProtectedRoute>
+              <TaxonomyPage />
             </ProtectedRoute>
           }
         />
