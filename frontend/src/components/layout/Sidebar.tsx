@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 import { 
   HomeIcon, 
   FileTextIcon, 
@@ -21,9 +22,10 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
   const { tenantId } = useParams();
+  const { user } = useAuthStore();
   
-  // Default tenant ID for demo (should come from auth store)
-  const currentTenantId = tenantId || 'demo-tenant';
+  // Use tenant ID from URL params or fallback to authenticated user's tenant ID
+  const currentTenantId = tenantId || user?.tenant_id || 'demo-tenant';
   
   const navigationItems: NavigationItem[] = [
     {
