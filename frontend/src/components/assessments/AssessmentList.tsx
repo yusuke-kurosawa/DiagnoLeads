@@ -17,7 +17,7 @@ export default function AssessmentList({ tenantId }: AssessmentListProps) {
     queryFn: () => assessmentService.list(tenantId),
   });
 
-
+  console.log('AssessmentList render:', { tenantId, isLoading, error, assessmentsCount: assessments?.length });
 
   return (
     <div className="space-y-6">
