@@ -44,22 +44,41 @@ async def list_users(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """List users for a tenant (admin only)"""
-    # If tenant_id is not provided, use current user's tenant
-    if not tenant_id:
-        if current_user.role == "tenant_admin":
-            tenant_id = current_user.tenant_id
+    """List users (admin only)
+    
+    - System admin: Can see all users (tenant_id optional, shows all if not provided)
+    - Tenant admin: Can only see users in their tenant
+    """
+    # System admin can see all users or filter by tenant
+    if current_user.role == "system_admin":
+        if tenant_id:
+            # Filter by specific tenant
+            users = db.query(User).filter(User.tenant_id == tenant_id).offset(skip).limit(limit).all()
         else:
+            # Return all users from all tenants
+            users = db.query(User).offset(skip).limit(limit).all()
+    # Tenant admin can only see users in their tenant
+    elif current_user.role == "tenant_admin":
+        if tenant_id and tenant_id != current_user.tenant_id:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="tenant_id is required for system admins",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Tenant admins can only view users in their own tenant",
             )
+        users = db.query(User).filter(User.tenant_id == current_user.tenant_id).offset(skip).limit(limit).all()
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can manage users",
+        )
     
-    check_admin_access(current_user, tenant_id)
-    
-    users = db.query(User).filter(User.tenant_id == tenant_id).offset(skip).limit(limit).all()
-    
-    return [UserResponse.from_orm(user) for user in users]
+    # Build responses with tenant information
+    responses = []
+    for user in users:
+        response = UserResponse.from_orm(user)
+        if user.tenant:
+            response.tenant_name = user.tenant.name
+        responses.append(response)
+    return responses
 
 
 @router.get("/{user_id}", response_model=UserResponse)

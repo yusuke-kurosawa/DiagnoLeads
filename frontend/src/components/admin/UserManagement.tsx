@@ -42,7 +42,9 @@ export default function UserManagement() {
     try {
       setLoading(true);
       setError('');
-      const data = await getUsers(currentUser?.tenant_id);
+      // System admin can see all users, tenant admin sees only their tenant's users
+      const tenantIdParam = currentUser?.role === 'system_admin' ? undefined : currentUser?.tenant_id;
+      const data = await getUsers(tenantIdParam);
       setUsers(data);
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || err.message || 'ユーザー情報の読み込みに失敗しました';
@@ -305,6 +307,9 @@ export default function UserManagement() {
             <tr className="bg-gray-100 border-b border-gray-200">
               <th className="px-6 py-3 text-left font-semibold text-gray-700">名前</th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">メール</th>
+              {currentUser?.role === 'system_admin' && (
+                <th className="px-6 py-3 text-left font-semibold text-gray-700">テナント</th>
+              )}
               <th className="px-6 py-3 text-left font-semibold text-gray-700">ロール</th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">作成日</th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">操作</th>
@@ -315,6 +320,11 @@ export default function UserManagement() {
               <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
                 <td className="px-6 py-3">{user.name}</td>
                 <td className="px-6 py-3 text-sm text-gray-600">{user.email}</td>
+                {currentUser?.role === 'system_admin' && (
+                  <td className="px-6 py-3 text-sm text-gray-600">
+                    {(user as any).tenant_name || 'N/A'}
+                  </td>
+                )}
                 <td className="px-6 py-3">
                   <span className={`px-3 py-1 rounded text-sm font-medium ${getRoleBadgeColor(user.role)}`}>
                     {getRoleLabel(user.role)}

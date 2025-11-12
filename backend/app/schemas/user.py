@@ -33,6 +33,7 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
+    tenant_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -47,6 +48,7 @@ class UserAdmin(BaseModel):
     email: str
     name: str
     role: str
+    tenant_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     failed_login_attempts: int = 0
