@@ -24,13 +24,13 @@
 | **UI_GUIDELINES.md** | UI/UX ガイドライン | `root` |
 | **SPEC_STRATEGY.md** | 仕様駆動開発戦略 | `docs/` |
 
-### 📊 ER 図システム
+### 📊 OpenSpec - データモデル・ER図
 
 | ドキュメント | 概要 | 場所 |
 |-----------|------|------|
-| **ER_DIAGRAM_SYSTEM.md** | ER図システム概要 | `root` |
-| **docs/OPENSPEC_ER_DIAGRAM_COMPLETE.md** | ER図実装完了報告 | `docs/` |
-| **docs/OPENSPEC_ER_DIAGRAM_PLAN.md** | ER図実装計画 | `docs/` |
+| **openspec/specs/database/er-diagram-system.md** | ER図システム統合仕様 | `openspec/` |
+| **openspec/specs/database/diagnoleads-data-model.md** | DiagnoLeads ER図定義 | `openspec/` |
+| **openspec/specs/database/er-diagram-format.md** | ER図フォーマット仕様 | `openspec/` |
 
 ### 🔧 セッションレポート (参考)
 
