@@ -6,7 +6,7 @@ import { assessmentService, type CreateAssessmentData } from '../../services/ass
 import { useNavigate } from 'react-router-dom';
 
 const assessmentSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255, 'Title too long'),
+  title: z.string().min(1, '診断名は必須です').max(255, '診断名は255文字以下である必要があります'),
   description: z.string().optional(),
   status: z.enum(['draft', 'published', 'archived']),
   topic: z.string().max(255).optional(),
@@ -77,21 +77,21 @@ export default function AssessmentForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {mutation.error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-          <p className="font-bold">Error</p>
+          <p className="font-bold">エラー</p>
           <p className="text-sm">{(mutation.error as Error).message}</p>
         </div>
       )}
 
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-          Title <span className="text-red-500">*</span>
+          診断名 <span className="text-red-500">*</span>
         </label>
         <input
           {...register('title')}
           type="text"
           id="title"
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter assessment title"
+          placeholder="例：マーケティング効果測定診断"
         />
         {errors.title && (
           <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -100,14 +100,14 @@ export default function AssessmentForm({
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
+          説明
         </label>
         <textarea
           {...register('description')}
           id="description"
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter assessment description"
+          placeholder="この診断の説明を入力してください"
         />
         {errors.description && (
           <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
@@ -117,14 +117,14 @@ export default function AssessmentForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-1">
-            Topic
+            トピック
           </label>
           <input
             {...register('topic')}
             type="text"
             id="topic"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="e.g., Marketing Strategy"
+            placeholder="例：マーケティング戦略"
           />
           {errors.topic && (
             <p className="mt-1 text-sm text-red-600">{errors.topic.message}</p>
@@ -133,14 +133,14 @@ export default function AssessmentForm({
 
         <div>
           <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
-            Industry
+            業界
           </label>
           <input
             {...register('industry')}
             type="text"
             id="industry"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="e.g., Technology"
+            placeholder="例：テクノロジー"
           />
           {errors.industry && (
             <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>
@@ -151,16 +151,16 @@ export default function AssessmentForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-            Status
+            ステータス
           </label>
           <select
             {...register('status')}
             id="status"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
+            <option value="draft">下書き</option>
+            <option value="published">公開中</option>
+            <option value="archived">アーカイブ</option>
           </select>
           {errors.status && (
             <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
@@ -169,16 +169,16 @@ export default function AssessmentForm({
 
         <div>
           <label htmlFor="ai_generated" className="block text-sm font-medium text-gray-700 mb-1">
-            Generation Type
+            作成方式
           </label>
           <select
             {...register('ai_generated')}
             id="ai_generated"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="manual">Manual</option>
-            <option value="ai">AI Generated</option>
-            <option value="hybrid">Hybrid</option>
+            <option value="manual">手動作成</option>
+            <option value="ai">AI生成</option>
+            <option value="hybrid">ハイブリッド</option>
           </select>
           {errors.ai_generated && (
             <p className="mt-1 text-sm text-red-600">{errors.ai_generated.message}</p>
@@ -192,14 +192,14 @@ export default function AssessmentForm({
           onClick={() => navigate(`/tenants/${tenantId}/assessments`)}
           className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          Cancel
+          キャンセル
         </button>
         <button
           type="submit"
           disabled={isSubmitting || mutation.isPending}
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {mutation.isPending ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
+          {mutation.isPending ? '保存中...' : mode === 'create' ? '作成' : '更新'}
         </button>
       </div>
     </form>

@@ -11,9 +11,9 @@ export function CreateAssessmentPage() {
   return (
     <div className="container mx-auto max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create Assessment</h1>
+        <h1 className="text-3xl font-bold text-gray-900">診断を作成</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Create a new diagnostic assessment for your leads.
+          新しい診断コンテンツを作成して、リード獲得を開始しましょう。
         </p>
       </div>
 
