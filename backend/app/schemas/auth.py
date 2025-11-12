@@ -95,3 +95,46 @@ class TokenData(BaseModel):
     user_id: Optional[UUID] = None
     tenant_id: Optional[UUID] = None
     email: Optional[str] = None
+
+
+class PasswordResetRequest(BaseModel):
+    """Password reset request"""
+
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    """Password reset confirmation"""
+
+    token: str
+    password: str = Field(..., min_length=8)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        """Validate new password meets security requirements"""
+        if len(v) < 8:
+            raise ValueError("パスワードは8文字以上である必要があります")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("パスワードには英大文字を含む必要があります")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("パスワードには英小文字を含む必要があります")
+        if not re.search(r"\d", v):
+            raise ValueError("パスワードには数字を含む必要があります")
+        return v
+
+
+class TokenRefresh(BaseModel):
+    """Token refresh request"""
+
+    refresh_token: str
+
+
+class TokenResponse(BaseModel):
+    """Token response with both access and refresh tokens"""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int = 86400  # 24 hours in seconds
+    user: UserResponse

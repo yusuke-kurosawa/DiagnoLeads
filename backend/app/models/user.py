@@ -4,7 +4,7 @@ User Model
 Represents a user within a tenant.
 """
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Index
+from sqlalchemy import Column, String, DateTime, ForeignKey, Index, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 import uuid
@@ -29,6 +29,14 @@ class User(Base):
         String(50), default="user", nullable=False
     )  # user, tenant_admin, system_admin
 
+    # Password reset fields
+    password_reset_token = Column(String(255), nullable=True, index=True)
+    password_reset_expires_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Login attempt tracking (security)
+    failed_login_attempts = Column(Integer, default=0, nullable=False)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
+
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -40,7 +48,10 @@ class User(Base):
     )
 
     # Indexes for performance
-    __table_args__ = (Index("idx_users_tenant_email", "tenant_id", "email"),)
+    __table_args__ = (
+        Index("idx_users_tenant_email", "tenant_id", "email"),
+        Index("idx_users_password_reset_token", "password_reset_token"),
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"

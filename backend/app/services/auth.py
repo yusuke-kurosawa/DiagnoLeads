@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 import uuid
+import secrets
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -149,3 +150,113 @@ class AuthService:
     def get_user_by_email(db: Session, email: str) -> Optional[User]:
         """Get user by email"""
         return db.query(User).filter(User.email == email).first()
+
+    @staticmethod
+    def create_refresh_token(data: dict) -> str:
+        """Create a refresh token (valid for 7 days)"""
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(days=7)
+        to_encode.update({"exp": expire, "type": "refresh"})
+        encoded_jwt = jwt.encode(
+            to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
+        return encoded_jwt
+
+    @staticmethod
+    def create_password_reset_token() -> str:
+        """Generate a secure password reset token"""
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def create_password_reset_request(
+        db: Session, email: str
+    ) -> Optional[tuple[User, str]]:
+        """
+        Create a password reset request and return user and token
+        Returns (user, token) or None if user not found
+        """
+        user = AuthService.get_user_by_email(db, email)
+        if not user:
+            return None
+
+        # Generate reset token (valid for 1 hour)
+        reset_token = AuthService.create_password_reset_token()
+        user.password_reset_token = reset_token
+        user.password_reset_expires_at = datetime.utcnow() + timedelta(hours=1)
+        db.commit()
+        db.refresh(user)
+
+        return user, reset_token
+
+    @staticmethod
+    def verify_password_reset_token(db: Session, token: str) -> Optional[User]:
+        """Verify password reset token and return user if valid"""
+        user = (
+            db.query(User)
+            .filter(User.password_reset_token == token)
+            .filter(User.password_reset_expires_at > datetime.utcnow())
+            .first()
+        )
+        return user
+
+    @staticmethod
+    def reset_password(db: Session, user: User, new_password: str) -> User:
+        """Reset user password and clear reset token"""
+        user.password_hash = AuthService.hash_password(new_password)
+        user.password_reset_token = None
+        user.password_reset_expires_at = None
+        db.commit()
+        db.refresh(user)
+        return user
+
+    @staticmethod
+    def check_and_increment_login_attempts(
+        db: Session, email: str
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Check login attempts and increment counter.
+        Returns (can_attempt, error_message)
+        """
+        user = AuthService.get_user_by_email(db, email)
+        if not user:
+            return True, None
+
+        # Check if account is locked
+        if user.locked_until and user.locked_until > datetime.utcnow():
+            remaining_minutes = int(
+                (user.locked_until - datetime.utcnow()).total_seconds() / 60
+            )
+            return (
+                False,
+                f"アカウントが一時的にロックされています。{remaining_minutes}分後に再試行してください",
+            )
+
+        # Check if max attempts exceeded
+        if user.failed_login_attempts >= 5:
+            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+            db.commit()
+            return (
+                False,
+                "アカウントが一時的にロックされています。15分後に再試行してください",
+            )
+
+        # Increment attempts
+        user.failed_login_attempts += 1
+        db.commit()
+
+        if user.failed_login_attempts >= 5:
+            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+            db.commit()
+            return (
+                False,
+                "アカウントが一時的にロックされています。15分後に再試行してください",
+            )
+
+        return True, None
+
+    @staticmethod
+    def reset_login_attempts(user: User, db: Session) -> None:
+        """Reset login attempts after successful login"""
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        db.commit()

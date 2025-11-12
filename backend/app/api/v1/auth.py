@@ -7,9 +7,22 @@ Handles user registration, login, and token management.
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from uuid import UUID
 
 from app.core.database import get_db
-from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse, RegistrationResponse
+from app.core.config import settings
+from app.schemas.auth import (
+    Token, 
+    UserCreate, 
+    UserLogin, 
+    UserResponse, 
+    RegistrationResponse,
+    PasswordResetRequest,
+    PasswordResetConfirm,
+    TokenRefresh,
+    TokenResponse,
+)
 from app.services.auth import AuthService
 
 
@@ -45,7 +58,7 @@ async def register(
     )
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TokenResponse)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
@@ -53,9 +66,21 @@ async def login(
     """
     Login with email and password.
 
-    Returns a JWT access token on success.
+    Returns both access and refresh tokens on success.
+    Implements rate limiting: 5 failed attempts lock for 15 minutes.
     """
-    user = AuthService.authenticate_user(db, form_data.username, form_data.password)
+    email = form_data.username
+
+    # Check login attempt limits first
+    can_attempt, error_msg = AuthService.check_and_increment_login_attempts(db, email)
+    if not can_attempt:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=error_msg,
+        )
+
+    # Authenticate user
+    user = AuthService.authenticate_user(db, email, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -63,7 +88,10 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Generate access token
+    # Reset login attempts on successful login
+    AuthService.reset_login_attempts(user, db)
+
+    # Generate tokens
     access_token = AuthService.create_access_token(
         data={
             "sub": str(user.id),
@@ -71,10 +99,19 @@ async def login(
             "email": user.email,
         }
     )
+    refresh_token = AuthService.create_refresh_token(
+        data={
+            "sub": str(user.id),
+            "tenant_id": str(user.tenant_id),
+            "email": user.email,
+        }
+    )
 
-    return Token(
+    return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_token,
         token_type="bearer",
+        expires_in=86400,  # 24 hours
         user=UserResponse.model_validate(user),
     )
 
@@ -138,3 +175,126 @@ async def get_current_user(
         )
 
     return UserResponse.model_validate(user)
+
+
+@router.post("/password-reset", status_code=status.HTTP_200_OK)
+async def request_password_reset(
+    request: PasswordResetRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Request a password reset.
+
+    Sends a password reset link to the user's email.
+    """
+    result = AuthService.create_password_reset_request(db, request.email)
+    
+    if not result:
+        # Don't reveal if email exists (security best practice)
+        return {"message": "パスワードリセットメールを送信しました"}
+
+    user, reset_token = result
+
+    # TODO: Send email with reset link
+    # In production, use a service like SendGrid or Mailgun
+    # For now, log the token (UNSAFE - for dev only)
+    print(f"🔐 Password reset token for {user.email}: {reset_token}")
+    print(f"Reset link: http://localhost:3000/reset-password?token={reset_token}")
+
+    return {"message": "パスワードリセットメールを送信しました"}
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_200_OK)
+async def confirm_password_reset(
+    request: PasswordResetConfirm,
+    db: Session = Depends(get_db),
+):
+    """
+    Confirm password reset with token and new password.
+
+    Validates the reset token and updates the password.
+    """
+    user = AuthService.verify_password_reset_token(db, request.token)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="無効または期限切れのリセットトークンです",
+        )
+
+    # Reset password
+    AuthService.reset_password(db, user, request.password)
+
+    return {"message": "パスワードを更新しました。ログインしてください。"}
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    request: TokenRefresh,
+    db: Session = Depends(get_db),
+):
+    """
+    Refresh access token using refresh token.
+
+    Returns a new access token and refresh token.
+    """
+    try:
+        payload = jwt.decode(
+            request.refresh_token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        
+        token_type = payload.get("type")
+        if token_type != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
+            )
+
+        user_id = payload.get("sub")
+        tenant_id = payload.get("tenant_id")
+        email = payload.get("email")
+
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+            )
+
+        user = AuthService.get_user_by_id(db, UUID(user_id))
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        # Generate new tokens
+        new_access_token = AuthService.create_access_token(
+            data={
+                "sub": user_id,
+                "tenant_id": tenant_id,
+                "email": email,
+            }
+        )
+        new_refresh_token = AuthService.create_refresh_token(
+            data={
+                "sub": user_id,
+                "tenant_id": tenant_id,
+                "email": email,
+            }
+        )
+
+        return TokenResponse(
+            access_token=new_access_token,
+            refresh_token=new_refresh_token,
+            token_type="bearer",
+            expires_in=86400,
+            user=UserResponse.model_validate(user),
+        )
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
