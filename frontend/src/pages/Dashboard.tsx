@@ -17,19 +17,12 @@ import {
   TrendingUp,
   Target,
   Zap,
-  ArrowRight,
-  LogOut,
-  Plus
+  ArrowRight
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const features = [
     {
@@ -95,37 +88,8 @@ export default function Dashboard() {
   } as const;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <motion.header 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-gray-200/50 shadow-sm"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <motion.div 
-                whileHover={{ rotate: 180, scale: 1.1 }}
-                transition={{ duration: 0.3 }}
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center shadow-primary"
-              >
-                <Sparkles className="w-6 h-6 text-white" />
-              </motion.div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-                  DiagnoLeads
-                </h1>
-                <p className="text-xs text-gray-500">AI-Powered Lead Generation</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={handleLogout} leftIcon={<LogOut className="w-4 h-4" />} className="border-gray-300 text-gray-700 hover:bg-gray-100">
-              ログアウト
-            </Button>
-          </div>
-        </div>
-      </motion.header>
+    <div className="min-h-screen bg-gray-50">
+
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -227,49 +191,7 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Getting Started */}
-          <motion.div variants={itemVariants}>
-            <div className="border border-gray-200 bg-white rounded-lg p-6 shadow-md">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">はじめましょう！</h2>
-                  <p className="text-gray-600">DiagnoLeadsで最高のリード獲得体験を</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { step: 1, title: '診断を作成', desc: 'AIビルダーでトピックを入力するだけ' },
-                  { step: 2, title: 'Webサイトに埋め込み', desc: 'ワンクリックでコードをコピー' },
-                  { step: 3, title: 'リードを獲得', desc: 'AIが自動で分析・スコアリング' }
-                ].map((item) => (
-                  <motion.div
-                    key={item.step}
-                    whileHover={{ x: 10 }}
-                    className="flex items-start space-x-3 cursor-pointer"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {item.step}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{item.title}</p>
-                      <p className="text-sm text-gray-600">{item.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              <Button 
-                variant="primary" 
-                fullWidth 
-                className="mt-6 bg-blue-600 text-white hover:bg-blue-700"
-                onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/assessments`)}
-              >
-                診断作成を開始
-              </Button>
-            </div>
-          </motion.div>
+
         </motion.div>
       </main>
     </div>
