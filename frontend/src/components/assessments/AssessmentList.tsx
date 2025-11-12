@@ -29,7 +29,7 @@ export default function AssessmentList({ tenantId }: AssessmentListProps) {
             診断コンテンツを作成・管理します
           </p>
         </div>
-        <Link to={`/tenants/${tenantId}/assessments/new`}>
+        <Link to={`/tenants/${tenantId}/assessments/create`}>
           <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
             診断を作成
           </Button>
@@ -112,7 +112,7 @@ export default function AssessmentList({ tenantId }: AssessmentListProps) {
                 description="まだ診断が作成されていません。最初の診断を作成して、リード獲得を開始しましょう。"
                 action={{
                   label: '診断を作成',
-                  onClick: () => window.location.href = `/tenants/${tenantId}/assessments/new`,
+                  onClick: () => window.location.href = `/tenants/${tenantId}/assessments/create`,
                   variant: 'primary',
                   icon: <Plus className="w-4 h-4" />,
                 }}
