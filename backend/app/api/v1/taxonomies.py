@@ -70,6 +70,7 @@ async def create_topic(
     """Create a new topic for a tenant."""
     topic = Topic(
         tenant_id=tenant_id,
+        created_by=current_user.id,
         name=data.name,
         description=data.description,
         color=data.color,
@@ -189,6 +190,7 @@ async def create_industry(
     """Create a new industry for a tenant."""
     industry = Industry(
         tenant_id=tenant_id,
+        created_by=current_user.id,
         name=data.name,
         description=data.description,
         color=data.color,
