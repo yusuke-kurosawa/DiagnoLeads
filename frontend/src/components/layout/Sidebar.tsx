@@ -7,6 +7,7 @@ import {
   UsersIcon, 
   BarChart3Icon, 
   SettingsIcon,
+  Wrench,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -55,6 +56,18 @@ export function Sidebar() {
     },
   ];
 
+  // Admin-only menu items
+  const adminNavigationItems: NavigationItem[] = [
+    {
+      icon: Wrench,
+      label: 'マスター管理',
+      path: `/tenants/${currentTenantId}/admin/masters`,
+    },
+  ];
+
+  // Check if user is admin
+  const isAdmin = user?.role === 'tenant_admin' || user?.role === 'system_admin';
+
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path);
   };
@@ -99,6 +112,43 @@ export function Sidebar() {
                     ${
                       active
                         ? 'bg-blue-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }
+                  `}
+                  title={!isOpen ? item.label : undefined}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {isOpen && <span className="font-medium">{item.label}</span>}
+                  {isOpen && item.badge && (
+                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+
+          {/* Separator for admin section */}
+          {isAdmin && navigationItems.length > 0 && (
+            <li className="my-4 border-t border-gray-700" />
+          )}
+
+          {/* Admin Navigation */}
+          {isAdmin && adminNavigationItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            
+            return (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-lg
+                    transition-colors duration-200
+                    ${
+                      active
+                        ? 'bg-purple-600 text-white'
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     }
                   `}
