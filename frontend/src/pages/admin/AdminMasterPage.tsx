@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { Building2, Users, Layers, Settings, FileText } from 'lucide-react';
-import TenantManagement from '../../components/admin/TenantManagement';
 import UserManagement from '../../components/admin/UserManagement';
 import TaxonomyManagement from '../../components/admin/TaxonomyManagement';
 
