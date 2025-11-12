@@ -23,6 +23,15 @@ class TopicCreate(TopicBase):
     pass
 
 
+class TopicUpdate(BaseModel):
+    """Topic update request - partial update"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    sort_order: Optional[int] = None
+
+
 class TopicResponse(TopicBase):
     """Topic response model"""
     id: UUID
@@ -45,6 +54,15 @@ class IndustryBase(BaseModel):
 class IndustryCreate(IndustryBase):
     """Industry creation request"""
     pass
+
+
+class IndustryUpdate(BaseModel):
+    """Industry update request - partial update"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    sort_order: Optional[int] = None
 
 
 class IndustryResponse(IndustryBase):

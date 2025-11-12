@@ -16,8 +16,10 @@ from app.models.user import User
 from app.schemas.taxonomy import (
     TopicResponse,
     TopicCreate,
+    TopicUpdate,
     IndustryResponse,
     IndustryCreate,
+    IndustryUpdate,
 )
 
 router = APIRouter()
@@ -85,7 +87,7 @@ async def create_topic(
 async def update_topic(
     tenant_id: str,
     topic_id: str,
-    data: TopicCreate,
+    data: TopicUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -101,10 +103,17 @@ async def update_topic(
             detail="Topic not found",
         )
     
-    topic.name = data.name
-    topic.description = data.description
-    topic.color = data.color
-    topic.icon = data.icon
+    # Partial update - only update provided fields
+    if data.name is not None:
+        topic.name = data.name
+    if data.description is not None:
+        topic.description = data.description
+    if data.color is not None:
+        topic.color = data.color
+    if data.icon is not None:
+        topic.icon = data.icon
+    if data.sort_order is not None:
+        topic.sort_order = data.sort_order
     
     db.commit()
     db.refresh(topic)
@@ -197,7 +206,7 @@ async def create_industry(
 async def update_industry(
     tenant_id: str,
     industry_id: str,
-    data: IndustryCreate,
+    data: IndustryUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -213,10 +222,17 @@ async def update_industry(
             detail="Industry not found",
         )
     
-    industry.name = data.name
-    industry.description = data.description
-    industry.color = data.color
-    industry.icon = data.icon
+    # Partial update - only update provided fields
+    if data.name is not None:
+        industry.name = data.name
+    if data.description is not None:
+        industry.description = data.description
+    if data.color is not None:
+        industry.color = data.color
+    if data.icon is not None:
+        industry.icon = data.icon
+    if data.sort_order is not None:
+        industry.sort_order = data.sort_order
     
     db.commit()
     db.refresh(industry)
