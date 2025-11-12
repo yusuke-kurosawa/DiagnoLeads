@@ -3,69 +3,80 @@ import { ChevronRightIcon } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
-  path: string | null;
+  href?: string;
 }
 
-export function Breadcrumbs() {
+interface BreadcrumbsProps {
+  items?: BreadcrumbItem[];
+}
+
+export function Breadcrumbs({ items: customItems }: BreadcrumbsProps = {}) {
   const location = useLocation();
 
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const breadcrumbs: BreadcrumbItem[] = [
-      { label: 'ダッシュボード', path: '/dashboard' },
+      { label: 'ダッシュボード', href: '/dashboard' },
     ];
 
-    // Parse path segments
-    for (let i = 0; i < pathSegments.length; i++) {
-      const segment = pathSegments[i];
+    // Extract tenant ID from path
+    let tenantId = '';
+    if (pathSegments[0] === 'tenants' && pathSegments[1]) {
+      tenantId = pathSegments[1];
+    }
 
-      if (segment === 'tenants') {
-        // Skip tenant ID segment
-        i++; // Skip the tenant ID
-        continue;
-      }
+    // Parse path segments
+    let i = 2; // Start after 'tenants/tenantId'
+    while (i < pathSegments.length) {
+      const segment = pathSegments[i];
+      const isLast = i === pathSegments.length - 1;
 
       if (segment === 'assessments') {
+        const href = isLast ? undefined : `/tenants/${tenantId}/assessments`;
         breadcrumbs.push({
           label: '診断管理',
-          path: i === pathSegments.length - 1 ? null : location.pathname.split('/').slice(0, i + 3).join('/'),
+          href,
         });
       } else if (segment === 'leads') {
+        const href = isLast ? undefined : `/tenants/${tenantId}/leads`;
         breadcrumbs.push({
           label: 'リード管理',
-          path: i === pathSegments.length - 1 ? null : location.pathname.split('/').slice(0, i + 3).join('/'),
+          href,
         });
       } else if (segment === 'analytics') {
+        const href = isLast ? undefined : `/tenants/${tenantId}/analytics`;
         breadcrumbs.push({
           label: '分析',
-          path: null,
+          href,
         });
       } else if (segment === 'settings') {
+        const href = isLast ? undefined : `/tenants/${tenantId}/settings`;
         breadcrumbs.push({
           label: '設定',
-          path: null,
+          href,
         });
       } else if (segment === 'create') {
         breadcrumbs.push({
           label: '新規作成',
-          path: null,
         });
       } else if (segment === 'edit') {
         breadcrumbs.push({
           label: '編集',
-          path: null,
         });
       } else if (segment.match(/^[a-f0-9-]{36}$/)) {
-        // UUID pattern - skip for now
-        // In a real app, you'd fetch the name
-        continue;
+        // UUID pattern - detail page
+        breadcrumbs.push({
+          label: '詳細',
+        });
       }
+
+      i++;
     }
 
     return breadcrumbs;
   };
 
-  const breadcrumbs = generateBreadcrumbs();
+  const breadcrumbs = customItems || generateBreadcrumbs();
 
   // Don't show breadcrumbs on dashboard
   if (location.pathname === '/dashboard') {
@@ -79,9 +90,9 @@ export function Breadcrumbs() {
           {index > 0 && (
             <ChevronRightIcon className="w-4 h-4 text-gray-400 mx-2" />
           )}
-          {item.path ? (
+          {item.href ? (
             <Link
-              to={item.path}
+              to={item.href}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
               {item.label}
