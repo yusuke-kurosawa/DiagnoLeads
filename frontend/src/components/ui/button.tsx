@@ -8,19 +8,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: 
-          "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-primary hover:scale-105 active:scale-95",
+          "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:scale-105 active:scale-95",
         secondary: 
           "bg-gray-100 text-gray-900 hover:bg-gray-200 hover:scale-105 active:scale-95",
         outline: 
-          "border-2 border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:scale-105 active:scale-95",
+          "border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:scale-105 active:scale-95",
         ghost: 
           "bg-transparent text-gray-700 hover:bg-gray-100 hover:scale-105 active:scale-95",
         destructive: 
-          "bg-error-600 text-white hover:bg-error-700 hover:shadow-error hover:scale-105 active:scale-95",
+          "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:scale-105 active:scale-95",
         success:
-          "bg-success-600 text-white hover:bg-success-700 hover:shadow-success hover:scale-105 active:scale-95",
+          "bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 active:scale-95",
         link: 
-          "text-primary-600 underline-offset-4 hover:underline hover:text-primary-700",
+          "text-blue-600 underline-offset-4 hover:underline hover:text-blue-700",
       },
       size: {
         xs: "h-7 px-2 py-1 text-xs",
