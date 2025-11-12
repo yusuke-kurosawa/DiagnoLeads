@@ -6,6 +6,7 @@ Automatically applies tenant context to all requests.
 
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 from jose import jwt, JWTError
 
 from app.core.config import settings
@@ -34,6 +35,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/login",
             "/api/v1/auth/login/json",
             "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/password-reset",
+            "/api/v1/auth/password-reset/confirm",
         ]
 
         if request.url.path in public_paths:
@@ -42,9 +46,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Extract JWT token from Authorization header
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            raise HTTPException(
+            return JSONResponse(
                 status_code=401,
-                detail="Missing or invalid authorization header",
+                content={"detail": "Missing or invalid authorization header"},
             )
 
         token = auth_header.split(" ")[1]
@@ -60,9 +64,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
             user_id = payload.get("user_id")
 
             if not tenant_id:
-                raise HTTPException(
+                return JSONResponse(
                     status_code=401,
-                    detail="Invalid token: missing tenant_id claim",
+                    content={"detail": "Invalid token: missing tenant_id claim"},
                 )
 
             # Attach tenant_id and user_id to request state
@@ -73,7 +77,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
             current_tenant_id.set(str(tenant_id))
 
         except JWTError:
-            raise HTTPException(status_code=401, detail="Invalid or expired token")
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or expired token"},
+            )
 
         response = await call_next(request)
         return response

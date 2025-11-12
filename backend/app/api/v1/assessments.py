@@ -31,7 +31,7 @@ async def list_assessments(
     tenant_id: UUID,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
-    status: str = Query(None),
+    status_filter: str = Query(None, alias="status"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -41,17 +41,15 @@ async def list_assessments(
     **Security**: Verifies user belongs to the requested tenant
     """
     # Verify user belongs to this tenant
-    print(f"DEBUG: Comparing tenant_ids: user={current_user.tenant_id} (type={type(current_user.tenant_id).__name__}) vs param={tenant_id} (type={type(tenant_id).__name__})")
     if current_user.tenant_id != tenant_id:
-        print(f"DEBUG: Tenant mismatch! User tenant_id: {current_user.tenant_id}, Requested tenant_id: {tenant_id}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Access to this tenant's assessments is forbidden",
+            detail="Access to this tenant's assessments is forbidden",
         )
 
     service = AssessmentService(db)
     assessments = service.list_by_tenant(
-        tenant_id=tenant_id, skip=skip, limit=limit, status=status
+        tenant_id=tenant_id, skip=skip, limit=limit, status=status_filter
     )
 
     return assessments
