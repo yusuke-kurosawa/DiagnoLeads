@@ -118,11 +118,34 @@ export default function Login() {
           </div>
 
           {/* Demo Info */}
-          <div className="mt-6 p-3 bg-blue-50 rounded">
-            <p className="text-xs font-medium text-blue-900 mb-1">デモアカウント:</p>
-            <div className="text-xs text-blue-700">
-              <p>📧 Email: demo@example.com</p>
-              <p>🔐 Password: password123</p>
+          <div className="mt-6 space-y-3 border-t pt-4">
+            <p className="text-xs font-semibold text-gray-700 text-center">📋 デモアカウント</p>
+            
+            {/* Admin Account */}
+            <div className="p-3 bg-purple-50 rounded border border-purple-200">
+              <p className="text-xs font-medium text-purple-900 mb-2">👤 テナント管理者</p>
+              <div className="text-xs text-purple-700 space-y-1">
+                <p>📧 <code className="bg-white px-1 rounded">admin@demo.example.com</code></p>
+                <p>🔐 <code className="bg-white px-1 rounded">Admin@Demo123</code></p>
+              </div>
+            </div>
+
+            {/* User Account */}
+            <div className="p-3 bg-blue-50 rounded border border-blue-200">
+              <p className="text-xs font-medium text-blue-900 mb-2">👥 一般ユーザー</p>
+              <div className="text-xs text-blue-700 space-y-1">
+                <p>📧 <code className="bg-white px-1 rounded">user@demo.example.com</code></p>
+                <p>🔐 <code className="bg-white px-1 rounded">User@Demo123</code></p>
+              </div>
+            </div>
+
+            {/* System Account */}
+            <div className="p-3 bg-red-50 rounded border border-red-200">
+              <p className="text-xs font-medium text-red-900 mb-2">⚙️ システム管理者</p>
+              <div className="text-xs text-red-700 space-y-1">
+                <p>📧 <code className="bg-white px-1 rounded">system@demo.example.com</code></p>
+                <p>🔐 <code className="bg-white px-1 rounded">System@Demo123</code></p>
+              </div>
             </div>
           </div>
         </div>
