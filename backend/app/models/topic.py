@@ -40,7 +40,6 @@ class Topic(Base):
 
     # Relationships
     tenant = relationship("Tenant", back_populates="topics")
-    assessments = relationship("Assessment", back_populates="topic")
 
     # Constraints
     __table_args__ = (

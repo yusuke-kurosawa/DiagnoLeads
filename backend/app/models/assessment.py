@@ -30,8 +30,8 @@ class Assessment(Base):
     )  # draft, published, archived
 
     # AI generation metadata
-    topic = Column(String(255), nullable=True)  # Used for AI generation
-    industry = Column(String(100), nullable=True)  # Used for AI generation
+    topic_name = Column(String(255), nullable=True)  # Used for AI generation display
+    industry_name = Column(String(100), nullable=True)  # Used for AI generation display
     ai_generated = Column(String(50), default="manual", nullable=False)  # manual, ai, hybrid
 
     # Scoring configuration

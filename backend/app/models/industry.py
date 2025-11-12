@@ -40,7 +40,6 @@ class Industry(Base):
 
     # Relationships
     tenant = relationship("Tenant", back_populates="industries")
-    assessments = relationship("Assessment", back_populates="industry")
 
     # Constraints
     __table_args__ = (

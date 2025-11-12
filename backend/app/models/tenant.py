@@ -36,6 +36,8 @@ class Tenant(Base):
 
     # Relationships
     qr_codes = relationship("QRCode", back_populates="tenant", cascade="all, delete-orphan")
+    topics = relationship("Topic", back_populates="tenant", cascade="all, delete-orphan")
+    industries = relationship("Industry", back_populates="tenant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant(id={self.id}, name={self.name}, plan={self.plan})>"
