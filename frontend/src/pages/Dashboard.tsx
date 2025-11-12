@@ -174,17 +174,7 @@ export default function Dashboard() {
 
           {/* Feature Cards */}
           <motion.div variants={itemVariants}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">機能一覧</h2>
-              <Button 
-                variant="primary" 
-                size="sm"
-                leftIcon={<Plus className="w-4 h-4" />}
-                onClick={() => user?.tenant_id && navigate(`/tenants/${user.tenant_id}/assessments`)}
-              >
-                診断を作成
-              </Button>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">機能一覧</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {features.map((feature, idx) => (
                 <motion.div

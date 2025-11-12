@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { 
   HomeIcon, 
   FileTextIcon, 
   UsersIcon, 
   BarChart3Icon, 
-  SettingsIcon 
+  SettingsIcon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -15,6 +18,7 @@ interface NavigationItem {
 }
 
 export function Sidebar() {
+  const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
   const { tenantId } = useParams();
   
@@ -54,11 +58,26 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-gray-800">
-        <h1 className="text-2xl font-bold text-blue-400">DiagnoLeads</h1>
-        <p className="text-xs text-gray-400 mt-1">診断サービスプラットフォーム</p>
+    <aside className={`${isOpen ? 'w-64' : 'w-20'} bg-gray-900 text-white min-h-screen flex flex-col transition-all duration-300`}>
+      {/* Logo + Toggle */}
+      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+        {isOpen && (
+          <div>
+            <h1 className="text-2xl font-bold text-blue-400">DiagnoLeads</h1>
+            <p className="text-xs text-gray-400 mt-1">診断サービスプラットフォーム</p>
+          </div>
+        )}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
+          title={isOpen ? '折りたたむ' : '展開'}
+        >
+          {isOpen ? (
+            <ChevronLeft className="w-5 h-5" />
+          ) : (
+            <ChevronRight className="w-5 h-5" />
+          )}
+        </button>
       </div>
 
       {/* Navigation */}
@@ -81,10 +100,11 @@ export function Sidebar() {
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     }
                   `}
+                  title={!isOpen ? item.label : undefined}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                  {item.badge && (
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {isOpen && <span className="font-medium">{item.label}</span>}
+                  {isOpen && item.badge && (
                     <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                       {item.badge}
                     </span>
@@ -97,12 +117,14 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-800">
-        <div className="text-xs text-gray-400">
-          <p>© 2025 DiagnoLeads</p>
-          <p className="mt-1">Version 0.1.0</p>
+      {isOpen && (
+        <div className="p-4 border-t border-gray-800">
+          <div className="text-xs text-gray-400">
+            <p>© 2025 DiagnoLeads</p>
+            <p className="mt-1">Version 0.1.0</p>
+          </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 }
