@@ -167,27 +167,134 @@ m-1 m-2 m-3 m-4 m-6 m-8 m-12 m-16
 
 ## 6. フォーム要素
 
-### 6.1 入力フィールド
+### 6.1 フォーム項目のレイアウト
+
+**必ず以下の構造に従ってください：**
+
+```tsx
+<div>
+  {/* ラベル：常に上部に左揃え */}
+  <label htmlFor="fieldId" className="block text-left text-sm font-medium text-gray-700 mb-2">
+    項目名 <span className="text-red-600">*</span>
+  </label>
+  
+  {/* 入力フィールド */}
+  <input
+    id="fieldId"
+    className="w-full px-3 py-2 border border-gray-300 rounded-md 
+               focus:outline-none focus:ring-2 focus:ring-blue-600"
+  />
+  
+  {/* エラーメッセージ */}
+  {errors.fieldId && (
+    <p className="mt-1 text-sm text-red-600">{errors.fieldId.message}</p>
+  )}
+</div>
+```
+
+### 6.2 ラベルのスタイル
+
+| プロパティ | 値 | 説明 |
+|-----------|-----|------|
+| `display` | `block` | ラベルを独立した行にする |
+| `text-align` | `text-left` | 左揃え |
+| `font-size` | `text-sm` | ラベルサイズ |
+| `font-weight` | `font-medium` | 目立たせる |
+| `text-color` | `text-gray-700` | ダークグレー |
+| `margin-bottom` | `mb-2` | ラベル下の余白 |
+
+### 6.3 入力フィールド
 
 ```tsx
 <input
-  className="w-full px-3 py-2 border border-gray-300 rounded-lg 
+  className="w-full px-3 py-2 border border-gray-300 rounded-md 
+             focus:outline-none focus:ring-2 focus:ring-blue-600"
+/>
+
+<textarea
+  className="w-full px-3 py-2 border border-gray-300 rounded-md 
+             focus:outline-none focus:ring-2 focus:ring-blue-600"
+/>
+
+<select
+  className="w-full px-3 py-2 border border-gray-300 rounded-md 
              focus:outline-none focus:ring-2 focus:ring-blue-600"
 />
 ```
 
-### 6.2 必須フィールド表示
+### 6.4 必須フィールド表示
 
 ```tsx
 <label>
-  Email <span className="text-red-600">*</span>
+  項目名 <span className="text-red-600">*</span>
 </label>
 ```
 
-## 7. コンポーネント実装のチェックリスト
+**重要**: アスタリスク（*）は必ず赤色（`text-red-600`）で表示する
+
+### 6.5 エラーメッセージ表示
+
+```tsx
+{errors.fieldId && (
+  <p className="mt-1 text-sm text-red-600">{errors.fieldId.message}</p>
+)}
+```
+
+| プロパティ | 値 | 説明 |
+|-----------|-----|------|
+| `margin-top` | `mt-1` | 上部の隙間 |
+| `font-size` | `text-sm` | 小さいテキスト |
+| `text-color` | `text-red-600` | 赤色で警告 |
+
+### 6.6 フォームフィールドの間隔
+
+```tsx
+<div className="space-y-6">  {/* フォーム項目のグループ */}
+  <div>                       {/* 各項目 */}
+    <label>...</label>
+    <input />
+  </div>
+</div>
+```
+
+- **フォーム項目間**: `space-y-6`（24px）
+- **ラベル下**: `mb-2`（8px）
+
+## 7. よくある落とし穴
+
+### ❌ ラベルが右揃えまたは中央揃え
+```tsx
+// 悪い例
+className="text-center"  // 中央揃え
+className="text-right"   // 右揃え
+```
+
+### ✅ ラベルは常に左揃え
+```tsx
+// 良い例
+className="block text-left text-sm font-medium text-gray-700 mb-2"
+```
+
+### ❌ ラベルの下の隙間が不足
+```tsx
+// 悪い例
+className="block text-sm font-medium text-gray-700 mb-1"  // 隙間が狭い
+```
+
+### ✅ ラベルとフィールド間に十分な隙間
+```tsx
+// 良い例
+className="block text-sm font-medium text-gray-700 mb-2"  // 8px の隙間
+```
+
+## 8. コンポーネント実装のチェックリスト
 
 新しいコンポーネントを実装する際に確認してください：
 
+- [ ] ラベルは常に左揃えか（`text-left`）
+- [ ] ラベルの下に適切な隙間があるか（`mb-2`）
+- [ ] 必須フィールドは赤いアスタリスクで表示されているか（`text-red-600`）
+- [ ] エラーメッセージは赤色で小さく表示されているか
 - [ ] ダークモード対応を考慮しているか（将来的に）
 - [ ] レスポンシブデザインか（モバイル優先）
 - [ ] アクセシビリティか（ARIA属性、キーボード操作）
@@ -195,8 +302,6 @@ m-1 m-2 m-3 m-4 m-6 m-8 m-12 m-16
 - [ ] カスタムカラートークンを使用していないか
 - [ ] ボタンのコントラストが AAA 準拠か
 - [ ] ホバー・フォーカス・アクティブ状態が定義されているか
-
-## 8. よくある落とし穴
 
 ### ❌ 白地に白いテキスト
 ```tsx
@@ -222,7 +327,7 @@ className="bg-primary-600 text-success-600"
 className="bg-blue-600 text-green-600"
 ```
 
-## 9. 品質保証
+## 10. 品質保証
 
 ### 9.1 ビジュアルテスト
 
@@ -231,21 +336,22 @@ className="bg-blue-600 text-green-600"
 - iPhone・iPad での表示
 - 異なる画面サイズでのレスポンシブ対応
 
-### 9.2 アクセシビリティテスト
+### 10.2 アクセシビリティテスト
 
 - キーボード操作可能か（Tab、Enter）
 - スクリーンリーダーで読み込みできるか
 - 色のコントラストが十分か
 
-### 9.3 ダークモード対応（将来）
+### 10.3 ダークモード対応（将来）
 
 `dark:` プレフィックスを使用：
 ```tsx
 className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
 ```
 
-## 10. 更新履歴
+## 11. 更新履歴
 
 | 日付 | 更新内容 |
 |------|---------|
+| 2025-11-12 | フォーム項目レイアウトルール追加：ラベルは常に左揃え、mb-2で隙間確保 |
 | 2025-11-12 | 初版作成。カスタムカラートークン廃止、Tailwind 標準色へ移行 |

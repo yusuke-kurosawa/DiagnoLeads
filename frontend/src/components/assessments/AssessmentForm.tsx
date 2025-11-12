@@ -83,7 +83,7 @@ export default function AssessmentForm({
       )}
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="title" className="block text-left text-sm font-medium text-gray-700 mb-2">
           診断名 <span className="text-red-500">*</span>
         </label>
         <input
@@ -99,7 +99,7 @@ export default function AssessmentForm({
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="description" className="block text-left text-sm font-medium text-gray-700 mb-2">
           説明
         </label>
         <textarea
@@ -116,7 +116,7 @@ export default function AssessmentForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="topic" className="block text-left text-sm font-medium text-gray-700 mb-2">
             トピック
           </label>
           <input
@@ -132,7 +132,7 @@ export default function AssessmentForm({
         </div>
 
         <div>
-          <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="industry" className="block text-left text-sm font-medium text-gray-700 mb-2">
             業界
           </label>
           <input
@@ -150,7 +150,7 @@ export default function AssessmentForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="status" className="block text-left text-sm font-medium text-gray-700 mb-2">
             ステータス
           </label>
           <select
@@ -168,7 +168,7 @@ export default function AssessmentForm({
         </div>
 
         <div>
-          <label htmlFor="ai_generated" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="ai_generated" className="block text-left text-sm font-medium text-gray-700 mb-2">
             作成方式
           </label>
           <select
