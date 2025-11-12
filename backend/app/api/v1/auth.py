@@ -30,6 +30,33 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 
+def build_user_response(user) -> UserResponse:
+    """
+    Build UserResponse with tenant information.
+    Safely handles cases where tenant relationship might not be loaded.
+    """
+    tenant_name = None
+    tenant_slug = None
+    tenant_plan = None
+    
+    if hasattr(user, 'tenant') and user.tenant:
+        tenant_name = user.tenant.name
+        tenant_slug = user.tenant.slug
+        tenant_plan = user.tenant.plan
+    
+    return UserResponse(
+        id=user.id,
+        tenant_id=user.tenant_id,
+        email=user.email,
+        name=user.name,
+        role=user.role,
+        tenant_name=tenant_name,
+        tenant_slug=tenant_slug,
+        tenant_plan=tenant_plan,
+        created_at=user.created_at,
+    )
+
+
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(
     user_data: UserCreate,
@@ -54,7 +81,7 @@ async def register(
     return Token(
         access_token=access_token,
         token_type="bearer",
-        user=UserResponse.model_validate(user),
+        user=build_user_response(user),
     )
 
 
@@ -112,7 +139,7 @@ async def login(
         refresh_token=refresh_token,
         token_type="bearer",
         expires_in=86400,  # 24 hours
-        user=UserResponse.model_validate(user),
+        user=build_user_response(user),
     )
 
 
@@ -145,7 +172,7 @@ async def login_json(
     return Token(
         access_token=access_token,
         token_type="bearer",
-        user=UserResponse.model_validate(user),
+        user=build_user_response(user),
     )
 
 
@@ -174,7 +201,7 @@ async def get_current_user(
             detail="User not found",
         )
 
-    return UserResponse.model_validate(user)
+    return build_user_response(user)
 
 
 @router.post("/password-reset", status_code=status.HTTP_200_OK)
@@ -290,7 +317,7 @@ async def refresh_token(
             refresh_token=new_refresh_token,
             token_type="bearer",
             expires_in=86400,
-            user=UserResponse.model_validate(user),
+            user=build_user_response(user),
         )
 
     except JWTError:

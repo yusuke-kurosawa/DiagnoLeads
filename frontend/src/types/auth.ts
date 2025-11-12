@@ -8,6 +8,9 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  tenant_name?: string;
+  tenant_slug?: string;
+  tenant_plan?: string;
   created_at: string;
 }
 

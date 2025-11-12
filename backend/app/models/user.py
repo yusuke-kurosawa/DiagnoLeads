@@ -7,6 +7,7 @@ Represents a user within a tenant.
 from sqlalchemy import Column, String, DateTime, ForeignKey, Index, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 
 from app.core.database import Base
@@ -46,6 +47,9 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # Relationships
+    tenant = relationship("Tenant")
 
     # Indexes for performance
     __table_args__ = (

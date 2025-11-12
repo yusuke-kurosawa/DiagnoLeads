@@ -67,6 +67,9 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
+    tenant_name: Optional[str] = None
+    tenant_slug: Optional[str] = None
+    tenant_plan: Optional[str] = None
     created_at: datetime
 
     class Config:
