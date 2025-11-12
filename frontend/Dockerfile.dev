@@ -2,11 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first
 COPY package*.json ./
 
-# Install dependencies (fresh install, no cache)
-RUN rm -rf node_modules package-lock.json && npm ci
+# Install dependencies
+RUN npm install
 
 # Copy application code
 COPY . .
