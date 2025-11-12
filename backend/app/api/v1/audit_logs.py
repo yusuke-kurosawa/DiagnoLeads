@@ -21,14 +21,20 @@ from app.schemas.audit_log import AuditLogResponse, AuditLogsListResponse
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 
 
-def check_admin_access(current_user: User):
-    """Verify that user is admin"""
-    if current_user.role not in ["system_admin", "tenant_admin"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only administrators can access audit logs",
-        )
-    return current_user
+def check_audit_access(current_user: User, requested_tenant_id: UUID):
+    """Verify that user can access audit logs for the requested tenant"""
+    # System admin can view any tenant's logs
+    if current_user.role == "system_admin":
+        return current_user
+    
+    # Tenant admin or user can only view their own tenant's logs
+    if current_user.tenant_id == requested_tenant_id:
+        return current_user
+    
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Can only view audit logs for your own tenant",
+    )
 
 
 @router.get("", response_model=AuditLogsListResponse)
@@ -42,15 +48,8 @@ async def list_audit_logs(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """List audit logs (admin only)"""
-    check_admin_access(current_user)
-    
-    # Tenant admin can only view their own tenant's logs
-    if current_user.role == "tenant_admin" and tenant_id != current_user.tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Can only view audit logs for your own tenant",
-        )
+    """List audit logs"""
+    check_audit_access(current_user, tenant_id)
     
     logs, total = AuditService.get_audit_logs(
         db,
@@ -79,14 +78,7 @@ async def get_entity_history(
     db: Session = Depends(get_db),
 ):
     """Get change history for a specific entity"""
-    check_admin_access(current_user)
-    
-    # Tenant admin can only view their own tenant's logs
-    if current_user.role == "tenant_admin" and tenant_id != current_user.tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Can only view audit logs for your own tenant",
-        )
+    check_audit_access(current_user, tenant_id)
     
     logs = AuditService.get_entity_history(
         db,
@@ -107,14 +99,7 @@ async def get_user_activity(
     db: Session = Depends(get_db),
 ):
     """Get recent activity for a specific user"""
-    check_admin_access(current_user)
-    
-    # Tenant admin can only view their own tenant's logs
-    if current_user.role == "tenant_admin" and tenant_id != current_user.tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Can only view audit logs for your own tenant",
-        )
+    check_audit_access(current_user, tenant_id)
     
     logs = AuditService.get_user_activity(
         db,
