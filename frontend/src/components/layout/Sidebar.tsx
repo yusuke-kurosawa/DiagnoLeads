@@ -49,14 +49,9 @@ export function Sidebar() {
       label: '分析',
       path: `/tenants/${currentTenantId}/analytics`,
     },
-    {
-      icon: SettingsIcon,
-      label: '設定',
-      path: `/tenants/${currentTenantId}/settings`,
-    },
   ];
 
-  // Admin-only menu items
+  // Admin-only menu items (shown before settings)
   const adminNavigationItems: NavigationItem[] = [
     {
       icon: Wrench,
@@ -64,6 +59,13 @@ export function Sidebar() {
       path: `/tenants/${currentTenantId}/admin/masters`,
     },
   ];
+
+  // Settings menu item (shown after admin items)
+  const settingsItem: NavigationItem = {
+    icon: SettingsIcon,
+    label: '設定',
+    path: `/tenants/${currentTenantId}/settings`,
+  };
 
   // Check if user is admin
   const isAdmin = user?.role === 'tenant_admin' || user?.role === 'system_admin';
@@ -165,6 +167,32 @@ export function Sidebar() {
               </li>
             );
           })}
+
+          {/* Settings (shown after admin items) */}
+          {(() => {
+            const Icon = settingsItem.icon;
+            const active = isActive(settingsItem.path);
+            return (
+              <li>
+                <Link
+                  to={settingsItem.path}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-lg
+                    transition-colors duration-200
+                    ${
+                      active
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }
+                  `}
+                  title={!isOpen ? settingsItem.label : undefined}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {isOpen && <span className="font-medium">{settingsItem.label}</span>}
+                </Link>
+              </li>
+            );
+          })()}
         </ul>
       </nav>
 
