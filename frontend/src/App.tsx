@@ -17,7 +17,7 @@ import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import ComponentsShowcase from './pages/ComponentsShowcase';
 import AdminMasterPage from './pages/admin/AdminMasterPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
-import TaxonomyPage from './pages/settings/TaxonomyPage';
+import SettingsPage from './pages/settings/SettingsPage';
 import './App.css';
 
 // Protected Route wrapper with Layout
@@ -178,7 +178,7 @@ function App() {
           path="/tenants/:tenantId/settings"
           element={
             <ProtectedRoute>
-              <TaxonomyPage />
+              <SettingsPage />
             </ProtectedRoute>
           }
         />
