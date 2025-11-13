@@ -156,9 +156,9 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">通知設定</h2>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         メール通知を有効化
                       </label>
                       <p className="text-sm text-gray-500">
@@ -169,13 +169,13 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.emailNotifications}
                       onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         診断リマインダー
                       </label>
                       <p className="text-sm text-gray-500">
@@ -186,13 +186,13 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.assessmentReminders}
                       onChange={(e) => handleSettingChange('assessmentReminders', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         リード通知
                       </label>
                       <p className="text-sm text-gray-500">
@@ -203,13 +203,13 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.leadsNotifications}
                       onChange={(e) => handleSettingChange('leadsNotifications', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         週間レポート
                       </label>
                       <p className="text-sm text-gray-500">
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.weeklyReport}
                       onChange={(e) => handleSettingChange('weeklyReport', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
                 </div>
@@ -231,9 +231,9 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">セキュリティ設定</h2>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         二要素認証（2FA）
                       </label>
                       <p className="text-sm text-gray-500">
@@ -244,13 +244,13 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.twoFactorAuth}
                       onChange={(e) => handleSettingChange('twoFactorAuth', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         ログインアラート
                       </label>
                       <p className="text-sm text-gray-500">
@@ -261,7 +261,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.loginAlerts}
                       onChange={(e) => handleSettingChange('loginAlerts', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
@@ -311,9 +311,9 @@ export default function SettingsPage() {
                     </select>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         サイドバーを折りたたむ
                       </label>
                       <p className="text-sm text-gray-500">
@@ -324,7 +324,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.sidebarCollapsed}
                       onChange={(e) => handleSettingChange('sidebarCollapsed', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
                 </div>
@@ -335,9 +335,9 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">詳細設定</h2>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         API を有効化
                       </label>
                       <p className="text-sm text-gray-500">
@@ -348,13 +348,13 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.apiEnabled}
                       onChange={(e) => handleSettingChange('apiEnabled', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Webhooks を有効化
                       </label>
                       <p className="text-sm text-gray-500">
@@ -365,7 +365,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.webhooksEnabled}
                       onChange={(e) => handleSettingChange('webhooksEnabled', e.target.checked)}
-                      className="w-5 h-5 border-gray-300 rounded"
+                      className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
 
