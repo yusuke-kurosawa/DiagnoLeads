@@ -24,29 +24,39 @@ export const createApiClient = (): AxiosInstance => {
 
   // Response interceptor - Error handling
   instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url} - Status ${response.status}`);
+      return response;
+    },
     (error: AxiosError) => {
       const systemError = ApiErrorHandler.handle(error);
 
-      // Log error
+      // Log error with full details
+      console.group('🚨 API Error Handler Activated');
+      console.error('Full Axios Error:', error);
       ApiErrorHandler.log(systemError);
+      console.groupEnd();
 
       // Handle specific error cases
       if (error.response?.status === 401) {
-        // Unauthorized - clear auth and redirect to login
+        console.warn('🔐 401 Unauthorized - Clearing auth and redirecting to login');
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
-
-      if (error.response?.status === 403) {
-        // Forbidden - redirect to error page
-        window.location.href = '/error';
-      }
-
-      if (error.response?.status === 500) {
-        // Server error - redirect to error page
-        window.location.href = '/error';
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+      } else if (error.response?.status === 403) {
+        console.warn('🚫 403 Forbidden - Redirecting to error page');
+        setTimeout(() => {
+          window.location.href = '/error';
+        }, 1000);
+      } else if (error.response?.status === 500) {
+        console.error('💥 500 Server Error - Redirecting to error page');
+        setTimeout(() => {
+          window.location.href = '/error';
+        }, 1000);
+      } else if (!error.response) {
+        console.error('🌐 Network Error - No response from server');
       }
 
       // For network/timeout errors, throw with error information

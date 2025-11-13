@@ -96,14 +96,38 @@ export class ApiErrorHandler {
   }
 
   static log(error: SystemError): void {
-    if (process.env.NODE_ENV === 'development') {
-      console.group(`🔴 System Error: ${error.code}`);
-      console.error('Status:', error.status);
-      console.error('Message:', error.message);
+    // Always log errors in all environments for debugging
+    console.group(`🔴 System Error: ${error.code}`);
+    console.error('Status Code:', error.status);
+    console.error('Error Message:', error.message);
+    console.error('Error Code:', error.code);
+    console.error('Timestamp:', error.timestamp);
+    
+    if (error.details) {
+      console.group('📋 Detailed Information');
       console.error('Details:', error.details);
-      console.error('Timestamp:', error.timestamp);
+      
+      // If it's an API error, show more details
+      if (error.details.response) {
+        console.group('🌐 API Response Details');
+        console.error('Response Status:', error.details.response.status);
+        console.error('Response Data:', error.details.response.data);
+        console.error('Response Headers:', error.details.response.headers);
+        console.groupEnd();
+      }
+      
+      if (error.details.config) {
+        console.group('⚙️ Request Configuration');
+        console.error('Method:', error.details.config.method);
+        console.error('URL:', error.details.config.url);
+        console.error('Data:', error.details.config.data);
+        console.groupEnd();
+      }
+      
       console.groupEnd();
     }
+    
+    console.groupEnd();
 
     // Send to monitoring service (Sentry, etc.)
     // This can be implemented later

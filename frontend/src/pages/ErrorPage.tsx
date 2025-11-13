@@ -69,8 +69,14 @@ export default function ErrorPage() {
           {/* Additional Error Details */}
           {message && message !== statusText && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-left">
+              <p className="text-sm font-semibold text-gray-700 mb-2">
+                詳細情報:
+              </p>
               <p className="text-sm text-gray-700 font-mono break-words">
                 {message}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                💡 ヒント: ブラウザのコンソール (F12キーで開く) を確認すると、詳細なエラー情報が表示されます。
               </p>
             </div>
           )}
