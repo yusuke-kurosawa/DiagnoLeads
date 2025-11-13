@@ -213,7 +213,7 @@ export default function UserManagement() {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-lg border border-gray-200 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-left text-sm font-medium text-gray-700 mb-1">
               メールアドレス
             </label>
             <input
@@ -229,7 +229,7 @@ export default function UserManagement() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-left text-sm font-medium text-gray-700 mb-1">
               ユーザー名
             </label>
             <input
@@ -244,7 +244,7 @@ export default function UserManagement() {
 
           {!editingId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-left text-sm font-medium text-gray-700 mb-1">
                 パスワード
               </label>
               <input
@@ -261,7 +261,7 @@ export default function UserManagement() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-left text-sm font-medium text-gray-700 mb-1">
               ロール
             </label>
             <select

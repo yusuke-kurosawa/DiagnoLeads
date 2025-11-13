@@ -64,7 +64,7 @@ export function SettingsPanel({
 
       {/* Status */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-left text-sm font-medium text-gray-700 mb-2">
           ステータス
         </label>
         <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export function SettingsPanel({
       {/* Preview */}
       {isPublished && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-left text-sm font-medium text-gray-700 mb-2">
             プレビュー
           </label>
           <button
@@ -145,7 +145,7 @@ export function SettingsPanel({
       {/* Public URL */}
       {isPublished && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-left text-sm font-medium text-gray-700 mb-2">
             公開URL
           </label>
           <div className="flex gap-2">
@@ -169,7 +169,7 @@ export function SettingsPanel({
       {/* Embed Code */}
       {isPublished && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-left text-sm font-medium text-gray-700 mb-2">
             埋め込みコード
           </label>
           <button

@@ -74,7 +74,7 @@ export default function Register() {
         {/* Register Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="name" className="block text-left text-sm font-medium text-gray-700">
               お名前
             </label>
             <input
@@ -90,7 +90,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-left text-sm font-medium text-gray-700">
               メールアドレス
             </label>
             <input
@@ -106,7 +106,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-left text-sm font-medium text-gray-700">
               パスワード（8文字以上）
             </label>
             <input
@@ -127,7 +127,7 @@ export default function Register() {
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="tenant_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="tenant_name" className="block text-left text-sm font-medium text-gray-700">
                   組織名
                 </label>
                 <input
@@ -143,7 +143,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label htmlFor="tenant_slug" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="tenant_slug" className="block text-left text-sm font-medium text-gray-700">
                   組織ID（URL用）
                 </label>
                 <input

@@ -250,7 +250,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-lg border border-gray-200 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-left text-sm font-medium text-gray-700 mb-1">
               {label}名
             </label>
             <input
@@ -264,7 +264,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-left text-sm font-medium text-gray-700 mb-1">
               説明
             </label>
             <textarea
@@ -278,7 +278,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-left text-sm font-medium text-gray-700 mb-1">
                 色
               </label>
               <div className="flex gap-2 flex-wrap">
@@ -297,7 +297,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-left text-sm font-medium text-gray-700 mb-1">
                 アイコン
               </label>
               <input

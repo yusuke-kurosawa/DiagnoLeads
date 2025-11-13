@@ -95,7 +95,7 @@ export default function SettingsPage() {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">一般設定</h2>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       テナント名
                     </label>
                     <input
@@ -107,7 +107,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       メールアドレス
                     </label>
                     <input
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       タイムゾーン
                     </label>
                     <select
@@ -135,7 +135,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       言語
                     </label>
                     <select
@@ -266,7 +266,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       セッションタイムアウト（分）
                     </label>
                     <input
@@ -278,7 +278,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       APIキーローテーション（日数）
                     </label>
                     <input
@@ -297,7 +297,7 @@ export default function SettingsPage() {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">表示設定</h2>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       テーマ
                     </label>
                     <select
@@ -370,7 +370,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-left text-sm font-medium text-gray-700 mb-2">
                       データ保持期間（日数）
                     </label>
                     <input

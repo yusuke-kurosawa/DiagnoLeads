@@ -114,7 +114,7 @@ export function LeadFilters({ filters, onChange, onReset }: LeadFiltersProps) {
 
       {/* Status Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-left text-sm font-medium text-gray-700 mb-2">
           ステータス
         </label>
         <div className="space-y-2">
@@ -142,7 +142,7 @@ export function LeadFilters({ filters, onChange, onReset }: LeadFiltersProps) {
       {/* Score Range Filter */}
       {!filters.is_hot && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-left text-sm font-medium text-gray-700 mb-2">
             スコア範囲
           </label>
           <div className="flex items-center gap-3">
@@ -178,7 +178,7 @@ export function LeadFilters({ filters, onChange, onReset }: LeadFiltersProps) {
 
       {/* Date Range Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-left text-sm font-medium text-gray-700 mb-2">
           獲得日
         </label>
         <div className="space-y-2">

@@ -102,7 +102,7 @@ export function QuestionEditor({ question, onChange }: QuestionEditorProps) {
 
       {/* Question Text */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-left text-sm font-medium text-gray-700 mb-2">
           質問文 <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -116,7 +116,7 @@ export function QuestionEditor({ question, onChange }: QuestionEditorProps) {
 
       {/* Question Type */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-left text-sm font-medium text-gray-700 mb-2">
           質問タイプ
         </label>
         <select
@@ -149,7 +149,7 @@ export function QuestionEditor({ question, onChange }: QuestionEditorProps) {
       {showOptions && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-left text-sm font-medium text-gray-700">
               選択肢とスコア
             </label>
             <button
