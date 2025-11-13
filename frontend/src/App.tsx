@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuthStore } from './store/authStore';
 import { ToastProvider } from './contexts/ToastContext';
 import { Layout } from './components/layout/Layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -18,6 +19,7 @@ import ComponentsShowcase from './pages/ComponentsShowcase';
 import AdminMasterPage from './pages/admin/AdminMasterPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import SettingsPage from './pages/settings/SettingsPage';
+import ErrorPage from './pages/ErrorPage';
 import './App.css';
 
 // Protected Route wrapper with Layout
@@ -45,8 +47,14 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <ToastProvider>
-      <Router>
-        <Routes>
+      <ErrorBoundary>
+        <Router>
+          <Routes>
+          {/* Error Routes */}
+          <Route path="/error" element={<ErrorPage />} />
+
+          {/* 404 Fallback */}
+          <Route path="*" element={<ErrorPage />} />
         {/* Public routes - no layout */}
         <Route
           path="/login"
@@ -188,8 +196,9 @@ function App() {
 
         {/* Default redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Router>
+          </Routes>
+        </Router>
+      </ErrorBoundary>
     </ToastProvider>
   );
 }
