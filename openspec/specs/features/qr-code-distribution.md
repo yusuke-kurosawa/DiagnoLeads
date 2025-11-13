@@ -1,14 +1,22 @@
-# Feature: QR Code Distribution
+# Feature: QR Code Distribution with Comprehensive Tracking
 
 **Status**: Approved  
 **Priority**: High  
 **Category**: Multi-Channel Distribution  
 **Created**: 2025-11-11  
-**Effort**: Small (1-2週間)
+**Last Updated**: 2025-11-13  
+**Effort**: Small (1-2週間)  
+**Version**: 2.0 (UTM, Device/Geo, Funnel Tracking 追加)
 
 ## 概要
 
-診断ごとの専用QRコードを生成し、オフラインマーケティング（名刺、ポスター、展示会ブース）で活用できるようにする。QRコードスキャン数のトラッキングも実装。
+診断ごとの専用QRコードを生成し、オフラインマーケティング（名刺、ポスター、展示会ブース）で活用できるようにする。
+
+**主要機能**:
+- ✅ UTM パラメータベースのトラッキング
+- ✅ デバイス・OS・ブラウザ情報の記録
+- ✅ GeoIP ベースの地理情報取得
+- ✅ スキャン→診断開始→完了のファネル分析
 
 ## User Stories
 
@@ -33,13 +41,44 @@
    - 印刷用高解像度バージョン
    - QRコードの有効/無効切り替え
 
-3. **トラッキング**
+3. **UTM パラメータ追跡** ⭐ NEW
+   - **UTM Source**: トラッキングソース（e.g., "booth", "email", "flyer"）
+   - **UTM Medium**: トラッキングメディウム（e.g., "qr_code", "print", "digital"）
+   - **UTM Campaign**: キャンペーン名（e.g., "spring2025", "tech_expo"）
+   - **UTM Term**: キーワード（オプション）
+   - **UTM Content**: バリエーション（オプション）
+   - 各QRコードは独立した UTM パラメータを持つ
+
+4. **デバイス・OS・ブラウザ追跡** ⭐ NEW
+   - **Device Type**: スキャンデバイス種別（mobile, tablet, desktop）
+   - **OS**: オペレーティングシステム（iOS, Android, Windows, macOS）
+   - **Browser**: ブラウザ情報（Safari, Chrome, Firefox, Edge）
+   - User Agent から自動解析
+   - デバイス別のスキャン数集計
+
+5. **地理情報追跡 (GeoIP)** ⭐ NEW
+   - **IP Address**: スキャン元 IP（ハッシュ化して保存）
+   - **Country**: ISO 3166-1 alpha-2 国コード
+   - **City**: 都市名
+   - **Latitude/Longitude**: 近似座標
+   - GeoIP データベースで自動取得
+   - 国別・都市別のスキャン数集計
+
+6. **ファネル追跡** ⭐ NEW
+   - **Stage 1 - Scan**: QRコードスキャン時点
+   - **Stage 2 - Start**: 診断最初の質問回答
+   - **Stage 3 - Complete**: 診断完了
+   - **Stage 4 - Lead**: リード情報送信
+   - 各ステージ間の進行率（conversion rate）を計算
+   - ドロップオフポイントの特定
+
+7. **トラッキング**
    - スキャン数のカウント
    - スキャン元の地域・デバイス情報
    - スキャン→診断開始→完了のファネル分析
    - 時系列グラフ表示
 
-4. **カスタマイズ**
+8. **カスタマイズ**
    - ブランドカラーでのQRコード生成
    - ロゴ埋め込み（中央）
    - フレーム付きデザイン（"Scan Here"など）
@@ -103,14 +142,61 @@ GET /api/v1/tenants/{tenant_id}/assessments/{assessment_id}/qr-codes
 GET /api/v1/tenants/{tenant_id}/qr-codes/{qr_id}/analytics
   Response:
   {
-    "total_scans": 145,
+    # Funnel Metrics
+    "funnel": {
+      "scans": 145,              # Stage 1: Scan
+      "started": 67,             # Stage 2: Start
+      "completed": 42,           # Stage 3: Complete
+      "leads": 12,               # Stage 4: Lead
+      
+      # Conversion rates
+      "start_rate": 0.46,        # started / scans
+      "completion_rate": 0.63,   # completed / started
+      "lead_rate": 0.29,         # leads / completed
+      "overall_conversion": 0.08 # leads / scans
+    },
+    
+    # Time Series
+    "scans_by_date": [
+      {"date": "2025-11-10", "scans": 20, "completed": 5},
+      {"date": "2025-11-11", "scans": 25, "completed": 8}
+    ],
+    
+    # Device/Browser Tracking
+    "scans_by_device": {
+      "mobile": {"count": 89, "percentage": 61},
+      "tablet": {"count": 28, "percentage": 19},
+      "desktop": {"count": 28, "percentage": 19}
+    },
+    "scans_by_os": {
+      "iOS": {"count": 60, "percentage": 41},
+      "Android": {"count": 52, "percentage": 36},
+      "Windows": {"count": 20, "percentage": 14},
+      "macOS": {"count": 13, "percentage": 9}
+    },
+    "scans_by_browser": {
+      "Safari": {"count": 65, "percentage": 45},
+      "Chrome": {"count": 68, "percentage": 47},
+      "Firefox": {"count": 8, "percentage": 5},
+      "Edge": {"count": 4, "percentage": 3}
+    },
+    
+    # GeoIP Tracking
+    "scans_by_country": {
+      "JP": {"count": 90, "percentage": 62},
+      "US": {"count": 30, "percentage": 21},
+      "CN": {"count": 15, "percentage": 10},
+      "Other": {"count": 10, "percentage": 7}
+    },
+    "scans_by_city": {
+      "Tokyo": {"count": 45, "percentage": 31},
+      "Osaka": {"count": 25, "percentage": 17},
+      "Yokohama": {"count": 20, "percentage": 14}
+    },
+    
+    # Summary
     "unique_scans": 98,
-    "assessment_started": 67,
-    "assessment_completed": 42,
-    "conversion_rate": 0.29,
-    "scans_by_date": [...],
-    "scans_by_device": {"iOS": 60, "Android": 38},
-    "scans_by_country": {"JP": 90, "US": 8}
+    "average_completion_per_scan": 0.29
   }
 ```
 
@@ -182,26 +268,37 @@ class QRCodeScan(Base):
     id: UUID
     qr_code_id: UUID  # FK to QRCode
     
-    # User Info
+    # User Agent Information (Device/Browser Tracking)
     user_agent: str
     device_type: str  # "mobile", "tablet", "desktop"
-    os: str  # "iOS", "Android", "Windows"
-    browser: str | None
+    os: str  # "iOS", "Android", "Windows", "macOS"
+    browser: str | None  # "Safari", "Chrome", "Firefox", "Edge"
     
-    # Location
-    ip_address: str  # Hashed
-    country: str | None
+    # Location Information (GeoIP Tracking)
+    ip_address: str  # Hashed for privacy
+    country: str | None  # ISO 3166-1 alpha-2
     city: str | None
+    latitude: float | None  # Approximate location
+    longitude: float | None
     
-    # Behavior
-    scanned_at: datetime
-    assessment_started: bool = False
-    assessment_completed: bool = False
-    lead_created: bool = False
+    # Funnel Tracking
+    scanned_at: datetime  # Stage 1: Scan
+    assessment_started: bool = False  # Stage 2: Start
+    assessment_completed: bool = False  # Stage 3: Complete
+    lead_created: bool = False  # Stage 4: Lead
     lead_id: UUID | None  # FK to Lead
+    
+    # Session Tracking
+    session_id: str | None  # From browser cookie/localStorage
     
     created_at: datetime
 ```
+
+**トラッキング段階**:
+1. **Scan**: QRCodeScan 作成時点
+2. **Start**: `assessment_started = True` （最初の質問回答時）
+3. **Complete**: `assessment_completed = True` （診断完了時）
+4. **Lead**: `lead_created = True` （リード作成時）
 
 ## UI/UX Design
 
