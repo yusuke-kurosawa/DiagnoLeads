@@ -146,19 +146,34 @@ export default function AssessmentForm({
           <label htmlFor="topic" className="block text-left text-sm font-medium text-gray-700 mb-2">
             トピック
           </label>
-          <select
-            {...register('topic')}
-            id="topic"
-            disabled={loadingTaxonomy}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-          >
-            <option value="">-- 選択してください --</option>
-            {topics.map((topic) => (
-              <option key={topic.id} value={topic.name}>
-                {topic.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              {...register('topic')}
+              id="topic"
+              disabled={loadingTaxonomy}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 appearance-none"
+            >
+              <option value="">-- 選択してください --</option>
+              {topics.map((topic) => (
+                <option key={topic.id} value={topic.name}>
+                  {topic.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none flex items-center gap-2">
+              {topics.find((t) => t.name === topics.find((t) => t.name)?.name)?.color && (
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{
+                    backgroundColor: topics.find((t) => t.name)?.color || '#3B82F6'
+                  }}
+                />
+              )}
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
           {errors.topic && (
             <p className="mt-1 text-sm text-red-600">{errors.topic.message}</p>
           )}
@@ -168,19 +183,34 @@ export default function AssessmentForm({
           <label htmlFor="industry" className="block text-left text-sm font-medium text-gray-700 mb-2">
             業界
           </label>
-          <select
-            {...register('industry')}
-            id="industry"
-            disabled={loadingTaxonomy}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-          >
-            <option value="">-- 選択してください --</option>
-            {industries.map((industry) => (
-              <option key={industry.id} value={industry.name}>
-                {industry.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              {...register('industry')}
+              id="industry"
+              disabled={loadingTaxonomy}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 appearance-none"
+            >
+              <option value="">-- 選択してください --</option>
+              {industries.map((industry) => (
+                <option key={industry.id} value={industry.name}>
+                  {industry.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none flex items-center gap-2">
+              {industries.find((i) => i.name === industries.find((i) => i.name)?.name)?.color && (
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{
+                    backgroundColor: industries.find((i) => i.name)?.color || '#3B82F6'
+                  }}
+                />
+              )}
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
           {errors.industry && (
             <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>
           )}
