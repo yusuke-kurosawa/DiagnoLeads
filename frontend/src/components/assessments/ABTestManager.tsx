@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, CheckCircle, Plus, TrendingUp, Target } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { ABTestCreateForm } from './ABTestCreateForm';
 
 interface ABTest {
   id: string;
@@ -191,22 +192,17 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
         </div>
       )}
 
-      {/* Create Modal (placeholder) */}
+      {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">新規A/Bテスト作成</h3>
-            <p className="text-gray-600 mb-4">
-              この機能は開発中です。ABTestCreateFormコンポーネントが必要です。
-            </p>
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-            >
-              閉じる
-            </button>
-          </div>
-        </div>
+        <ABTestCreateForm
+          assessmentId={assessmentId}
+          tenantId={tenantId}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            loadTests();
+          }}
+          onCancel={() => setShowCreateModal(false)}
+        />
       )}
     </div>
   );

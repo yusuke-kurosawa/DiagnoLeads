@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Send, MessageSquare, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { SMSCampaignCreateForm } from './SMSCampaignCreateForm';
 
 interface SMSCampaign {
   id: string;
@@ -188,22 +189,17 @@ export const SMSCampaignManager: React.FC<SMSCampaignManagerProps> = ({
         </div>
       )}
 
-      {/* Create Modal (placeholder) */}
+      {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">新規SMSキャンペーン作成</h3>
-            <p className="text-gray-600 mb-4">
-              この機能は開発中です。SMSCampaignCreateFormコンポーネントが必要です。
-            </p>
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-            >
-              閉じる
-            </button>
-          </div>
-        </div>
+        <SMSCampaignCreateForm
+          assessmentId={assessmentId}
+          tenantId={tenantId}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            loadCampaigns();
+          }}
+          onCancel={() => setShowCreateModal(false)}
+        />
       )}
     </div>
   );
