@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Settings, Bell, Lock, Palette, Database } from 'lucide-react';
+import { Settings, Bell, Lock, Palette, Database, Plug } from 'lucide-react';
+import TeamsIntegration from '@/components/settings/TeamsIntegration';
 
-type SettingsTab = 'general' | 'notifications' | 'security' | 'appearance' | 'advanced';
+type SettingsTab = 'general' | 'notifications' | 'security' | 'appearance' | 'integrations' | 'advanced';
 
 export default function SettingsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -51,6 +52,7 @@ export default function SettingsPage() {
   const tabs: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }> = [
     { id: 'general', label: '一般設定', icon: <Settings size={18} /> },
     { id: 'notifications', label: '通知', icon: <Bell size={18} /> },
+    { id: 'integrations', label: '外部連携', icon: <Plug size={18} /> },
     { id: 'security', label: 'セキュリティ', icon: <Lock size={18} /> },
     { id: 'appearance', label: '表示設定', icon: <Palette size={18} /> },
     { id: 'advanced', label: '詳細設定', icon: <Database size={18} /> },
@@ -223,6 +225,14 @@ export default function SettingsPage() {
                       className="w-5 h-5 border-gray-300 rounded mt-1"
                     />
                   </div>
+                </div>
+              )}
+
+              {/* Integrations */}
+              {activeTab === 'integrations' && (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">外部連携</h2>
+                  <TeamsIntegration />
                 </div>
               )}
 
