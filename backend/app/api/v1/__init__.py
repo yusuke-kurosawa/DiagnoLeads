@@ -6,7 +6,7 @@ Combines all API endpoints under /api/v1
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, assessments, leads, analytics, qr_codes, qr_scans, ai, audit_logs, taxonomies, users, integrations, sms
+from app.api.v1 import auth, assessments, leads, analytics, qr_codes, qr_scans, ai, audit_logs, taxonomies, users, integrations, sms, ab_tests
 
 api_router = APIRouter()
 
@@ -23,6 +23,7 @@ api_router.include_router(audit_logs.router, tags=["Audit Logs"])
 api_router.include_router(taxonomies.router, tags=["Taxonomies"])
 api_router.include_router(integrations.router, tags=["Integrations"])
 api_router.include_router(sms.router, tags=["SMS Campaigns"])
+api_router.include_router(ab_tests.router, tags=["A/B Tests"])
 
 
 # Placeholder endpoint
