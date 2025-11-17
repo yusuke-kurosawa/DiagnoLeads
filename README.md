@@ -201,7 +201,8 @@ npm run dev
 - [API Endpoints v2.0](./openspec/specs/api/endpoints-overview.md) (200+ endpoints)
 
 ### 開発ガイド
-- [Claude Code用ガイド](./CLAUDE.md)
+- [Claude Code用ガイド](./CLAUDE.md) ⭐ 開発規約・ベストプラクティス
+- [OpenSpec使用判断ガイド](./docs/OPENSPEC_DECISION_GUIDE.md) ⭐ いつOpenSpecを使うべきか
 - [認証仕様](./openspec/specs/auth/authentication.md)
 - [マルチテナント仕様](./openspec/specs/auth/multi-tenant.md)
 
