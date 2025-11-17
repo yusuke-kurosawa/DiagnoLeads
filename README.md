@@ -5,7 +5,7 @@
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-blue)](./openapi.json)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-Spec--Driven-orange)](./openspec/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0-green)](https://github.com/yusuke-kurosawa/DiagnoLeads)
+[![Version](https://img.shields.io/badge/version-0.2.0-green)](https://github.com/yusuke-kurosawa/DiagnoLeads)
 
 DiagnoLeadsは、B2B企業が顧客の課題を診断し、質の高いリードを獲得するためのSaaSプラットフォームです。**OpenSpec + OpenAPI を完全統合した理想的なSpec駆動開発**を実証し、完璧な品質保証体制を実現しています。
 
@@ -15,14 +15,16 @@ DiagnoLeadsは、B2B企業が顧客の課題を診断し、質の高いリード
 - ✅ **マスタ管理機能**: トピック・業界・ユーザー管理（ドラッグ&ドロップソート機能付き）
 - ✅ **UI/UX改善**: エラーハンドリング、フォームレイアウト最適化
 - ✅ **革新的機能仕様完成**: 12の画期的機能を提案・文書化（Phase 1-4）
-- 🚧 **Phase 1準備中**: Teams統合、LINE統合、AI A/Bテストの実装計画策定完了
-- 📊 **Current Version**: 0.1.0 (MVP)
+- ✅ **Phase 1実装完了**: Teams通知、SMS配信、QRコード画像、AI A/Bテスト ⭐ NEW
+- 📊 **Current Version**: 0.2.0 (Phase 1)
 
 See [docs/SESSION_SUMMARY.md](./docs/SESSION_SUMMARY.md) for complete session summary.
 
 ## 🎯 主要機能
 
 ### 実装済み機能
+
+#### コア機能
 - **📊 診断管理（CRUD）**: 診断の作成、編集、削除、一覧表示
 - **📋 マスタ管理**: トピック・業界のドラッグ&ドロップソート、カラーインジケーター
 - **👥 ユーザー管理**: テナント内ユーザーの作成、編集、権限管理
@@ -31,6 +33,12 @@ See [docs/SESSION_SUMMARY.md](./docs/SESSION_SUMMARY.md) for complete session su
 - **🔐 認証・認可**: JWT ベース、3つのロール（システム管理者、テナント管理者、一般ユーザー）
 - **🛡️ エラーハンドリング**: 包括的なエラーページ、強化されたエラーロギング
 
+#### Phase 1機能 ⭐ NEW
+- **🔔 Microsoft Teams通知**: Webhookでホットリード通知、Adaptive Cards対応
+- **📱 SMS配信（Twilio）**: 一括SMS送信（最大1000件）、E.164形式対応、コスト見積もり
+- **📲 QRコード画像生成**: PNG/SVG/印刷用テンプレート、カスタマイズ機能（サイズ、色、スタイル）
+- **🎯 AI A/Bテスト**: Thompson Samplingによる自動最適化、リアルタイム統計、勝者判定（95%信頼度）
+
 ### 計画中の機能（Phase 1-4）
 - **🤖 AI診断生成**: トピック入力だけでClaude AIが質問・選択肢を自動生成
 - **🎯 AIリード分析**: 診断回答から企業課題を自動検出、ホットリードスコアを算出
@@ -38,18 +46,18 @@ See [docs/SESSION_SUMMARY.md](./docs/SESSION_SUMMARY.md) for complete session su
 
 ### 革新的機能（Phase 1-4: 12ヶ月計画）
 
-#### ⚡ Phase 1 (3ヶ月) - 計画済み
+#### ⚡ Phase 1 (3ヶ月) - ✅ 部分実装完了
 - **Microsoft Teams統合** ⭐ 業界初
-  - Adaptive Cards通知
-  - Bot対話型診断
-  - 会議内診断実施
+  - ✅ Adaptive Cards通知（Webhook）
+  - ⏳ Bot対話型診断（計画中）
+  - ⏳ 会議内診断実施（計画中）
 - **マルチチャネル配信**
-  - LINE Official Account（日本市場）
-  - SMS配信（Twilio）
-  - QRコード/NFC（オフラインイベント）
+  - ⏳ LINE Official Account（日本市場、計画中）
+  - ✅ SMS配信（Twilio） - 一括送信、E.164対応
+  - ✅ QRコード画像生成 - PNG/SVG/印刷用、カスタマイズ可能
 - **AI A/Bテスト自動化** ⭐ 業界初
-  - トンプソンサンプリング
-  - 自動最適化
+  - ✅ Thompson Sampling - ベイズ統計による最適化
+  - ✅ 自動トラフィック配分 - モンテカルロシミュレーション
 
 #### 📋 Phase 2-4 (9ヶ月) - 計画済み
 - **リアルタイムコラボレーション** ⭐ Google Docs風
@@ -191,6 +199,10 @@ npm run dev
 - [本番環境デプロイガイド](./docs/PRODUCTION_DEPLOYMENT_GUIDE.md)
 - [クイックスタートデプロイ](./docs/QUICKSTART_DEPLOYMENT.md)
 
+### Phase 1ドキュメント ⭐ NEW
+- [データベースマイグレーションガイド](./docs/DATABASE_MIGRATION_GUIDE.md) - ローカル/本番マイグレーション手順
+- [Phase 1 API仕様書](./docs/API_PHASE1_FEATURES.md) - A/Bテスト、SMS、QRコードAPI
+
 ### OpenSpec仕様
 - [プロジェクト概要](./openspec/specs/OVERVIEW.md)
 - [革新的機能提案](./openspec/changes/2025-11-10-innovative-features/innovative-features.md) ⭐ 12機能
@@ -208,15 +220,17 @@ npm run dev
 
 ## 🎯 ロードマップ
 
-### Phase 1 (Week 1-12) - 📋 計画完了
+### Phase 1 (Week 1-12) - ✅ 部分実装完了
 - [x] 革新的機能仕様作成（12機能）
 - [x] 実装計画策定（12週間）- [docs/IMPLEMENTATION_PLAN_PHASE1.md](./docs/IMPLEMENTATION_PLAN_PHASE1.md)
 - [x] セットアップガイド作成 - [docs/SETUP_GUIDE_TEAMS.md](./docs/SETUP_GUIDE_TEAMS.md)
-- [ ] **Milestone 1** (Week 1-3): Teams統合基盤
-- [ ] **Milestone 2** (Week 4-6): Teams Bot対話機能
-- [ ] **Milestone 3** (Week 7-9): LINE統合
-- [ ] **Milestone 4** (Week 10-11): QR & SMS配信
-- [ ] **Milestone 5** (Week 12): AI A/Bテストエンジン
+- [x] **Milestone 1** (Week 1-3): Teams統合基盤（通知のみ実装）
+- [ ] **Milestone 2** (Week 4-6): Teams Bot対話機能（未実装）
+- [ ] **Milestone 3** (Week 7-9): LINE統合（未実装）
+- [x] **Milestone 4** (Week 10-11): QR & SMS配信（完全実装）
+- [x] **Milestone 5** (Week 12): AI A/Bテストエンジン（完全実装）
+
+**実装完了率**: 60% (3/5 Milestones)
 
 詳細: [Phase 1実装計画](./docs/IMPLEMENTATION_PLAN_PHASE1.md)
 
