@@ -3,7 +3,8 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 
@@ -11,6 +12,7 @@ from app.core.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.qr_code import QRCode
 from app.services.qr_code_service import QRCodeService
+from app.services.qr_code_image_generator import QRCodeImageGenerator
 from app.schemas.qr_code import (
     QRCodeCreate,
     QRCodeUpdate,
@@ -461,3 +463,283 @@ async def get_qr_analytics(
         "scans_by_country": scans_by_country,
         "funnel": funnel
     }
+
+
+@router.get(
+    "/{qr_code_id}/download/png",
+    summary="Download QR Code as PNG",
+    description="Generate and download QR code image as PNG"
+)
+async def download_qr_code_png(
+    qr_code_id: UUID,
+    size: int = Query(512, ge=128, le=2048, description="Image size in pixels"),
+    style: str = Query("square", description="Module style: square, rounded, circle"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Download QR code as PNG image.
+    
+    Args:
+        qr_code_id: QR code UUID
+        size: Image size (128-2048 pixels)
+        style: Module style
+        current_user: Authenticated user
+        db: Database session
+    
+    Returns:
+        PNG image file
+    """
+    # Fetch QR code
+    result = await db.execute(
+        select(QRCode).where(
+            and_(
+                QRCode.id == qr_code_id,
+                QRCode.tenant_id == current_user.tenant_id
+            )
+        )
+    )
+    qr_code = result.scalar_one_or_none()
+    
+    if not qr_code:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"QR code {qr_code_id} not found"
+        )
+    
+    # Generate image
+    generator = QRCodeImageGenerator()
+    
+    try:
+        png_bytes = generator.generate_png(
+            data=qr_code.short_url,
+            size=size,
+            color=qr_code.style.get("color", "#000000"),
+            bg_color=qr_code.style.get("bg_color", "#FFFFFF"),
+            style=style
+        )
+        
+        # Return as downloadable file
+        filename = f"qr-{qr_code.short_code}.png"
+        return Response(
+            content=png_bytes,
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate QR code image: {str(e)}"
+        )
+
+
+@router.get(
+    "/{qr_code_id}/download/svg",
+    summary="Download QR Code as SVG",
+    description="Generate and download QR code image as SVG"
+)
+async def download_qr_code_svg(
+    qr_code_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Download QR code as SVG image.
+    
+    Args:
+        qr_code_id: QR code UUID
+        current_user: Authenticated user
+        db: Database session
+    
+    Returns:
+        SVG image file
+    """
+    # Fetch QR code
+    result = await db.execute(
+        select(QRCode).where(
+            and_(
+                QRCode.id == qr_code_id,
+                QRCode.tenant_id == current_user.tenant_id
+            )
+        )
+    )
+    qr_code = result.scalar_one_or_none()
+    
+    if not qr_code:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"QR code {qr_code_id} not found"
+        )
+    
+    # Generate SVG
+    generator = QRCodeImageGenerator()
+    
+    try:
+        svg_content = generator.generate_svg(
+            data=qr_code.short_url,
+            color=qr_code.style.get("color", "#000000"),
+            bg_color=qr_code.style.get("bg_color", "#FFFFFF")
+        )
+        
+        # Return as downloadable file
+        filename = f"qr-{qr_code.short_code}.svg"
+        return Response(
+            content=svg_content,
+            media_type="image/svg+xml",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate QR code SVG: {str(e)}"
+        )
+
+
+@router.get(
+    "/{qr_code_id}/preview",
+    summary="Preview QR Code",
+    description="Get QR code as base64-encoded PNG for preview"
+)
+async def preview_qr_code(
+    qr_code_id: UUID,
+    size: int = Query(256, ge=128, le=1024, description="Preview size in pixels"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get QR code preview as base64-encoded PNG.
+    
+    Args:
+        qr_code_id: QR code UUID
+        size: Preview size
+        current_user: Authenticated user
+        db: Database session
+    
+    Returns:
+        Base64-encoded PNG data URI
+    """
+    # Fetch QR code
+    result = await db.execute(
+        select(QRCode).where(
+            and_(
+                QRCode.id == qr_code_id,
+                QRCode.tenant_id == current_user.tenant_id
+            )
+        )
+    )
+    qr_code = result.scalar_one_or_none()
+    
+    if not qr_code:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"QR code {qr_code_id} not found"
+        )
+    
+    # Generate base64 preview
+    generator = QRCodeImageGenerator()
+    
+    try:
+        base64_data = generator.generate_base64(
+            data=qr_code.short_url,
+            size=size,
+            color=qr_code.style.get("color", "#000000"),
+            bg_color=qr_code.style.get("bg_color", "#FFFFFF"),
+            style=qr_code.style.get("module_style", "square")
+        )
+        
+        return {
+            "qr_code_id": str(qr_code.id),
+            "short_code": qr_code.short_code,
+            "preview_data": base64_data
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate QR code preview: {str(e)}"
+        )
+
+
+@router.get(
+    "/{qr_code_id}/download/print",
+    summary="Download Print Template",
+    description="Generate QR code with decorative frame for printing"
+)
+async def download_print_template(
+    qr_code_id: UUID,
+    title: Optional[str] = Query(None, description="Title text"),
+    description: Optional[str] = Query(None, description="Description text"),
+    size: int = Query(800, ge=600, le=2000, description="Canvas size"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Download QR code as print-ready template with frame and text.
+    
+    Args:
+        qr_code_id: QR code UUID
+        title: Optional title text
+        description: Optional description text
+        size: Canvas size
+        current_user: Authenticated user
+        db: Database session
+    
+    Returns:
+        PNG image with frame
+    """
+    # Fetch QR code
+    result = await db.execute(
+        select(QRCode).where(
+            and_(
+                QRCode.id == qr_code_id,
+                QRCode.tenant_id == current_user.tenant_id
+            )
+        )
+    )
+    qr_code = result.scalar_one_or_none()
+    
+    if not qr_code:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"QR code {qr_code_id} not found"
+        )
+    
+    # Use QR code name as title if not provided
+    if not title:
+        title = qr_code.name
+    
+    # Generate framed image
+    generator = QRCodeImageGenerator()
+    
+    try:
+        png_bytes = generator.generate_with_frame(
+            data=qr_code.short_url,
+            title=title,
+            description=description,
+            size=size,
+            qr_color=qr_code.style.get("color", "#000000"),
+            bg_color=qr_code.style.get("bg_color", "#FFFFFF"),
+            style=qr_code.style.get("module_style", "square")
+        )
+        
+        # Return as downloadable file
+        filename = f"qr-print-{qr_code.short_code}.png"
+        return Response(
+            content=png_bytes,
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate print template: {str(e)}"
+        )
