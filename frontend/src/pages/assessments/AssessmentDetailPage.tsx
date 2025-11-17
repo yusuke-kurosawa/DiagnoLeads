@@ -1,11 +1,18 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { assessmentService } from '../../services/assessmentService';
+import { ABTestManager } from '../../components/assessments/ABTestManager';
+import { SMSCampaignManager } from '../../components/assessments/SMSCampaignManager';
+import { QRCodeDownload } from '../../components/assessments/QRCodeDownload';
+
+type TabType = 'overview' | 'ab-tests' | 'sms' | 'qr-codes';
 
 export function AssessmentDetailPage() {
   const { tenantId, assessmentId } = useParams<{ tenantId: string; assessmentId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   const { data: assessment, isLoading, error } = useQuery({
     queryKey: ['assessment', tenantId, assessmentId],
@@ -57,9 +64,15 @@ export function AssessmentDetailPage() {
     return <div>Assessment not found</div>;
   }
 
+  const tabs: { id: TabType; label: string }[] = [
+    { id: 'overview', label: '概要' },
+    { id: 'ab-tests', label: 'A/Bテスト' },
+    { id: 'sms', label: 'SMSキャンペーン' },
+    { id: 'qr-codes', label: 'QRコード' },
+  ];
+
   return (
-    <Layout>
-      <div className="container mx-auto max-w-4xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       {deleteMutation.error && (
         <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
           <p className="font-bold">Error deleting assessment</p>
@@ -109,8 +122,29 @@ export function AssessmentDetailPage() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-6 space-y-6">
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="flex -mb-px">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="px-6 py-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
           {assessment.description && (
             <div>
               <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
@@ -159,6 +193,30 @@ export function AssessmentDetailPage() {
               </div>
             </dl>
           </div>
+            </div>
+          )}
+
+          {activeTab === 'ab-tests' && (
+            <ABTestManager assessmentId={assessmentId!} tenantId={tenantId!} />
+          )}
+
+          {activeTab === 'sms' && (
+            <SMSCampaignManager assessmentId={assessmentId!} tenantId={tenantId!} />
+          )}
+
+          {activeTab === 'qr-codes' && assessment.qr_code_url && (
+            <QRCodeDownload
+              qrCodeId={assessment.id}
+              tenantId={tenantId!}
+              qrCodeUrl={assessment.qr_code_url}
+            />
+          )}
+
+          {activeTab === 'qr-codes' && !assessment.qr_code_url && (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <p className="text-gray-600">この診断にはまだQRコードが作成されていません。</p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -171,8 +229,7 @@ export function AssessmentDetailPage() {
           </Link>
         </div>
       </div>
-      </div>
-    </Layout>
+    </div>
   );
 }
 
