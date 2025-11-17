@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send, MessageSquare, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { apiClient } from '@/lib/apiClient';
 import { SMSCampaignCreateForm } from './SMSCampaignCreateForm';
 
 interface SMSCampaign {

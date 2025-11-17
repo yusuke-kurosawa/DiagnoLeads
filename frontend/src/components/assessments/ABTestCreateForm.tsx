@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { apiClient } from '@/lib/apiClient';
 
 interface Variant {
   name: string;

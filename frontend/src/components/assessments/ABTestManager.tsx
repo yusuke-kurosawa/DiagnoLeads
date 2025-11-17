@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, CheckCircle, Plus, TrendingUp, Target } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { apiClient } from '@/lib/apiClient';
 import { ABTestCreateForm } from './ABTestCreateForm';
 
 interface ABTest {

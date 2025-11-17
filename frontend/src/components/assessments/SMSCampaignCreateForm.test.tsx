@@ -1,0 +1,554 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from '@/test/test-utils';
+import { SMSCampaignCreateForm } from './SMSCampaignCreateForm';
+import { apiClient } from '@/lib/apiClient';
+
+vi.mock('@/lib/apiClient', () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+  },
+}));
+
+// Mock window.prompt for bulk import
+global.prompt = vi.fn();
+
+describe('SMSCampaignCreateForm', () => {
+  const defaultProps = {
+    assessmentId: 'test-assessment-id',
+    tenantId: 'test-tenant-id',
+    onSuccess: vi.fn(),
+    onCancel: vi.fn(),
+  };
+
+  const mockQRCodes = [
+    {
+      id: 'qr-1',
+      name: 'キャンペーンQR',
+      short_url: 'https://short.url/abc123',
+    },
+    {
+      id: 'qr-2',
+      name: 'プロモーションQR',
+      short_url: 'https://short.url/def456',
+    },
+  ];
+
+  const mockCostEstimate = {
+    num_messages: 10,
+    cost_per_message: 0.073,
+    total_cost: 0.73,
+    region: 'JP',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Rendering', () => {
+    it('should render form with all fields', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockQRCodes });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/キャンペーン名/i)).toBeInTheDocument();
+      });
+
+      expect(screen.getByLabelText(/メッセージテンプレート/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/QRコード/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/送信予定日時/i)).toBeInTheDocument();
+    });
+
+    it('should load QR codes on mount', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockQRCodes });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(apiClient.get).toHaveBeenCalledWith(
+          `/tenants/${defaultProps.tenantId}/qr-codes?assessment_id=${defaultProps.assessmentId}`
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('キャンペーンQR - https://short.url/abc123')).toBeInTheDocument();
+      });
+    });
+
+    it('should render default message template', () => {
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const templateInput = screen.getByLabelText(/メッセージテンプレート/i) as HTMLTextAreaElement;
+      expect(templateInput.value).toContain('{url}');
+      expect(templateInput.value).toContain('DiagnoLeads');
+    });
+  });
+
+  describe('Form Validation', () => {
+    it('should show error when campaign name is empty', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/キャンペーン名を入力してください/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should show error when message template is empty', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Test Campaign');
+
+      const templateInput = screen.getByLabelText(/メッセージテンプレート/i);
+      await user.clear(templateInput);
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/メッセージテンプレートを入力してください/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should show error when {url} is missing from template', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Test Campaign');
+
+      const templateInput = screen.getByLabelText(/メッセージテンプレート/i);
+      await user.clear(templateInput);
+      await user.type(templateInput, 'This message has no URL placeholder');
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/メッセージテンプレートに{url}を含めてください/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should show error when no recipients are provided', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Test Campaign');
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/受信者を最低1件入力してください/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should validate phone number format (E.164)', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Test Campaign');
+
+      // Add invalid phone number
+      const phoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+      await user.type(phoneInputs[0], '09012345678'); // Missing +81 prefix
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/無効な電話番号/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Recipient Management', () => {
+    it('should add new recipient field when clicking add button', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const initialPhoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+      expect(initialPhoneInputs).toHaveLength(1);
+
+      const addButton = screen.getByRole('button', { name: /追加/i });
+      await user.click(addButton);
+
+      await waitFor(() => {
+        const updatedPhoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+        expect(updatedPhoneInputs).toHaveLength(2);
+      });
+    });
+
+    it('should remove recipient field when clicking delete button', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      // Add a second recipient first
+      const addButton = screen.getByRole('button', { name: /追加/i });
+      await user.click(addButton);
+
+      await waitFor(() => {
+        const phoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+        expect(phoneInputs).toHaveLength(2);
+      });
+
+      // Delete the second recipient
+      const deleteButtons = screen.getAllByRole('button').filter(
+        (btn) => btn.querySelector('svg')?.getAttribute('class')?.includes('trash')
+      );
+
+      if (deleteButtons.length > 0) {
+        await user.click(deleteButtons[0]);
+
+        await waitFor(() => {
+          const phoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+          expect(phoneInputs).toHaveLength(1);
+        });
+      }
+    });
+
+    it('should not allow more than 1000 recipients', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(global.prompt).mockReturnValue(
+        Array(1001).fill('+819012345678').join('\n')
+      );
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const bulkImportButton = screen.getByRole('button', { name: /一括追加/i });
+      await user.click(bulkImportButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/受信者は最大1000件までです/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Bulk Import', () => {
+    it('should import phone numbers separated by newlines', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(global.prompt).mockReturnValue('+819012345678\n+819087654321\n+819011111111');
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const bulkImportButton = screen.getByRole('button', { name: /一括追加/i });
+      await user.click(bulkImportButton);
+
+      await waitFor(() => {
+        const recipientCount = screen.getByText(/受信者 \(3\/1000\)/i);
+        expect(recipientCount).toBeInTheDocument();
+      });
+    });
+
+    it('should import phone numbers separated by commas', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(global.prompt).mockReturnValue('+819012345678,+819087654321,+819011111111');
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const bulkImportButton = screen.getByRole('button', { name: /一括追加/i });
+      await user.click(bulkImportButton);
+
+      await waitFor(() => {
+        const recipientCount = screen.getByText(/受信者 \(3\/1000\)/i);
+        expect(recipientCount).toBeInTheDocument();
+      });
+    });
+
+    it('should filter out empty lines during bulk import', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(global.prompt).mockReturnValue('+819012345678\n\n\n+819087654321\n');
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const bulkImportButton = screen.getByRole('button', { name: /一括追加/i });
+      await user.click(bulkImportButton);
+
+      await waitFor(() => {
+        const recipientCount = screen.getByText(/受信者 \(2\/1000\)/i);
+        expect(recipientCount).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Cost Estimation', () => {
+    it('should show cost estimate when recipients are added', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get)
+        .mockResolvedValueOnce({ data: [] }) // QR codes
+        .mockResolvedValueOnce({ data: mockCostEstimate }); // Cost estimate
+
+      vi.mocked(apiClient.post).mockResolvedValue({ data: mockCostEstimate });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const phoneInput = screen.getAllByPlaceholderText(/\+819012345678/i)[0];
+      await user.type(phoneInput, '+819012345678');
+
+      await waitFor(() => {
+        expect(screen.getByText(/コスト見積もり/i)).toBeInTheDocument();
+      });
+
+      expect(screen.getByText(/10通/i)).toBeInTheDocument();
+      expect(screen.getByText(/\$0\.73/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Test SMS Sending', () => {
+    it('should send test SMS when test button is clicked', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true } });
+
+      global.alert = vi.fn();
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const testPhoneInput = screen.getByPlaceholderText(/\+819012345678/i);
+      await user.type(testPhoneInput, '+819012345678');
+
+      const testButton = screen.getByRole('button', { name: /テスト送信/i });
+      await user.click(testButton);
+
+      await waitFor(() => {
+        expect(apiClient.post).toHaveBeenCalledWith(
+          `/tenants/${defaultProps.tenantId}/sms/test`,
+          expect.objectContaining({
+            to: '+819012345678',
+            message: expect.stringContaining('https://example.com/test'),
+          })
+        );
+      });
+
+      expect(global.alert).toHaveBeenCalledWith('テストSMSを送信しました');
+    });
+
+    it('should show error when test phone is invalid', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const testPhoneInput = screen.getByPlaceholderText(/\+819012345678/i);
+      await user.type(testPhoneInput, '09012345678'); // Missing +81
+
+      const testButton = screen.getByRole('button', { name: /テスト送信/i });
+      await user.click(testButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/電話番号はE\.164形式/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should disable test button while sending', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(apiClient.post).mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 1000))
+      );
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const testPhoneInput = screen.getByPlaceholderText(/\+819012345678/i);
+      await user.type(testPhoneInput, '+819012345678');
+
+      const testButton = screen.getByRole('button', { name: /テスト送信/i });
+      await user.click(testButton);
+
+      expect(testButton).toBeDisabled();
+      expect(screen.getByText(/送信中/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Message Character Count', () => {
+    it('should display character count and segment count', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const templateInput = screen.getByLabelText(/メッセージテンプレート/i);
+
+      // Default template should show character count
+      await waitFor(() => {
+        expect(screen.getByText(/文字 \/ \d+セグメント/i)).toBeInTheDocument();
+      });
+
+      // Type a long message
+      await user.clear(templateInput);
+      await user.type(templateInput, 'A'.repeat(200) + '{url}');
+
+      await waitFor(() => {
+        expect(screen.getByText(/2セグメント/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Form Submission', () => {
+    it('should submit form with valid data', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockQRCodes });
+      vi.mocked(apiClient.post).mockResolvedValue({
+        data: {
+          id: 'campaign-id',
+          name: 'Test Campaign',
+          status: 'pending',
+        },
+      });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/キャンペーン名/i)).toBeInTheDocument();
+      });
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Test Campaign');
+
+      const phoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+      await user.type(phoneInputs[0], '+819012345678');
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(apiClient.post).toHaveBeenCalledWith(
+          `/tenants/${defaultProps.tenantId}/sms/campaigns`,
+          expect.objectContaining({
+            assessment_id: defaultProps.assessmentId,
+            name: 'Test Campaign',
+            message_template: expect.stringContaining('{url}'),
+            recipients: ['+819012345678'],
+          })
+        );
+      });
+
+      expect(defaultProps.onSuccess).toHaveBeenCalled();
+    });
+
+    it('should submit with scheduled time if provided', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockQRCodes });
+      vi.mocked(apiClient.post).mockResolvedValue({ data: {} });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/キャンペーン名/i)).toBeInTheDocument();
+      });
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Scheduled Campaign');
+
+      const phoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+      await user.type(phoneInputs[0], '+819012345678');
+
+      const scheduledInput = screen.getByLabelText(/送信予定日時/i);
+      await user.type(scheduledInput, '2025-12-31T23:59');
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(apiClient.post).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            scheduled_at: '2025-12-31T23:59',
+          })
+        );
+      });
+    });
+
+    it('should show error message when submission fails', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(apiClient.post).mockRejectedValue({
+        response: {
+          data: { detail: 'Twilio error: Invalid phone number' },
+          status: 400,
+        },
+      });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const nameInput = screen.getByLabelText(/キャンペーン名/i);
+      await user.type(nameInput, 'Test Campaign');
+
+      const phoneInputs = screen.getAllByPlaceholderText(/\+819012345678/i);
+      await user.type(phoneInputs[0], '+819012345678');
+
+      const submitButton = screen.getByRole('button', { name: /キャンペーンを作成/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Twilio error: Invalid phone number/i)).toBeInTheDocument();
+      });
+
+      expect(defaultProps.onSuccess).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Cancel Functionality', () => {
+    it('should call onCancel when cancel button is clicked', async () => {
+      const user = userEvent.setup();
+
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+
+      renderWithProviders(<SMSCampaignCreateForm {...defaultProps} />);
+
+      const cancelButton = screen.getByRole('button', { name: /キャンセル/i });
+      await user.click(cancelButton);
+
+      expect(defaultProps.onCancel).toHaveBeenCalled();
+    });
+  });
+});

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Download, Image, FileText, Printer, Eye } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { apiClient } from '@/lib/apiClient';
 
 interface QRCodeDownloadProps {
   qrCodeId: string;
