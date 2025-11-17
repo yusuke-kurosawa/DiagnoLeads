@@ -2,35 +2,43 @@
 
 **マルチテナントB2B診断プラットフォーム with AI**
 
-[![Tests](https://img.shields.io/badge/tests-42%2F42%20passing-brightgreen)](https://github.com/yusuke-kurosawa/DiagnoLeads)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-blue)](./openapi.json)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-Spec--Driven-orange)](./openspec/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-green)](https://github.com/yusuke-kurosawa/DiagnoLeads)
 
 DiagnoLeadsは、B2B企業が顧客の課題を診断し、質の高いリードを獲得するためのSaaSプラットフォームです。**OpenSpec + OpenAPI を完全統合した理想的なSpec駆動開発**を実証し、完璧な品質保証体制を実現しています。
 
 ## 🎉 Project Status
 
-- ✅ **革新的機能仕様完成**: 12の画期的機能を提案・文書化
-- ✅ **Phase 1計画完了**: 12週間実装計画、5 Milestones、12 Issues作成済み
-- ✅ **Teams統合プロトタイプ**: Microsoft Teams統合の技術検証完了
-- 🚀 **Phase 1実装開始準備完了**: Azure AD登録→本実装へ
-- 📊 **Current Version**: 0.2.0 (Phase 1 Planning Complete)
+- ✅ **基本機能実装完了**: 診断作成、リード管理、分析ダッシュボード
+- ✅ **マスタ管理機能**: トピック・業界・ユーザー管理（ドラッグ&ドロップソート機能付き）
+- ✅ **UI/UX改善**: エラーハンドリング、フォームレイアウト最適化
+- ✅ **革新的機能仕様完成**: 12の画期的機能を提案・文書化（Phase 1-4）
+- 🚧 **Phase 1準備中**: Teams統合、LINE統合、AI A/Bテストの実装計画策定完了
+- 📊 **Current Version**: 0.1.0 (MVP)
 
 See [docs/SESSION_SUMMARY.md](./docs/SESSION_SUMMARY.md) for complete session summary.
 
 ## 🎯 主要機能
 
-### 基本機能（実装済み/進行中）
-- **🤖 AI診断生成**: トピック入力だけでClaude AIが質問・選択肢・スコアリングを自動生成
-- **📊 ノーコード診断ビルダー**: ドラッグ&ドロップで診断コンテンツを作成
+### 実装済み機能
+- **📊 診断管理（CRUD）**: 診断の作成、編集、削除、一覧表示
+- **📋 マスタ管理**: トピック・業界のドラッグ&ドロップソート、カラーインジケーター
+- **👥 ユーザー管理**: テナント内ユーザーの作成、編集、権限管理
+- **📈 基本分析**: 診断完了率、CVファネルの可視化
+- **🏢 マルチテナント**: テナントID による論理分離、Row-Level Security (RLS)
+- **🔐 認証・認可**: JWT ベース、3つのロール（システム管理者、テナント管理者、一般ユーザー）
+- **🛡️ エラーハンドリング**: 包括的なエラーページ、強化されたエラーロギング
+
+### 計画中の機能（Phase 1-4）
+- **🤖 AI診断生成**: トピック入力だけでClaude AIが質問・選択肢を自動生成
 - **🎯 AIリード分析**: 診断回答から企業課題を自動検出、ホットリードスコアを算出
-- **📈 リアルタイム分析**: 診断完了率、離脱ポイント、CVファネルを可視化
-- **🏢 マルチテナント**: 複数企業が独立環境で運用可能
+- **📊 ノーコード診断ビルダー**: ドラッグ&ドロップでの質問作成（強化版）
 
 ### 革新的機能（Phase 1-4: 12ヶ月計画）
 
-#### ⚡ Phase 1 (3ヶ月) - 実装中
+#### ⚡ Phase 1 (3ヶ月) - 計画済み
 - **Microsoft Teams統合** ⭐ 業界初
   - Adaptive Cards通知
   - Bot対話型診断
@@ -126,23 +134,17 @@ openspec/
 
 - Node.js 18+
 - Python 3.11+
-- npm
-- OpenSpec CLI
+- PostgreSQL 14+ (Supabase推奨)
+- Redis (Upstash推奨)
 
-### 1. OpenSpecのインストール
-
-```bash
-npm install -g @fission-ai/openspec@latest
-```
-
-### 2. プロジェクトのクローン
+### 1. プロジェクトのクローン
 
 ```bash
 git clone https://github.com/yusuke-kurosawa/DiagnoLeads.git
 cd DiagnoLeads
 ```
 
-### 3. 環境変数の設定
+### 2. 環境変数の設定
 
 ```bash
 # .env.example をコピー
@@ -151,11 +153,11 @@ cp .env.example .env
 # 必要な環境変数を設定
 # - DATABASE_URL (Supabase PostgreSQL)
 # - REDIS_URL (Upstash Redis)
-# - ANTHROPIC_API_KEY (Claude API)
+# - ANTHROPIC_API_KEY (Claude API - 計画中の機能用)
 # - SECRET_KEY (JWT署名用)
 ```
 
-### 4. バックエンドのセットアップ
+### 3. バックエンドのセットアップ
 
 ```bash
 cd backend
@@ -170,7 +172,7 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-### 5. フロントエンドのセットアップ
+### 4. フロントエンドのセットアップ
 
 ```bash
 cd frontend
@@ -183,10 +185,11 @@ npm run dev
 ## 📚 ドキュメント
 
 ### プロジェクト管理
-- [セッションサマリー](./docs/SESSION_SUMMARY.md) ⭐ 最新の完全な記録
+- [セッションサマリー](./docs/SESSION_SUMMARY.md) ⭐ 最新の開発状況
 - [Phase 1実装計画](./docs/IMPLEMENTATION_PLAN_PHASE1.md) ⭐ 12週間の詳細計画
 - [Teams統合セットアップガイド](./docs/SETUP_GUIDE_TEAMS.md) ⭐ Azure AD登録手順
-- [GitHub Issues一覧](https://github.com/yusuke-kurosawa/DiagnoLeads/issues?q=is%3Aissue+label%3Aphase-1)
+- [本番環境デプロイガイド](./docs/PRODUCTION_DEPLOYMENT_GUIDE.md)
+- [クイックスタートデプロイ](./docs/QUICKSTART_DEPLOYMENT.md)
 
 ### OpenSpec仕様
 - [プロジェクト概要](./openspec/specs/OVERVIEW.md)
@@ -204,18 +207,17 @@ npm run dev
 
 ## 🎯 ロードマップ
 
-### Phase 1 (Week 1-12) - 🟡 実装中
+### Phase 1 (Week 1-12) - 📋 計画完了
 - [x] 革新的機能仕様作成（12機能）
-- [x] 実装計画策定（12週間）
-- [x] GitHub Project Setup（5 Milestones, 12 Issues）
-- [x] Teams統合プロトタイプ
+- [x] 実装計画策定（12週間）- [docs/IMPLEMENTATION_PLAN_PHASE1.md](./docs/IMPLEMENTATION_PLAN_PHASE1.md)
+- [x] セットアップガイド作成 - [docs/SETUP_GUIDE_TEAMS.md](./docs/SETUP_GUIDE_TEAMS.md)
 - [ ] **Milestone 1** (Week 1-3): Teams統合基盤
 - [ ] **Milestone 2** (Week 4-6): Teams Bot対話機能
 - [ ] **Milestone 3** (Week 7-9): LINE統合
 - [ ] **Milestone 4** (Week 10-11): QR & SMS配信
 - [ ] **Milestone 5** (Week 12): AI A/Bテストエンジン
 
-進捗: [GitHub Milestones](https://github.com/yusuke-kurosawa/DiagnoLeads/milestones)
+詳細: [Phase 1実装計画](./docs/IMPLEMENTATION_PLAN_PHASE1.md)
 
 ### Phase 2 (Q2 2025)
 - [ ] リアルタイムコラボレーション
