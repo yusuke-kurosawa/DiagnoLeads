@@ -5,7 +5,6 @@ Public API for assessment responses (for embed widget).
 """
 
 from uuid import UUID, uuid4
-from typing import Optional
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -18,13 +17,11 @@ from app.models.response import Response
 from app.models.answer import Answer
 from app.models.lead import Lead
 from app.schemas.response import (
-    ResponseCreate,
     ResponseSubmit,
     ResponseResponse,
     ResponseWithLeadData,
     PublicAssessmentResponse,
 )
-from app.schemas.question import QuestionResponse
 
 router = APIRouter()
 
@@ -293,9 +290,9 @@ async def complete_response(
     # Create lead if email is provided
     if data.email and data.name:
         # Get assessment to find tenant
-        assessment = db.query(Assessment).filter(
-            Assessment.id == response.assessment_id
-        ).first()
+        assessment = (
+            db.query(Assessment).filter(Assessment.id == response.assessment_id).first()
+        )
 
         if assessment:
             # Check if lead already exists

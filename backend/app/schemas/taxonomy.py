@@ -12,6 +12,7 @@ from typing import Optional
 
 class TopicBase(BaseModel):
     """Base topic model"""
+
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
     color: Optional[str] = Field(None, max_length=7)  # Hex color
@@ -20,11 +21,13 @@ class TopicBase(BaseModel):
 
 class TopicCreate(TopicBase):
     """Topic creation request"""
+
     pass
 
 
 class TopicUpdate(BaseModel):
     """Topic update request - partial update"""
+
     name: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
@@ -34,6 +37,7 @@ class TopicUpdate(BaseModel):
 
 class TopicResponse(TopicBase):
     """Topic response model"""
+
     id: UUID
     tenant_id: UUID
     created_at: datetime
@@ -45,6 +49,7 @@ class TopicResponse(TopicBase):
 
 class IndustryBase(BaseModel):
     """Base industry model"""
+
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
     color: Optional[str] = Field(None, max_length=7)  # Hex color
@@ -53,11 +58,13 @@ class IndustryBase(BaseModel):
 
 class IndustryCreate(IndustryBase):
     """Industry creation request"""
+
     pass
 
 
 class IndustryUpdate(BaseModel):
     """Industry update request - partial update"""
+
     name: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
@@ -67,6 +74,7 @@ class IndustryUpdate(BaseModel):
 
 class IndustryResponse(IndustryBase):
     """Industry response model"""
+
     id: UUID
     tenant_id: UUID
     created_at: datetime

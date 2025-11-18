@@ -15,8 +15,7 @@ from app.core.database import Base, get_db
 import os
 
 SQLALCHEMY_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/postgres"
+    "TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
@@ -41,6 +40,7 @@ def db_session():
 def test_tenant(db_session):
     """Create a test tenant"""
     from app.models.tenant import Tenant
+
     tenant = Tenant(
         name="Test Tenant",
         slug="test-tenant",
@@ -57,6 +57,7 @@ def test_tenant(db_session):
 def test_tenant_2(db_session):
     """Create a second test tenant for cross-tenant tests"""
     from app.models.tenant import Tenant
+
     tenant = Tenant(
         name="Test Tenant 2",
         slug="test-tenant-2",
@@ -74,7 +75,7 @@ def test_user(db_session, test_tenant):
     """Create a test user"""
     from app.models.user import User
     from app.services.auth import AuthService
-    
+
     user = User(
         email="test@example.com",
         password_hash=AuthService.hash_password("password123"),

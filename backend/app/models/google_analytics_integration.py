@@ -2,6 +2,7 @@
 
 Manages GA4 integration settings per tenant.
 """
+
 from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -19,6 +20,7 @@ class GoogleAnalyticsIntegration(Base):
     - Embed widget tracking
     - Server-side event tracking via Measurement Protocol
     """
+
     __tablename__ = "google_analytics_integrations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -27,25 +29,39 @@ class GoogleAnalyticsIntegration(Base):
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
-        index=True
+        index=True,
     )
 
     # GA4 Configuration
     measurement_id = Column(String(20), nullable=False)  # Format: G-XXXXXXXXXX
-    measurement_protocol_api_secret = Column(String(255), nullable=True)  # Encrypted storage recommended
+    measurement_protocol_api_secret = Column(
+        String(255), nullable=True
+    )  # Encrypted storage recommended
 
     # Feature Flags
     enabled = Column(Boolean, default=True, nullable=False, index=True)
-    track_frontend = Column(Boolean, default=True, nullable=False)  # React admin dashboard
-    track_embed_widget = Column(Boolean, default=True, nullable=False)  # Embedded assessment widget
-    track_server_events = Column(Boolean, default=False, nullable=False)  # Server-side Measurement Protocol
+    track_frontend = Column(
+        Boolean, default=True, nullable=False
+    )  # React admin dashboard
+    track_embed_widget = Column(
+        Boolean, default=True, nullable=False
+    )  # Embedded assessment widget
+    track_server_events = Column(
+        Boolean, default=False, nullable=False
+    )  # Server-side Measurement Protocol
 
     # Custom Configuration
-    custom_dimensions = Column(JSONB, nullable=True)  # Store custom GA4 dimensions/metrics config
+    custom_dimensions = Column(
+        JSONB, nullable=True
+    )  # Store custom GA4 dimensions/metrics config
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     # Relationships
     tenant = relationship("Tenant", back_populates="google_analytics_integration")
@@ -73,7 +89,9 @@ class GoogleAnalyticsIntegration(Base):
         }
 
         if include_secret:
-            data["measurement_protocol_api_secret"] = self.measurement_protocol_api_secret
+            data["measurement_protocol_api_secret"] = (
+                self.measurement_protocol_api_secret
+            )
 
         return data
 
@@ -88,5 +106,6 @@ class GoogleAnalyticsIntegration(Base):
             True if valid format, False otherwise
         """
         import re
-        pattern = r'^G-[A-Z0-9]{10}$'
+
+        pattern = r"^G-[A-Z0-9]{10}$"
         return bool(re.match(pattern, measurement_id))
