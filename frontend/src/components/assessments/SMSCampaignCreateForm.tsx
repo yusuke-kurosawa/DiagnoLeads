@@ -226,7 +226,7 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Basic Info */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-gray-900">基本情報</h4>

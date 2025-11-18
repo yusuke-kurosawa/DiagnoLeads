@@ -51,8 +51,7 @@ describe('ABTestCreateForm', () => {
   });
 
   describe('Form Validation', () => {
-    // Note: Skipping due to timing issues with error display
-    it.skip('should show error when name is empty', async () => {
+    it('should show error when name is empty', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
@@ -161,7 +160,7 @@ describe('ABTestCreateForm', () => {
       }
     });
 
-    // Note: Skipping due to timing issues with error display
+    // Note: Skipping due to complex button disabled behavior testing
     it.skip('should not allow more than 10 variants', async () => {
       const user = userEvent.setup();
 

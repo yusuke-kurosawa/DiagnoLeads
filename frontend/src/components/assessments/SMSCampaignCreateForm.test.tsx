@@ -94,8 +94,7 @@ describe('SMSCampaignCreateForm - Simplified', () => {
   });
 
   describe('Form Validation', () => {
-    // Note: Skipping due to timing issues with error display
-    it.skip('should show error when submitting empty campaign name', async () => {
+    it('should show error when submitting empty campaign name', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
