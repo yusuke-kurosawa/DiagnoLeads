@@ -6,7 +6,7 @@ Sanitizes user input to prevent prompt injection attacks.
 
 import re
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from .exceptions import AIPromptInjectionError
 
@@ -67,7 +67,7 @@ class PromptSanitizer:
         return topic
 
     @staticmethod
-    def sanitize_text(text: str, max_length: int = None) -> str:
+    def sanitize_text(text: str, max_length: Optional[int] = None) -> str:
         """
         Sanitize general text input.
 
@@ -116,7 +116,7 @@ class PromptSanitizer:
         if not isinstance(responses, dict):
             raise AIPromptInjectionError("Responses must be a dictionary")
 
-        sanitized = {}
+        sanitized: Dict[str, Any] = {}
         for key, value in responses.items():
             # Sanitize key
             if not isinstance(key, str):

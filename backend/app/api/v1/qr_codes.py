@@ -1,6 +1,6 @@
 """QR Code API endpoints"""
 
-from typing import Optional
+from typing import Optional, Dict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -390,7 +390,7 @@ async def get_qr_analytics(
     }
 
     # Scans by date
-    scans_by_date_dict = {}
+    scans_by_date_dict: Dict[str, int] = {}
     for scan in scans:
         date_str = scan.scanned_at.strftime("%Y-%m-%d")
         scans_by_date_dict[date_str] = scans_by_date_dict.get(date_str, 0) + 1
@@ -412,7 +412,7 @@ async def get_qr_analytics(
     scans_by_device = device_counts
 
     # Scans by country
-    country_counts = {}
+    country_counts: Dict[str, int] = {}
     for scan in scans:
         if scan.country:
             country_counts[scan.country] = country_counts.get(scan.country, 0) + 1

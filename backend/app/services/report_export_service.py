@@ -104,10 +104,10 @@ class ReportExportService:
 
         # Extract metrics
         if data_points:
-            metrics = set()
+            metrics_set = set()
             for dp in data_points:
-                metrics.update(dp.get("values", {}).keys())
-            metrics = sorted(list(metrics))
+                metrics_set.update(dp.get("values", {}).keys())
+            metrics = sorted(list(metrics_set))
 
             # Header row
             row = 4
@@ -280,10 +280,10 @@ class ReportExportService:
             story.append(Paragraph("Detailed Data", styles["Heading2"]))
 
             # Extract metrics
-            metrics = set()
+            metrics_set = set()
             for dp in data_points:
-                metrics.update(dp.get("values", {}).keys())
-            metrics = sorted(list(metrics))
+                metrics_set.update(dp.get("values", {}).keys())
+            metrics = sorted(list(metrics_set))
 
             # Build table data
             table_data = [["Label"] + [m.replace("_", " ").title() for m in metrics]]

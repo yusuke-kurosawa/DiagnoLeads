@@ -312,7 +312,7 @@ class ReportService:
         self, leads: List[Lead], group_by: str, metrics: List[str]
     ) -> List[Dict[str, Any]]:
         """Group leads and aggregate metrics"""
-        groups = {}
+        groups: Dict[str, List[Lead]] = {}
 
         for lead in leads:
             if group_by == "status":
@@ -336,7 +336,7 @@ class ReportService:
         self, assessments: List[Assessment], group_by: str, metrics: List[str]
     ) -> List[Dict[str, Any]]:
         """Group assessments and aggregate metrics"""
-        groups = {}
+        groups: Dict[str, List[Assessment]] = {}
 
         for assessment in assessments:
             if group_by == "status":
@@ -364,7 +364,7 @@ class ReportService:
         self, leads: List[Lead], metrics: List[str], label: str
     ) -> Dict[str, Any]:
         """Aggregate lead metrics"""
-        values = {}
+        values: Dict[str, Any] = {}
 
         if "leads_total" in metrics:
             values["leads_total"] = len(leads)

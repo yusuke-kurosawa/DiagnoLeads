@@ -6,7 +6,7 @@ Provides retry logic with exponential backoff for API calls.
 
 import asyncio
 import logging
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Awaitable
 
 from anthropic import (
     APIError,
@@ -23,7 +23,7 @@ T = TypeVar("T")
 
 
 async def retry_with_backoff(
-    func: Callable[..., T],
+    func: Callable[..., Awaitable[T]],
     max_retries: int = 3,
     initial_delay: float = 1.0,
     backoff_factor: float = 2.0,

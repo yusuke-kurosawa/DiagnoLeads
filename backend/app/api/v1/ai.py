@@ -126,8 +126,8 @@ async def analyze_lead_responses(
         # Call AI service to analyze responses with tenant context
         result = await ai_service.analyze_lead_insights(
             assessment_responses=request.assessment_responses,
-            assessment_title=request.assessment_title,
-            industry=request.industry,
+            assessment_title=request.assessment_title or "Assessment",
+            industry=request.industry or "general",
             tenant_id=tenant_id,
         )
 
