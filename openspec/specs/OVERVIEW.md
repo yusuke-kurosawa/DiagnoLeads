@@ -179,5 +179,5 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 ### API Reference
 - **Endpoints Overview**: [./api/endpoints-overview.md](./api/endpoints-overview.md) - Complete API documentation v2.0
 
-### Change Proposals
-- **Innovative Features Proposal**: [../changes/2025-11-10-innovative-features/innovative-features.md](../changes/2025-11-10-innovative-features/innovative-features.md) - 12の革新的機能提案
+### Archive
+- **Innovative Features Archive**: [../archive/2025-11-18-innovative-features-proposal.md](../archive/2025-11-18-innovative-features-proposal.md) - 個別機能仕様に分割済み（2025-11-18）
