@@ -1,15 +1,16 @@
 /**
  * Lead Detail Page
- * 
+ *
  * Displays detailed information about a lead with actions.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlameIcon, MailIcon, PhoneIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { leadService } from '../../services/leadService';
+import { useTrackLeadEvents } from '../../hooks/useGoogleAnalytics';
 
 import { ScoreBreakdown } from '../../components/leads/ScoreBreakdown';
 import { ActivityTimeline, generateTimelineFromLead } from '../../components/leads/ActivityTimeline';
@@ -23,6 +24,7 @@ export const LeadDetailPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { trackLeadViewed, trackLeadStatusChanged } = useTrackLeadEvents();
 
   const { data: lead, isLoading, error } = useQuery({
     queryKey: ['leads', user?.tenant_id, leadId],
@@ -32,6 +34,13 @@ export const LeadDetailPage: React.FC = () => {
     },
     enabled: !!user?.tenant_id && !!leadId,
   });
+
+  // Track lead view on mount
+  useEffect(() => {
+    if (lead && leadId) {
+      trackLeadViewed(leadId, lead.score);
+    }
+  }, [lead, leadId, trackLeadViewed]);
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -55,11 +64,16 @@ export const LeadDetailPage: React.FC = () => {
   const [statusHistory, setStatusHistory] = useState<StatusChange[]>([]);
 
   const handleStatusChange = async (newStatus: LeadStatus, note?: string) => {
-    if (!lead) return;
-    
+    if (!lead || !leadId) return;
+
+    const oldStatus = lead.status;
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
+    // Track status change event
+    trackLeadStatusChanged(leadId, oldStatus, newStatus);
+
     // Add to history
     const change: StatusChange = {
       id: `change-${Date.now()}`,
@@ -70,14 +84,14 @@ export const LeadDetailPage: React.FC = () => {
       note,
     };
     setStatusHistory([change, ...statusHistory]);
-    
+
     // Update lead status (in real app, this would be from API response)
     queryClient.setQueryData(['leads', user?.tenant_id, leadId], {
       ...lead,
       status: newStatus,
       updated_at: new Date().toISOString(),
     });
-    
+
     // Invalidate to refetch from server
     queryClient.invalidateQueries({ queryKey: ['leads', user?.tenant_id, leadId] });
   };

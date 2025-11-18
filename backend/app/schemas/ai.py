@@ -70,6 +70,15 @@ class LeadInsights(BaseModel):
     identified_needs: List[IdentifiedNeed]
     recommendation: str
     key_talking_points: List[str]
+    recommended_action: Optional[str] = Field(
+        None, description="Industry-specific recommended next action"
+    )
+    priority_level: Optional[str] = Field(
+        None, description="Automatic priority level: critical|high|medium|low"
+    )
+    follow_up_timing: Optional[str] = Field(
+        None, description="Recommended follow-up timing"
+    )
 
 
 class LeadAnalysisRequest(BaseModel):
@@ -78,6 +87,9 @@ class LeadAnalysisRequest(BaseModel):
     assessment_responses: Dict[str, Any] = Field(..., description="Question ID to response mapping")
     assessment_title: Optional[str] = Field(
         default="Assessment", description="Name of the assessment"
+    )
+    industry: Optional[str] = Field(
+        default="general", description="Target industry for analysis context"
     )
 
 

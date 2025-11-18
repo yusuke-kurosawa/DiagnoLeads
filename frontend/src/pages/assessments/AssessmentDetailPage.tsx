@@ -1,11 +1,13 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { assessmentService } from '../../services/assessmentService';
+import { useTrackAssessmentEvents } from '../../hooks/useGoogleAnalytics';
 
 export function AssessmentDetailPage() {
   const { tenantId, assessmentId } = useParams<{ tenantId: string; assessmentId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { trackAssessmentDeleted } = useTrackAssessmentEvents();
 
   const { data: assessment, isLoading, error } = useQuery({
     queryKey: ['assessment', tenantId, assessmentId],
@@ -19,6 +21,11 @@ export function AssessmentDetailPage() {
       return assessmentService.delete(tenantId, assessmentId);
     },
     onSuccess: () => {
+      // Track assessment deletion
+      if (assessmentId) {
+        trackAssessmentDeleted(assessmentId);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
       navigate(`/tenants/${tenantId}/assessments`);
     },

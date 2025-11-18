@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiagnoLeads Widget Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.125rem;
+      opacity: 0.9;
+    }
+
+    .widget-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      margin-bottom: 2rem;
+    }
+
+    .demo-info {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 1.5rem;
+      color: white;
+    }
+
+    .demo-info h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .demo-info p {
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .demo-info code {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+    }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    .code-block pre {
+      color: #e5e7eb;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      color: white;
+      margin-top: 3rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 DiagnoLeads Widget Demo</h1>
+      <p class="subtitle">埋め込み可能な診断ウィジェット</p>
+    </header>
+
+    <div class="widget-container">
+      <!-- DiagnoLeads Widget -->
+      <diagnoleads-widget
+        tenant-id="demo-tenant-001"
+        assessment-id="demo-assessment-001"
+        api-url="http://localhost:8000"
+        ga4-id="G-XXXXXXXXXX"
+        theme="light"
+        primary-color="#667eea"
+      ></diagnoleads-widget>
+    </div>
+
+    <div class="demo-info">
+      <h2>📖 使用方法</h2>
+      <p>このウィジェットを任意のWebサイトに埋め込むには、以下のHTMLコードを使用してください：</p>
+
+      <div class="code-block">
+        <pre>&lt;!-- DiagnoLeads Widget Script --&gt;
+&lt;script src="https://cdn.diagnoleads.com/widget/v1/diagnoleads-widget.umd.js"&gt;&lt;/script&gt;
+
+&lt;!-- Widget Element --&gt;
+&lt;diagnoleads-widget
+  tenant-id="<strong>your-tenant-id</strong>"
+  assessment-id="<strong>your-assessment-id</strong>"
+  api-url="https://api.diagnoleads.com"
+  ga4-id="G-XXXXXXXXXX"
+  theme="light"
+  primary-color="#3b82f6"
+&gt;&lt;/diagnoleads-widget&gt;</pre>
+      </div>
+
+      <h2 style="margin-top: 2rem;">⚙️ オプション設定</h2>
+      <p><code>tenant-id</code> (必須): テナントID</p>
+      <p><code>assessment-id</code> (必須): 診断ID</p>
+      <p><code>api-url</code> (オプション): APIのベースURL（デフォルト: production URL）</p>
+      <p><code>ga4-id</code> (オプション): Google Analytics 4 測定ID</p>
+      <p><code>theme</code> (オプション): テーマ（light / dark）</p>
+      <p><code>primary-color</code> (オプション): プライマリカラー（16進数）</p>
+    </div>
+
+    <footer>
+      <p>Powered by DiagnoLeads © 2024</p>
+    </footer>
+  </div>
+
+  <!-- Load Widget Script -->
+  <script type="module" src="/src/index.ts"></script>
+
+  <!-- Demo Script -->
+  <script>
+    // Listen for widget events
+    document.querySelector('diagnoleads-widget').addEventListener('complete', (event) => {
+      console.log('Assessment completed:', event.detail);
+    });
+
+    // Log widget initialization
+    console.log('DiagnoLeads Widget Demo loaded');
+    console.log('Widget version:', window.DiagnoLeads?.version);
+  </script>
+</body>
+</html>

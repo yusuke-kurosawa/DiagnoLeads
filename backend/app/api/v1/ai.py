@@ -19,9 +19,28 @@ from app.schemas.ai import (
     RephraseResponse,
 )
 from app.services.ai_service import AIService
+from app.services.ai.industry_templates import list_available_industries
 
 router = APIRouter()
 ai_service = AIService()
+
+
+@router.get(
+    "/ai/industries",
+    summary="List available industries for AI assessment generation",
+)
+async def list_industries(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get list of available industries with templates.
+
+    Returns industry keys, names, and descriptions for use in assessment generation.
+    """
+    return {
+        "success": True,
+        "industries": list_available_industries(),
+    }
 
 
 @router.post(
@@ -106,6 +125,7 @@ async def analyze_lead_responses(
         result = await ai_service.analyze_lead_insights(
             assessment_responses=request.assessment_responses,
             assessment_title=request.assessment_title,
+            industry=request.industry,
         )
 
         if not result["success"]:
