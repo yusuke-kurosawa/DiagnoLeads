@@ -9,6 +9,7 @@ from typing import List, Optional
 from datetime import datetime
 import os
 import asyncio
+import uuid as uuid_lib
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc, or_
@@ -16,7 +17,9 @@ from fastapi import HTTPException, status
 
 from app.models.lead import Lead
 from app.models.tenant import Tenant
+from app.models.google_analytics_integration import GoogleAnalyticsIntegration
 from app.schemas.lead import LeadCreate, LeadUpdate, LeadStatusUpdate, LeadScoreUpdate
+from app.integrations.google_analytics.measurement_protocol import GA4MeasurementProtocol
 
 # Teams integration
 try:
@@ -30,14 +33,77 @@ except ImportError:
 class LeadService:
     """
     Lead service with strict multi-tenant isolation
-    
+
     **IMPORTANT**: All methods enforce tenant_id filtering
     """
 
     def __init__(self, db: Session):
         self.db = db
         self._teams_notification_enabled = TEAMS_INTEGRATION_AVAILABLE
-    
+
+    async def _send_ga4_event(
+        self,
+        tenant_id: UUID,
+        event_name: str,
+        event_params: dict,
+        client_id: Optional[str] = None
+    ) -> None:
+        """
+        Send GA4 event via Measurement Protocol (async, non-blocking)
+
+        Args:
+            tenant_id: Tenant UUID
+            event_name: GA4 event name
+            event_params: Event parameters
+            client_id: Optional client ID (generates if not provided)
+        """
+        try:
+            # Get GA4 integration config for tenant
+            ga_integration = self.db.query(GoogleAnalyticsIntegration).filter(
+                GoogleAnalyticsIntegration.tenant_id == tenant_id
+            ).first()
+
+            # Check if GA4 is enabled and configured for server-side tracking
+            if not ga_integration or not ga_integration.enabled:
+                return
+
+            if not ga_integration.track_server_events:
+                return
+
+            if not ga_integration.measurement_protocol_api_secret:
+                print(f"⚠️  GA4 Measurement Protocol API Secret not configured for tenant {tenant_id}")
+                return
+
+            # Create GA4 client
+            client = GA4MeasurementProtocol(
+                measurement_id=ga_integration.measurement_id,
+                api_secret=ga_integration.measurement_protocol_api_secret,
+                debug=False
+            )
+
+            # Generate client_id if not provided
+            if not client_id:
+                client_id = f"server-{uuid_lib.uuid4()}"
+
+            # Add tenant_id to event params
+            event_params["tenant_id"] = str(tenant_id)
+
+            # Send event
+            success = await client.send_event(
+                client_id=client_id,
+                event_name=event_name,
+                event_params=event_params
+            )
+
+            if success:
+                print(f"✅ GA4 event sent: {event_name} for tenant {tenant_id}")
+            else:
+                print(f"⚠️  GA4 event failed: {event_name} for tenant {tenant_id}")
+
+        except Exception as e:
+            # Log error but don't fail lead operations
+            print(f"⚠️  Failed to send GA4 event {event_name}: {str(e)}")
+
     async def _send_teams_notification(self, lead: Lead, tenant: Tenant) -> None:
         """
         Send Teams notification for hot lead (async)
@@ -160,7 +226,7 @@ class LeadService:
     ) -> Lead:
         """
         Create a new lead
-        
+
         Raises:
             HTTPException: If email already exists in tenant
         """
@@ -183,9 +249,41 @@ class LeadService:
         self.db.add(lead)
         self.db.commit()
         self.db.refresh(lead)
-        
+
+        is_hot_lead = lead.score >= 80
+
+        # Send GA4 events (async, non-blocking)
+        try:
+            # Send lead_generated event
+            asyncio.create_task(self._send_ga4_event(
+                tenant_id=tenant_id,
+                event_name="lead_generated",
+                event_params={
+                    "lead_id": str(lead.id),
+                    "lead_score": lead.score,
+                    "lead_status": lead.status,
+                    "company": lead.company or "unknown",
+                }
+            ))
+
+            # Send hot_lead_generated conversion event if applicable
+            if is_hot_lead:
+                asyncio.create_task(self._send_ga4_event(
+                    tenant_id=tenant_id,
+                    event_name="hot_lead_generated",
+                    event_params={
+                        "lead_id": str(lead.id),
+                        "lead_score": lead.score,
+                        "company": lead.company or "unknown",
+                        "value": lead.score,  # Use score as conversion value
+                    }
+                ))
+        except RuntimeError:
+            # No event loop running, skip GA4 events
+            print("⚠️  Cannot send GA4 events: no event loop")
+
         # Send Teams notification if hot lead (async, non-blocking)
-        if lead.score >= 80:
+        if is_hot_lead:
             tenant = self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
             if tenant:
                 try:
@@ -266,6 +364,36 @@ class LeadService:
         self.db.commit()
         self.db.refresh(lead)
 
+        # Send GA4 event for status change (async, non-blocking)
+        if old_status != new_status:
+            try:
+                asyncio.create_task(self._send_ga4_event(
+                    tenant_id=tenant_id,
+                    event_name="lead_status_changed",
+                    event_params={
+                        "lead_id": str(lead.id),
+                        "old_status": old_status,
+                        "new_status": new_status,
+                        "lead_score": lead.score,
+                    }
+                ))
+
+                # Send conversion event if status changed to 'converted'
+                if new_status == "converted":
+                    asyncio.create_task(self._send_ga4_event(
+                        tenant_id=tenant_id,
+                        event_name="lead_converted",
+                        event_params={
+                            "lead_id": str(lead.id),
+                            "lead_score": lead.score,
+                            "company": lead.company or "unknown",
+                            "value": 100,  # Conversion value
+                        }
+                    ))
+            except RuntimeError:
+                # No event loop running, skip GA4 events
+                print("⚠️  Cannot send GA4 events: no event loop")
+
         return lead
 
     def update_score(
@@ -281,13 +409,31 @@ class LeadService:
 
         old_score = lead.score
         new_score = data.score
-        
+
         lead.score = new_score
         lead.last_activity_at = datetime.utcnow()
 
         self.db.commit()
         self.db.refresh(lead)
-        
+
+        # Send GA4 events if lead becomes hot (score crosses threshold)
+        if old_score < 80 and new_score >= 80:
+            try:
+                asyncio.create_task(self._send_ga4_event(
+                    tenant_id=tenant_id,
+                    event_name="hot_lead_generated",
+                    event_params={
+                        "lead_id": str(lead.id),
+                        "lead_score": new_score,
+                        "old_score": old_score,
+                        "company": lead.company or "unknown",
+                        "value": new_score,  # Use score as conversion value
+                    }
+                ))
+            except RuntimeError:
+                # No event loop running, skip GA4 events
+                print("⚠️  Cannot send GA4 events: no event loop")
+
         # Send Teams notification if lead becomes hot (score crosses threshold)
         if old_score < 80 and new_score >= 80:
             tenant = self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
