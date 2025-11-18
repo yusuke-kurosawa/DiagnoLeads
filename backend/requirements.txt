@@ -1,3 +1,7 @@
+# ============================================================================
+# Core Dependencies - Production
+# ============================================================================
+
 # FastAPI Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -8,7 +12,7 @@ sqlalchemy==2.0.23
 alembic==1.12.1
 psycopg2-binary==2.9.9
 
-# Redis
+# Redis Cache
 redis==5.0.1
 
 # Authentication & Security
@@ -17,52 +21,49 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-dotenv==1.0.0
 
-# AI - Anthropic Claude
-anthropic==0.7.7
-
-# Microsoft 365 Integration (Phase 1)
-msal==1.25.0
-msgraph-sdk==1.2.0
-
-# LINE Messaging API (Phase 1)
-line-bot-sdk>=3.0.0
-
-# SMS - Twilio (Phase 1)
-twilio>=8.0.0
-
-# QR Code Generation (Phase 1)
-qrcode[pil]>=7.4.0
-pillow>=10.0.0
-
-# A/B Testing & Statistics (Phase 1)
-scipy>=1.11.0
-numpy>=1.26.0
-
-# Bot Framework (Phase 1) - Note: Version constraints relaxed to resolve urllib3 conflict
-botbuilder-core>=4.14.0
-botbuilder-schema>=4.14.0
-
-# HTTP Client
-httpx==0.25.1
-
 # Validation
 pydantic==2.5.0
 pydantic-settings==2.1.0
 email-validator==2.1.0
 
+# HTTP Client
+httpx==0.25.1
+
 # Logging
 structlog==23.2.0
 
-# Testing (dev)
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-httpx==0.25.1
+# ============================================================================
+# AI & Analytics
+# ============================================================================
 
-# Code Quality (dev)
-ruff==0.1.6
-mypy==1.7.1
-black==23.11.0
+# AI - Anthropic Claude
+anthropic==0.7.7
+
+# A/B Testing & Statistics
+scipy>=1.11.0
+numpy>=1.26.0
+
+# ============================================================================
+# Integrations & External Services
+# ============================================================================
+
+# Microsoft 365 Integration
+msal==1.25.0
+msgraph-sdk==1.2.0
+
+# LINE Messaging API
+line-bot-sdk>=3.0.0
+
+# SMS - Twilio
+twilio>=8.0.0
+
+# Bot Framework (Version constraints relaxed to resolve urllib3 conflict)
+botbuilder-core>=4.14.0
+botbuilder-schema>=4.14.0
+
+# ============================================================================
+# Utilities
+# ============================================================================
 
 # QR Code Generation
 qrcode[pil]==7.4.2
