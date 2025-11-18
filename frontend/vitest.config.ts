@@ -14,8 +14,9 @@ export default defineConfig({
       '**/e2e/**',
       // Exclude detailed component tests temporarily (need UI implementation review)
       '**/ABTestCreateForm.test.tsx',
-      '**/ABTestManager.test.tsx',
       '**/SMSCampaignCreateForm.test.tsx',
+      // Exclude old test backups
+      '**/*.old',
     ],
     coverage: {
       provider: 'v8',
