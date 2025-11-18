@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
+import { ApiErrorHandler } from '@/lib/errorHandler';
 
 interface Variant {
   name: string;
   description: string;
   is_control: boolean;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 interface ABTestCreateFormProps {
@@ -74,7 +75,7 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
   const handleVariantChange = (
     index: number,
     field: keyof Variant,
-    value: any
+    value: Variant[keyof Variant]
   ) => {
     const updated = [...variants];
     updated[index] = { ...updated[index], [field]: value };
@@ -123,9 +124,9 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
       });
 
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err.response?.data?.detail || 'A/Bテストの作成に失敗しました'
+        ApiErrorHandler.getErrorMessage(err, 'A/Bテストの作成に失敗しました')
       );
     } finally {
       setLoading(false);
@@ -299,7 +300,7 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
                   {testType === 'cta_text' && (
                     <input
                       type="text"
-                      value={variant.config.cta_text || ''}
+                      value={(typeof variant.config.cta_text === 'string' ? variant.config.cta_text : '') || ''}
                       onChange={(e) =>
                         handleConfigChange(index, 'cta_text', e.target.value)
                       }
@@ -310,7 +311,7 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
                   {testType === 'cta_color' && (
                     <input
                       type="color"
-                      value={variant.config.cta_color || '#3B82F6'}
+                      value={(typeof variant.config.cta_color === 'string' ? variant.config.cta_color : '#3B82F6')}
                       onChange={(e) =>
                         handleConfigChange(index, 'cta_color', e.target.value)
                       }

@@ -30,12 +30,14 @@ export const useErrorLogger = () => {
         console.group('🌐 APIエラー詳細');
         console.error('全体:', error);
         if ('response' in error) {
-          console.error('レスポンス:', (error as any).response?.data);
-          console.error('ステータスコード:', (error as any).response?.status);
-          console.error('ヘッダー:', (error as any).response?.headers);
+          const errorWithResponse = error as { response?: { data?: unknown; status?: unknown; headers?: unknown } };
+          console.error('レスポンス:', errorWithResponse.response?.data);
+          console.error('ステータスコード:', errorWithResponse.response?.status);
+          console.error('ヘッダー:', errorWithResponse.response?.headers);
         }
         if ('config' in error) {
-          console.error('リクエスト設定:', (error as any).config);
+          const errorWithConfig = error as { config?: unknown };
+          console.error('リクエスト設定:', errorWithConfig.config);
         }
         console.groupEnd();
       }
@@ -46,7 +48,7 @@ export const useErrorLogger = () => {
     console.groupEnd();
   }, []);
 
-  const logApiCall = useCallback((method: string, url: string, data?: any) => {
+  const logApiCall = useCallback((method: string, url: string, data?: unknown) => {
     console.group(`🌐 API呼び出し: ${method} ${url}`);
     if (data) {
       console.log('リクエストボディ:', data);
@@ -54,7 +56,7 @@ export const useErrorLogger = () => {
     console.groupEnd();
   }, []);
 
-  const logApiResponse = useCallback((method: string, url: string, status: number, data?: any) => {
+  const logApiResponse = useCallback((method: string, url: string, status: number, data?: unknown) => {
     const statusColor = status >= 200 && status < 300 ? '✅' : '⚠️';
     console.group(`${statusColor} API レスポンス: ${method} ${url} (${status})`);
     if (data) {

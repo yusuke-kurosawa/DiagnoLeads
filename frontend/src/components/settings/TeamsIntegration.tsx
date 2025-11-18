@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { MessageSquare, Check, Send, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
+import { ApiErrorHandler } from '@/lib/errorHandler';
 
 interface TeamsSettings {
   enabled: boolean;
@@ -59,9 +60,9 @@ export default function TeamsIntegration() {
 
       setSuccess('設定を保存しました');
       await fetchSettings();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save Teams settings:', err);
-      setError(err.response?.data?.detail || '設定の保存に失敗しました');
+      setError(ApiErrorHandler.getErrorMessage(err, '設定の保存に失敗しました'));
     } finally {
       setSaving(false);
     }
@@ -79,9 +80,9 @@ export default function TeamsIntegration() {
 
       setSuccess('テスト通知を送信しました。Teamsチャネルをご確認ください。');
       setTestMessage('');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to send test notification:', err);
-      setError(err.response?.data?.detail || 'テスト通知の送信に失敗しました');
+      setError(ApiErrorHandler.getErrorMessage(err, 'テスト通知の送信に失敗しました'));
     } finally {
       setTesting(false);
     }
@@ -102,9 +103,9 @@ export default function TeamsIntegration() {
       setSuccess('Teams統合を削除しました');
       setWebhookUrl('');
       await fetchSettings();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to remove Teams integration:', err);
-      setError(err.response?.data?.detail || 'Teams統合の削除に失敗しました');
+      setError(ApiErrorHandler.getErrorMessage(err, 'Teams統合の削除に失敗しました'));
     } finally {
       setSaving(false);
     }

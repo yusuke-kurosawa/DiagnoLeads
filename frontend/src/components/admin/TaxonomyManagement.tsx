@@ -187,9 +187,9 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
 
       for (const item of updates) {
         if (type === 'topics') {
-          await updateTopic(tenantId, item.id, { sort_order: item.sort_order } as any);
+          await updateTopic(tenantId, item.id, { sort_order: item.sort_order });
         } else {
-          await updateIndustry(tenantId, item.id, { sort_order: item.sort_order } as any);
+          await updateIndustry(tenantId, item.id, { sort_order: item.sort_order });
         }
       }
 

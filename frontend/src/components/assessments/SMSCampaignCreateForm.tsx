@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Plus, Trash2, Send, DollarSign } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
+import { ApiErrorHandler } from '@/lib/errorHandler';
 
 interface SMSCampaignCreateFormProps {
   assessmentId: string;
@@ -13,6 +14,12 @@ interface QRCode {
   id: string;
   name: string;
   short_url: string;
+}
+
+interface CostEstimate {
+  num_messages: number;
+  cost_per_message: number;
+  total_cost: number;
 }
 
 export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
@@ -31,7 +38,7 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
   const [scheduledAt, setScheduledAt] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [costEstimate, setCostEstimate] = useState<any>(null);
+  const [costEstimate, setCostEstimate] = useState<CostEstimate | null>(null);
   const [testPhone, setTestPhone] = useState('');
   const [testSending, setTestSending] = useState(false);
 
@@ -136,8 +143,8 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
       });
 
       alert('テストSMSを送信しました');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'テスト送信に失敗しました');
+    } catch (err: unknown) {
+      setError(ApiErrorHandler.getErrorMessage(err, 'テスト送信に失敗しました'));
     } finally {
       setTestSending(false);
     }
@@ -193,10 +200,8 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
       });
 
       onSuccess();
-    } catch (err: any) {
-      setError(
-        err.response?.data?.detail || 'SMSキャンペーンの作成に失敗しました'
-      );
+    } catch (err: unknown) {
+      setError(ApiErrorHandler.getErrorMessage(err, 'SMSキャンペーンの作成に失敗しました'));
     } finally {
       setLoading(false);
     }

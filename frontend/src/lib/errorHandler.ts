@@ -148,12 +148,17 @@ export class ApiErrorHandler {
    * Useful for catch blocks to avoid using 'any' type
    */
   static getErrorMessage(error: unknown, fallback = '不明なエラーが発生しました'): string {
-    if (error instanceof AxiosError) {
-      const errorData = error.response?.data;
+    // Check for Axios-like error structure (works for both real AxiosError and mocks)
+    if (typeof error === 'object' && error !== null && 'response' in error) {
+      const errorWithResponse = error as { response?: { data?: unknown } };
+      const errorData = errorWithResponse.response?.data;
       if (errorData && typeof errorData === 'object' && 'detail' in errorData) {
-        const detail = errorData.detail;
+        const detail = (errorData as { detail: unknown }).detail;
         if (typeof detail === 'string') return detail;
       }
+    }
+
+    if (error instanceof AxiosError) {
       return error.message || fallback;
     }
 
