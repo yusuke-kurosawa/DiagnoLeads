@@ -1,10 +1,34 @@
 # Microsoft Teams Native Integration
 
-**Status**: Approved  
-**Priority**: Critical  
-**Phase**: 1 (MVP+)  
-**Estimated Effort**: 6 weeks  
+**Status**: Approved (Phase 1 実装済み)
+**Priority**: Critical
+**Phase**: Phase 1 完了 / Phase 2-3 計画中
+**Estimated Effort**: Phase 1 完了 (6週間) / Phase 2-3 (8-12週間)
 **Dependencies**: Microsoft Graph API, Bot Framework SDK
+
+## Implementation Status
+
+### ✅ Phase 1: 基本Webhook統合（完了）
+- ✅ Incoming Webhook経由でのリード通知
+- ✅ Adaptive Cardsでのリッチな通知UI
+- ✅ リトライロジック（最大3回、指数バックオフ）
+- ✅ テスト送信機能
+- ✅ 暗号化されたWebhook URL保存
+- ⚠️ テストカバレッジの充実化が必要
+
+### 🔄 Phase 2: Bot統合（次期スプリント）
+- Teams Bot経由での診断配信
+- チャット内での対話型診断
+- メンション通知機能
+- Bot Commands実装
+- **推定工数**: 3-4週間
+
+### 📋 Phase 3: 高度な統合（中長期）
+- Teams会議内での診断実施
+- SharePoint統合
+- Microsoft Graph API完全統合
+- Teams Appストア配信
+- **推定工数**: 8-12週間
 
 ## Overview
 
