@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, GripVertical, AlertCircle, Loader } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { getTopics, createTopic, updateTopic, deleteTopic, getIndustries, createIndustry, updateIndustry, deleteIndustry } from '../../services/taxonomyService';
+import { ApiErrorHandler } from '@/lib/errorHandler';
 import type { Topic, Industry } from '../../types/taxonomy';
 
 type TaxonomyType = 'topics' | 'industries';
@@ -45,8 +46,8 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
         data = await getIndustries(tenantId);
       }
       setItems(data || []);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'データの読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, 'データの読み込みに失敗しました');
       setError(errorMsg);
       console.error('Error loading items:', err);
     } finally {
@@ -98,11 +99,11 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       await loadItems();
       resetForm();
       setShowForm(false);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '保存に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, '保存に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
-    } finally {
+    } finally{
       setIsSubmitting(false);
     }
   };
@@ -133,8 +134,8 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       }
       setSuccessMessage('削除しました');
       await loadItems();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '削除に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, '削除に失敗しました');
       setError(errorMsg);
       console.error('Error deleting item:', err);
     }
@@ -193,8 +194,8 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       }
 
       setSuccessMessage('並び順を更新しました');
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '並び順の更新に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, '並び順の更新に失敗しました');
       setError(errorMsg);
       console.error('Error updating sort order:', err);
       // Reload to revert

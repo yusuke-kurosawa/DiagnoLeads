@@ -4,7 +4,7 @@ export interface SystemError {
   code: string;
   message: string;
   status: number;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -15,11 +15,18 @@ export class ApiErrorHandler {
     // Axios Error
     if (error instanceof AxiosError) {
       const status = error.response?.status || 500;
-      const errorData = error.response?.data as any;
+      const errorData = error.response?.data;
+      const detail =
+        errorData &&
+        typeof errorData === 'object' &&
+        'detail' in errorData &&
+        typeof errorData.detail === 'string'
+          ? errorData.detail
+          : undefined;
 
       return {
         code: `API_ERROR_${status}`,
-        message: errorData?.detail || error.message || 'API request failed',
+        message: detail || error.message || 'API request failed',
         status,
         details: errorData,
         timestamp,
@@ -69,8 +76,8 @@ export class ApiErrorHandler {
     };
   }
 
-  static getErrorMessage(error: SystemError): string {
-    const errorMessages: { [key: string]: string } = {
+  static getUserFacingMessage(error: SystemError): string {
+    const errorMessages: { [key: string]: string} = {
       NETWORK_ERROR: 'ネットワーク接続エラーが発生しました。インターネット接続を確認してください。',
       TIMEOUT_ERROR: 'リクエストがタイムアウトしました。もう一度お試しください。',
       API_ERROR_400: 'リクエストが無効です。入力内容を確認してください。',
@@ -102,44 +109,72 @@ export class ApiErrorHandler {
     console.error('Error Message:', error.message);
     console.error('Error Code:', error.code);
     console.error('Timestamp:', error.timestamp);
-    
+
     if (error.details) {
       console.group('📋 Detailed Information');
       console.error('Details:', error.details);
-      
+
       // If it's an API error, show more details
-      if (error.details.response) {
+      const details = error.details as Record<string, unknown>;
+      if (details && typeof details === 'object' && 'response' in details) {
         console.group('🌐 API Response Details');
-        console.error('Response Status:', error.details.response.status);
-        console.error('Response Data:', error.details.response.data);
-        console.error('Response Headers:', error.details.response.headers);
+        const response = details.response as Record<string, unknown>;
+        console.error('Response Status:', response.status);
+        console.error('Response Data:', response.data);
+        console.error('Response Headers:', response.headers);
         console.groupEnd();
       }
-      
-      if (error.details.config) {
+
+      if (details && typeof details === 'object' && 'config' in details) {
         console.group('⚙️ Request Configuration');
-        console.error('Method:', error.details.config.method);
-        console.error('URL:', error.details.config.url);
-        console.error('Data:', error.details.config.data);
+        const config = details.config as Record<string, unknown>;
+        console.error('Method:', config.method);
+        console.error('URL:', config.url);
+        console.error('Data:', config.data);
         console.groupEnd();
       }
-      
+
       console.groupEnd();
     }
-    
+
     console.groupEnd();
 
     // Send to monitoring service (Sentry, etc.)
     // This can be implemented later
+  }
+
+  /**
+   * Extract error message from unknown error type
+   * Useful for catch blocks to avoid using 'any' type
+   */
+  static getErrorMessage(error: unknown, fallback = '不明なエラーが発生しました'): string {
+    if (error instanceof AxiosError) {
+      const errorData = error.response?.data;
+      if (errorData && typeof errorData === 'object' && 'detail' in errorData) {
+        const detail = errorData.detail;
+        if (typeof detail === 'string') return detail;
+      }
+      return error.message || fallback;
+    }
+
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    return fallback;
   }
 }
 
 export class UserFacingError extends Error {
   code: string;
   userMessage: string;
-  technicalDetails?: any;
+  technicalDetails?: unknown;
 
-  constructor(code: string, userMessage: string, technicalDetails?: any) {
+  constructor(code: string, userMessage: string, technicalDetails?: unknown) {
     super(userMessage);
     this.name = 'UserFacingError';
     this.code = code;

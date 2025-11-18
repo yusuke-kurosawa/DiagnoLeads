@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertCircle, Loader, Download } from 'lucide-react';
 import { getAuditLogs } from '../../services/auditLogService';
+import { ApiErrorHandler } from '@/lib/errorHandler';
 import AuditLogTable from '../../components/admin/AuditLogTable';
 import type { AuditLog } from '../../services/auditLogService';
 
@@ -35,8 +36,8 @@ export default function AuditLogPage() {
       });
 
       setLogs(response.items);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '監査ログの読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, '監査ログの読み込みに失敗しました');
       setError(errorMsg);
       console.error('Error loading audit logs:', err);
     } finally {

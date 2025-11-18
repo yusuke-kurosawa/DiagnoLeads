@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle, Loader } from 'lucide-react';
 import { getTenants, createTenant, updateTenant, deleteTenant } from '../../services/tenantService';
+import { ApiErrorHandler } from '@/lib/errorHandler';
 import type { Tenant } from '../../types/tenant';
 
 interface TenantFormData {
@@ -41,8 +42,8 @@ export default function TenantManagement() {
       setError('');
       const data = await getTenants();
       setTenants(data);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'テナント情報の読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, 'テナント情報の読み込みに失敗しました');
       setError(errorMsg);
       console.error('Error loading tenants:', err);
     } finally {
@@ -74,9 +75,9 @@ export default function TenantManagement() {
       await loadTenants();
       resetForm();
       setShowForm(false);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 
-        (editingId ? 'テナントの更新に失敗しました' : 'テナントの作成に失敗しました');
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err,
+        editingId ? 'テナントの更新に失敗しました' : 'テナントの作成に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
     } finally {
@@ -103,8 +104,8 @@ export default function TenantManagement() {
       await deleteTenant(id);
       setSuccessMessage('テナントを削除しました');
       await loadTenants();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'テナントの削除に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = ApiErrorHandler.getErrorMessage(err, 'テナントの削除に失敗しました');
       setError(errorMsg);
       console.error('Error deleting tenant:', err);
     }
