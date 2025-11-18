@@ -332,4 +332,5 @@ Full OpenAPI 3.1 spec: `https://api.diagnoleads.com/openapi.json`
 - [Multi-Channel Distribution](../features/multi-channel-distribution.md)
 - [AI Optimization Engine](../features/ai-optimization-engine.md)
 - [Real-time Collaboration](../features/realtime-collaboration.md)
-- [Innovative Features Proposal](../../changes/2025-11-10-innovative-features/innovative-features.md)
+- [QR Code Distribution](../features/qr-code-distribution.md)
+- [Google Analytics Integration](../features/google-analytics-integration.md)
