@@ -16,10 +16,15 @@ class LeadScoreThreshold:
     COLD_MAX = 30  # Cold leads: 0-30
 
     # Priority thresholds
-    CRITICAL_MIN = 90  # Critical priority
-    HIGH_MIN = 80  # High priority
-    MEDIUM_MIN = 60  # Medium priority
+    CRITICAL = 90  # Critical priority (90+)
+    HIGH = 80  # High priority (80-89)
+    MEDIUM = 60  # Medium priority (60-79)
     # Below 60 = Low priority
+
+    # Legacy aliases (deprecated, use CRITICAL, HIGH, MEDIUM instead)
+    CRITICAL_MIN = 90
+    HIGH_MIN = 80
+    MEDIUM_MIN = 60
 
 
 # Assessment scoring
