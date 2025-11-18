@@ -38,6 +38,7 @@ class Tenant(Base):
     qr_codes = relationship("QRCode", back_populates="tenant", cascade="all, delete-orphan")
     topics = relationship("Topic", back_populates="tenant", cascade="all, delete-orphan")
     industries = relationship("Industry", back_populates="tenant", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="tenant", cascade="all, delete-orphan")
     google_analytics_integration = relationship(
         "GoogleAnalyticsIntegration",
         back_populates="tenant",
