@@ -171,6 +171,10 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 - **Subscription & Billing**: [./features/subscription-billing.md](./features/subscription-billing.md) ⚡ Priority: Critical (Stripe統合、自動課金、従量課金)
 - **White Label & Branding**: [./features/white-label-branding.md](./features/white-label-branding.md) ⚡ Priority: High (カスタムドメイン、ブランディング)
 
+### Growth & Retention (Phase 2) 📈
+- **Lead Nurturing & Automation**: [./features/lead-nurturing-automation.md](./features/lead-nurturing-automation.md) ⚡ Priority: High (ドリップキャンペーン、スコアリング、セグメント化)
+- **Advanced Reporting & BI**: [./features/advanced-reporting-bi.md](./features/advanced-reporting-bi.md) ⚡ Priority: High (カスタムレポート、予測分析、ダッシュボード)
+
 ### Innovative Features (Phase 1-4)
 - **Microsoft Teams Integration**: [./features/microsoft-teams-integration.md](./features/microsoft-teams-integration.md) ⚡ Priority: Critical
 - **Multi-Channel Distribution**: [./features/multi-channel-distribution.md](./features/multi-channel-distribution.md) (LINE, SMS, Email, QR, NFC)
