@@ -25,9 +25,7 @@ describe('ABTestCreateForm', () => {
   });
 
   describe('Rendering', () => {
-    // Note: Skipping due to label association issues
-    // Labels don't have htmlFor/id, so getByLabelText doesn't work
-    it.skip('should render form with all fields', () => {
+    it('should render form with all fields', () => {
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
 
       expect(screen.getByLabelText(/テスト名/i)).toBeInTheDocument();
@@ -43,8 +41,7 @@ describe('ABTestCreateForm', () => {
       expect(screen.getByText(/バリアント B/i)).toBeInTheDocument();
     });
 
-    // Note: Skipping due to label association issues
-    it.skip('should render advanced settings section', () => {
+    it('should render advanced settings section', () => {
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
 
       expect(screen.getByLabelText(/最小サンプルサイズ/i)).toBeInTheDocument();
@@ -54,7 +51,7 @@ describe('ABTestCreateForm', () => {
   });
 
   describe('Form Validation', () => {
-    // Note: Skipping due to timing/interaction issues
+    // Note: Skipping due to timing issues with error display
     it.skip('should show error when name is empty', async () => {
       const user = userEvent.setup();
 
@@ -70,8 +67,7 @@ describe('ABTestCreateForm', () => {
       expect(apiClient.post).not.toHaveBeenCalled();
     });
 
-    // Note: Skipping due to label association and interaction timing issues
-    it.skip('should show error when no control variant is specified', async () => {
+    it('should show error when no control variant is specified', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
@@ -92,7 +88,7 @@ describe('ABTestCreateForm', () => {
       });
     });
 
-    // Note: Skipping due to interaction timing issues
+    // Note: Skipping due to complex element selection
     it.skip('should show error when less than 2 variants', async () => {
       const user = userEvent.setup();
 
@@ -257,8 +253,7 @@ describe('ABTestCreateForm', () => {
   });
 
   describe('Form Submission', () => {
-    // Note: Skipping due to label association and timing issues
-    it.skip('should submit form with valid data', async () => {
+    it('should submit form with valid data', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.post).mockResolvedValue({
@@ -308,8 +303,7 @@ describe('ABTestCreateForm', () => {
       expect(defaultProps.onSuccess).toHaveBeenCalled();
     });
 
-    // Note: Skipping due to label association issues
-    it.skip('should show error message when submission fails', async () => {
+    it('should show error message when submission fails', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.post).mockRejectedValue({
@@ -334,8 +328,7 @@ describe('ABTestCreateForm', () => {
       expect(defaultProps.onSuccess).not.toHaveBeenCalled();
     });
 
-    // Note: Skipping due to label association issues
-    it.skip('should disable submit button while submitting', async () => {
+    it('should disable submit button while submitting', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.post).mockImplementation(
@@ -384,8 +377,7 @@ describe('ABTestCreateForm', () => {
   });
 
   describe('Advanced Settings', () => {
-    // Note: Skipping due to label association issues
-    it.skip('should allow changing min sample size', async () => {
+    it('should allow changing min sample size', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.post).mockResolvedValue({ data: {} });
@@ -412,8 +404,7 @@ describe('ABTestCreateForm', () => {
       });
     });
 
-    // Note: Skipping due to label association issues
-    it.skip('should allow changing confidence threshold', async () => {
+    it('should allow changing confidence threshold', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.post).mockResolvedValue({ data: {} });
@@ -440,8 +431,7 @@ describe('ABTestCreateForm', () => {
       });
     });
 
-    // Note: Skipping due to label association issues
-    it.skip('should allow changing exploration rate', async () => {
+    it('should allow changing exploration rate', async () => {
       const user = userEvent.setup();
 
       vi.mocked(apiClient.post).mockResolvedValue({ data: {} });

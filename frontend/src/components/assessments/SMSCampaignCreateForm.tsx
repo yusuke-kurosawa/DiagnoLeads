@@ -232,10 +232,11 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
             <h4 className="text-lg font-semibold text-gray-900">基本情報</h4>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="campaign-name" className="block text-sm font-medium text-gray-700 mb-2">
                 キャンペーン名 <span className="text-red-500">*</span>
               </label>
               <input
+                id="campaign-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -246,10 +247,11 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="qr-code" className="block text-sm font-medium text-gray-700 mb-2">
                 QRコード（短縮URL）
               </label>
               <select
+                id="qr-code"
                 value={qrCodeId}
                 onChange={(e) => setQrCodeId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -264,10 +266,11 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="message-template" className="block text-sm font-medium text-gray-700 mb-2">
                 メッセージテンプレート <span className="text-red-500">*</span>
               </label>
               <textarea
+                id="message-template"
                 value={messageTemplate}
                 onChange={(e) => setMessageTemplate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
@@ -287,10 +290,11 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="scheduled-at" className="block text-sm font-medium text-gray-700 mb-2">
                 送信予定日時（オプション）
               </label>
               <input
+                id="scheduled-at"
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
@@ -390,23 +394,29 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
           {/* Test SMS */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
             <h4 className="font-semibold text-gray-900">テスト送信</h4>
-            <div className="flex items-center gap-2">
-              <input
-                type="tel"
-                value={testPhone}
-                onChange={(e) => setTestPhone(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                placeholder="+819012345678"
-              />
-              <button
-                type="button"
-                onClick={handleTestSMS}
-                disabled={testSending}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-              >
-                <Send size={16} />
-                {testSending ? '送信中...' : 'テスト送信'}
-              </button>
+            <div className="space-y-2">
+              <label htmlFor="test-phone" className="block text-sm font-medium text-gray-700">
+                テスト送信先電話番号
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="test-phone"
+                  type="tel"
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  placeholder="+819012345678"
+                />
+                <button
+                  type="button"
+                  onClick={handleTestSMS}
+                  disabled={testSending}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  <Send size={16} />
+                  {testSending ? '送信中...' : 'テスト送信'}
+                </button>
+              </div>
             </div>
           </div>
 

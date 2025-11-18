@@ -94,8 +94,7 @@ describe('SMSCampaignCreateForm - Simplified', () => {
   });
 
   describe('Form Validation', () => {
-    // Note: Skipping this test due to timing issues with error display
-    // The functionality is verified manually
+    // Note: Skipping due to timing issues with error display
     it.skip('should show error when submitting empty campaign name', async () => {
       const user = userEvent.setup();
 

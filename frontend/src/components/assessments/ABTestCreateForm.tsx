@@ -159,10 +159,11 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
             <h4 className="text-lg font-semibold text-gray-900">基本情報</h4>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="test-name" className="block text-sm font-medium text-gray-700 mb-2">
                 テスト名 <span className="text-red-500">*</span>
               </label>
               <input
+                id="test-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -173,10 +174,11 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="test-description" className="block text-sm font-medium text-gray-700 mb-2">
                 説明
               </label>
               <textarea
+                id="test-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -186,10 +188,11 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="test-type" className="block text-sm font-medium text-gray-700 mb-2">
                 テストタイプ
               </label>
               <select
+                id="test-type"
                 value={testType}
                 onChange={(e) => setTestType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -341,10 +344,11 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="min-sample-size" className="block text-sm font-medium text-gray-700 mb-2">
                   最小サンプルサイズ
                 </label>
                 <input
+                  id="min-sample-size"
                   type="number"
                   value={minSampleSize}
                   onChange={(e) => setMinSampleSize(Number(e.target.value))}
@@ -358,10 +362,11 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="confidence-threshold" className="block text-sm font-medium text-gray-700 mb-2">
                   信頼度しきい値
                 </label>
                 <input
+                  id="confidence-threshold"
                   type="number"
                   value={confidenceThreshold}
                   onChange={(e) =>
@@ -378,10 +383,11 @@ export const ABTestCreateForm: React.FC<ABTestCreateFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="exploration-rate" className="block text-sm font-medium text-gray-700 mb-2">
                   探索率
                 </label>
                 <input
+                  id="exploration-rate"
                   type="number"
                   value={explorationRate}
                   onChange={(e) => setExplorationRate(Number(e.target.value))}
