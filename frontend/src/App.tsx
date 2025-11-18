@@ -16,6 +16,7 @@ import { LeadsPage } from './pages/leads/LeadsPage';
 import { CreateLeadPage } from './pages/leads/CreateLeadPage';
 import { EditLeadPage } from './pages/leads/EditLeadPage';
 import { LeadDetailPage } from './pages/leads/LeadDetailPage';
+import { ReportsPage, ReportResultsPage } from './pages/reports';
 import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import ComponentsShowcase from './pages/ComponentsShowcase';
 import AdminMasterPage from './pages/admin/AdminMasterPage';
@@ -163,6 +164,24 @@ function App() {
           element={
             <ProtectedRoute>
               <AnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Report routes */}
+        <Route
+          path="/tenants/:tenantId/reports"
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tenants/:tenantId/reports/:reportId/results"
+          element={
+            <ProtectedRoute>
+              <ReportResultsPage />
             </ProtectedRoute>
           }
         />

@@ -6,6 +6,7 @@ import {
   FileTextIcon,
   UsersIcon,
   BarChart3Icon,
+  FileBarChart,
   SettingsIcon,
   Wrench,
   ChevronLeft,
@@ -49,6 +50,11 @@ export function Sidebar() {
       icon: BarChart3Icon,
       label: '分析',
       path: `/tenants/${currentTenantId}/analytics`,
+    },
+    {
+      icon: FileBarChart,
+      label: 'レポート',
+      path: `/tenants/${currentTenantId}/reports`,
     },
   ];
 
