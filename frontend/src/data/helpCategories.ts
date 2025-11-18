@@ -7,7 +7,7 @@ import {
   ClipboardList,
   Settings,
 } from 'lucide-react';
-import { HelpCategory, FAQItem } from '../types/help';
+import { type HelpCategory, type FAQItem } from '../types/help';
 
 /**
  * Help categories organized by feature area

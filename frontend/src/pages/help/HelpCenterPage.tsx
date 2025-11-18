@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { BookOpen, Search, ChevronRight } from 'lucide-react';
 import { useHelpStore } from '../../store/helpStore';
 import { helpCategories, faqItems } from '../../data/helpCategories';

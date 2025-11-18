@@ -4,7 +4,6 @@
  * Supports steps, sections, and related links
  */
 
-import React from 'react';
 import {
   Dialog,
   DialogHeader,
@@ -13,7 +12,7 @@ import {
   DialogBody,
 } from '../ui/dialog';
 import { BookOpen } from 'lucide-react';
-import { HelpStep, HelpSection as HelpSectionType, HelpLink } from '../../types/help';
+import { type HelpStep, type HelpSection as HelpSectionType, type HelpLink } from '../../types/help';
 import { HelpStepItem } from './HelpStepItem';
 import { HelpSection } from './HelpSection';
 import { RelatedLinks } from './RelatedLinks';
