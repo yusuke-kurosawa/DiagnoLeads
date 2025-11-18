@@ -109,6 +109,11 @@ jobs:
         run: |
           ruff format --check .
 
+      - name: Run MyPy type checker
+        working-directory: backend
+        run: |
+          mypy app/
+
       - name: Run database migrations
         working-directory: backend
         env:
