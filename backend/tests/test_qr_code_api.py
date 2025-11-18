@@ -6,7 +6,6 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.qr_code import QRCode
-from app.models.qr_code_scan import QRCodeScan
 from app.models.tenant import Tenant
 from app.models.assessment import Assessment
 from app.models.user import User

@@ -2,7 +2,6 @@
 Test authentication endpoints
 """
 
-import pytest
 from fastapi import status
 
 

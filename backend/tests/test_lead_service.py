@@ -7,7 +7,6 @@ Target: 80%+ coverage
 
 import pytest
 from uuid import uuid4
-from datetime import datetime
 from fastapi import HTTPException
 
 from app.services.lead_service import LeadService

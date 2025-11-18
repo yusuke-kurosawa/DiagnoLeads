@@ -1,6 +1,6 @@
 """QR Code API endpoints"""
 
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -357,8 +357,7 @@ async def get_qr_analytics(
     Raises:
         404: QR code not found
     """
-    from datetime import timedelta
-    from sqlalchemy import func as sql_func, case
+    from datetime import datetime, timedelta
     from app.models.qr_code_scan import QRCodeScan
     
     # Verify QR code exists and belongs to tenant

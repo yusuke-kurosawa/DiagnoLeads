@@ -6,15 +6,15 @@ Business logic for custom report generation, management, and execution.
 
 from uuid import UUID
 from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_
 
 from app.models.report import Report
 from app.models.lead import Lead
 from app.models.assessment import Assessment
-from app.schemas.report import ReportCreate, ReportUpdate, ReportDataPoint
+from app.schemas.report import ReportCreate, ReportUpdate
 
 
 class ReportService:
@@ -75,11 +75,11 @@ class ReportService:
         if include_private:
             # Show public reports or reports created by this user
             query = query.filter(
-                or_(Report.is_public == True, Report.created_by == user_id)
+                or_(Report.is_public, Report.created_by == user_id)
             )
         else:
             # Show only public reports
-            query = query.filter(Report.is_public == True)
+            query = query.filter(Report.is_public)
 
         return query.order_by(Report.created_at.desc()).all()
 

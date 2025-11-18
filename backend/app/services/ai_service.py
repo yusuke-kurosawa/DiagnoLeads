@@ -15,7 +15,6 @@ Improvements:
 
 from typing import Optional, Dict, Any
 from uuid import UUID
-import logging
 
 from anthropic import AsyncAnthropic
 

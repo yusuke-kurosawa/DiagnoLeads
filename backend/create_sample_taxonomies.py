@@ -165,7 +165,7 @@ def create_sample_taxonomies():
             conn.commit()
             
             print("\n✅ Sample taxonomies created successfully!")
-            print(f"\n📋 Summary:")
+            print("\n📋 Summary:")
             print(f"   - {len(tenant_ids)} tenants")
             print(f"   - {len(sample_topics)} topics per tenant = {len(tenant_ids) * len(sample_topics)} total topics")
             print(f"   - {len(sample_industries)} industries per tenant = {len(tenant_ids) * len(sample_industries)} total industries")

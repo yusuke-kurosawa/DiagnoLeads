@@ -11,7 +11,6 @@ from app.models.user import User
 from app.services.google_analytics_service import GoogleAnalyticsService
 from app.schemas.google_analytics import (
     GoogleAnalyticsIntegrationCreate,
-    GoogleAnalyticsIntegrationUpdate,
     GoogleAnalyticsIntegrationResponse,
     GoogleAnalyticsIntegrationPublic,
     GoogleAnalyticsTestResponse

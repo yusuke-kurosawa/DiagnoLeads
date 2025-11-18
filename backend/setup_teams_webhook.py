@@ -68,12 +68,10 @@ def update_env_file(webhook_url: str):
         # 既存の行を置換
         lines = content.split('\n')
         new_lines = []
-        replaced = False
-        
+
         for line in lines:
             if line.startswith('TEAMS_WEBHOOK_URL='):
                 new_lines.append(f"TEAMS_WEBHOOK_URL={webhook_url}")
-                replaced = True
             else:
                 new_lines.append(line)
         
@@ -82,7 +80,7 @@ def update_env_file(webhook_url: str):
         # 新規追加
         if not content.endswith('\n'):
             content += '\n'
-        content += f"\n# Microsoft Teams Incoming Webhook\n"
+        content += "\n# Microsoft Teams Incoming Webhook\n"
         content += f"TEAMS_WEBHOOK_URL={webhook_url}\n"
     
     # ファイルに書き込み
@@ -98,7 +96,7 @@ def test_webhook_import():
     """Webhook Clientをインポート可能か確認"""
     try:
         sys.path.insert(0, os.path.dirname(__file__))
-        from app.integrations.microsoft.teams_webhook_client import TeamsWebhookClient
+        from app.integrations.microsoft.teams_webhook_client import TeamsWebhookClient as _  # noqa: F401
         return True
     except ImportError as e:
         print(f"⚠️  Warning: Cannot import TeamsWebhookClient: {e}")

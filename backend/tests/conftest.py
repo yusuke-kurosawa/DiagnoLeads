@@ -4,11 +4,8 @@ Pytest configuration and fixtures for DiagnoLeads tests
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event, TypeDecorator, String
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
-import uuid
 
 from app.main import app
 from app.core.database import Base, get_db

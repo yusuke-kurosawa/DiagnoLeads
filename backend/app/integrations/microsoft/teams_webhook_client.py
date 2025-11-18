@@ -60,7 +60,7 @@ class TeamsWebhookClient:
                 response = await client.post(self.webhook_url, json=message)
                 response.raise_for_status()
                 
-                print(f"✅ Adaptive Card sent successfully via Webhook")
+                print("✅ Adaptive Card sent successfully via Webhook")
                 return {
                     "status": "sent",
                     "sent_at": datetime.now().isoformat(),
@@ -107,7 +107,7 @@ class TeamsWebhookClient:
                 response = await client.post(self.webhook_url, json=message)
                 response.raise_for_status()
                 
-                print(f"✅ Message sent successfully via Webhook")
+                print("✅ Message sent successfully via Webhook")
                 return {
                     "status": "sent",
                     "sent_at": datetime.now().isoformat(),

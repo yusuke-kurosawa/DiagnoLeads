@@ -4,7 +4,6 @@ Endpoints for updating scan tracking data (assessment progress, lead conversion)
 """
 
 from uuid import UUID
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession

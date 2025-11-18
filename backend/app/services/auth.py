@@ -17,7 +17,7 @@ from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.models import User, Tenant
-from app.schemas.auth import UserCreate, TokenData, RegistrationResponse
+from app.schemas.auth import UserCreate, TokenData
 
 
 # Password hashing context

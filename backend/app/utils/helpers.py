@@ -7,7 +7,6 @@ Common helper functions used across services.
 from typing import TypeVar, List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Query
-from sqlalchemy import and_
 
 from app.core.constants import LeadScoreThreshold, TimeInterval
 

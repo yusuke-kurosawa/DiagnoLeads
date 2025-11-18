@@ -5,7 +5,6 @@ Comprehensive tests for Lead CRUD operations with multi-tenant isolation.
 Following OpenSpec test strategy from openspec/specs/features/lead-management.md
 """
 
-import pytest
 from uuid import uuid4
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session

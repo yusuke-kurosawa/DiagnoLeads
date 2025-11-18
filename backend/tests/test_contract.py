@@ -5,12 +5,9 @@ Tests that verify the API implementation matches the OpenAPI specification.
 Uses Schemathesis for property-based testing of all endpoints.
 """
 
-import schemathesis
-from fastapi.testclient import TestClient
 from pathlib import Path
 import json
 
-from app.main import app
 
 # Load OpenAPI schema
 OPENAPI_PATH = Path(__file__).parent.parent.parent / "openapi.json"
@@ -61,7 +58,7 @@ def test_openapi_has_authentication():
         'securitySchemes' in schema_data.get('components', {})
         or 'security' in schema_data
     )
-    # Note: This might not be strictly required, just checking structure
+    assert has_security, "No security schemes defined in OpenAPI schema"
     
 
 def test_assessment_endpoints_in_schema():
