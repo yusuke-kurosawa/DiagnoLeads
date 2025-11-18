@@ -7,7 +7,7 @@ Handles email sending for password resets, notifications, etc.
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import List, Optional
+from typing import Optional
 import logging
 
 from app.core.config import settings
@@ -131,7 +131,7 @@ class EmailService:
                 </div>
                 <div class="content">
                     <h2>パスワードリセットのリクエスト</h2>
-                    <p>こんにちは{', ' + user_name if user_name else ''}、</p>
+                    <p>こんにちは{", " + user_name if user_name else ""}、</p>
                     <p>パスワードリセットのリクエストを受け付けました。</p>
                     <p>以下のボタンをクリックして、新しいパスワードを設定してください：</p>
                     <p style="text-align: center;">
@@ -153,7 +153,7 @@ class EmailService:
         text_content = f"""
         DiagnoLeads パスワードリセット
 
-        こんにちは{', ' + user_name if user_name else ''}、
+        こんにちは{", " + user_name if user_name else ""}、
 
         パスワードリセットのリクエストを受け付けました。
 

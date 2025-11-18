@@ -33,7 +33,9 @@ class Lead(Base):
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
     )
     response_id = Column(
-        UUID(as_uuid=True), ForeignKey("responses.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=True),
+        ForeignKey("responses.id", ondelete="SET NULL"),
+        nullable=True,
     )
 
     # Core Fields
