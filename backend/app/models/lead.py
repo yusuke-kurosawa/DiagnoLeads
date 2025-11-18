@@ -22,6 +22,9 @@ class Lead(Base):
     tenant_id = Column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
     )
+    response_id = Column(
+        UUID(as_uuid=True), ForeignKey("responses.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Core Fields
     name = Column(String(255), nullable=False)
@@ -61,6 +64,7 @@ class Lead(Base):
     )
 
     # Relationships
+    response = relationship("Response", back_populates="leads")
     qr_code_scans = relationship("QRCodeScan", back_populates="lead")
 
     # Indexes for performance
