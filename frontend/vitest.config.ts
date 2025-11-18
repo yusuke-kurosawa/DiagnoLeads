@@ -12,8 +12,6 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       '**/e2e/**',
-      // Exclude detailed component tests temporarily (need UI implementation review)
-      '**/ABTestCreateForm.test.tsx',
       // Exclude old test backups
       '**/*.old',
     ],
