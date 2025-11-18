@@ -1,7 +1,6 @@
 """QR Code Redirect and Tracking API"""
 
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse

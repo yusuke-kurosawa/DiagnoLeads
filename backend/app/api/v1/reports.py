@@ -18,7 +18,6 @@ from app.schemas.report import (
     ReportUpdate,
     ReportResponse,
     ReportResultsResponse,
-    ReportDataPoint,
 )
 from app.services.report_service import ReportService
 from app.services.report_export_service import ReportExportService

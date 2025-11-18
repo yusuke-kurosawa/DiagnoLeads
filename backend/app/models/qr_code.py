@@ -1,10 +1,18 @@
 """QRCode model for QR code distribution feature."""
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import uuid4
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, Float, Index
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.tenant import Tenant
+    from app.models.assessment import Assessment
+    from app.models.qr_code_scan import QRCodeScan
 
 
 class QRCode(Base):

@@ -4,7 +4,7 @@ Audit Log Model
 Records all changes to master data for audit trail and compliance.
 """
 
-from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Enum, Text
+from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship

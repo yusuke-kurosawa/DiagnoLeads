@@ -4,7 +4,7 @@ Multi-Tenant Middleware
 Automatically applies tenant context to all requests.
 """
 
-from fastapi import Request, HTTPException
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from jose import jwt, JWTError

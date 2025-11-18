@@ -1,10 +1,17 @@
 """QRCodeScan model for tracking QR code scans."""
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import uuid4
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Float, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.qr_code import QRCode
+    from app.models.lead import Lead
 
 
 class QRCodeScan(Base):

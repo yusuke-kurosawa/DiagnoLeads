@@ -12,7 +12,6 @@ from typing import Optional
 from app.models.google_analytics_integration import GoogleAnalyticsIntegration
 from app.schemas.google_analytics import (
     GoogleAnalyticsIntegrationCreate,
-    GoogleAnalyticsIntegrationUpdate,
     GoogleAnalyticsTestResponse
 )
 from app.integrations.google_analytics import GA4MeasurementProtocol

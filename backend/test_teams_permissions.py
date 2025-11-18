@@ -54,13 +54,13 @@ async def test_api_endpoint(name, url, token, required_permission):
                 return True
             elif response.status_code == 403:
                 error_data = response.json()
-                print(f"❌ PERMISSION DENIED (403)")
+                print("❌ PERMISSION DENIED (403)")
                 print(f"Error: {error_data.get('error', {}).get('message', 'Unknown error')}")
-                print(f"\n💡 Solution:")
-                print(f"   1. Go to Azure Portal → App registrations")
-                print(f"   2. Select your app → API permissions")
+                print("\n💡 Solution:")
+                print("   1. Go to Azure Portal → App registrations")
+                print("   2. Select your app → API permissions")
                 print(f"   3. Add '{required_permission}' under Microsoft Graph → Application permissions")
-                print(f"   4. Click 'Grant admin consent for [Your Org]'")
+                print("   4. Click 'Grant admin consent for [Your Org]'")
                 return False
             else:
                 print(f"⚠️  UNEXPECTED STATUS: {response.status_code}")

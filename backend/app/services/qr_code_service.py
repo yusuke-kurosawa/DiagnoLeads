@@ -6,11 +6,10 @@ Handles QR code generation, short URL creation, and cloud storage uploads.
 import io
 import secrets
 import string
-from typing import Optional, Tuple
+from typing import Optional
 from uuid import UUID
 
 import qrcode
-from qrcode.image.pil import PilImage
 from PIL import Image
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -18,7 +17,7 @@ from sqlalchemy import select
 from app.models.qr_code import QRCode
 from app.models.tenant import Tenant
 from app.models.assessment import Assessment
-from app.schemas.qr_code import QRCodeCreate, QRCodeResponse
+from app.schemas.qr_code import QRCodeCreate
 
 
 class QRCodeService:

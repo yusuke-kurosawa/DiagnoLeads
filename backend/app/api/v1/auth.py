@@ -17,7 +17,6 @@ from app.schemas.auth import (
     UserCreate, 
     UserLogin, 
     UserResponse, 
-    RegistrationResponse,
     PasswordResetRequest,
     PasswordResetConfirm,
     TokenRefresh,

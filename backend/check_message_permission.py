@@ -66,7 +66,7 @@ async def main():
         return
     
     # メッセージ送信権限の確認（実際には送信しない、APIレスポンスで判定）
-    print(f"\n4. Checking ChannelMessage.Send permission...")
+    print("\n4. Checking ChannelMessage.Send permission...")
     print("   (This will attempt to send a test message)")
     print(f"   Team: {first_team['displayName']}")
     print(f"   Channel: {channels[0]['displayName']}")
@@ -103,7 +103,7 @@ async def main():
         print("="*60)
         print(f"Message ID: {result.get('id')}")
         print(f"Created at: {result.get('created_at')}")
-        print(f"\nA test message was sent to:")
+        print("\nA test message was sent to:")
         print(f"  Team: {first_team['displayName']}")
         print(f"  Channel: {channels[0]['displayName']}")
         print("\n⚠️  You may want to delete this test message in Teams.")

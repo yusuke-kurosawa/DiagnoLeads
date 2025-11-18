@@ -10,8 +10,7 @@ from uuid import UUID
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
-from app.models.audit_log import AuditLog, AuditAction, AuditLogEntity
-from app.models.user import User
+from app.models.audit_log import AuditLog
 
 
 class AuditService:

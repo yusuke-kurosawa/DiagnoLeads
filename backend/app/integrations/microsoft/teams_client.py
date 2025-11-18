@@ -5,7 +5,6 @@ Microsoft Teams Client - Technical Spike Prototype
 from typing import Dict, Optional, List
 import json
 import os
-from datetime import datetime
 import httpx
 
 # Import retry policy
@@ -150,7 +149,7 @@ class TeamsClient:
                 }
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 403:
-                print(f"❌ Permission denied: ChannelMessage.Send permission required")
+                print("❌ Permission denied: ChannelMessage.Send permission required")
                 print(f"Response: {e.response.text}")
                 raise Exception("Missing ChannelMessage.Send permission. Please add this permission in Azure Portal.")
             else:

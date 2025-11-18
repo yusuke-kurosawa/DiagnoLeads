@@ -84,7 +84,7 @@ class ReportExportService:
         """
         try:
             from openpyxl import Workbook
-            from openpyxl.styles import Font, PatternFill, Alignment
+            from openpyxl.styles import Font, PatternFill
             from openpyxl.utils import get_column_letter
         except ImportError:
             raise ImportError(
@@ -214,7 +214,7 @@ class ReportExportService:
             PDF file as bytes
         """
         try:
-            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.lib.pagesizes import A4
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
             from reportlab.platypus import (

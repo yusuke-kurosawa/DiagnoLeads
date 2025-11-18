@@ -19,8 +19,6 @@ from app.utils.helpers import (
     calculate_average_score,
     calculate_conversion_rate,
     group_by_date,
-    parse_period_to_days,
-    classify_lead_by_score,
     get_date_range_from_period,
     safe_divide,
 )

@@ -5,8 +5,6 @@ Comprehensive tests for Analytics endpoints with multi-tenant isolation.
 Following OpenSpec test strategy from openspec/specs/features/analytics-dashboard.md
 """
 
-import pytest
-from uuid import uuid4
 from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
