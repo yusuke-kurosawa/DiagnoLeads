@@ -1,4 +1,5 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
+import type { AxiosInstance } from 'axios';
 import { ApiErrorHandler } from './errorHandler';
 import type { SystemError } from './errorHandler';
 
@@ -77,7 +78,7 @@ export async function apiCall<T>(
     const data = await fn(apiClient);
     return { data };
   } catch (error) {
-    if (error instanceof SystemError || (typeof error === 'object' && error !== null && 'code' in error)) {
+    if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error && 'status' in error) {
       return { error: error as SystemError };
     }
 
