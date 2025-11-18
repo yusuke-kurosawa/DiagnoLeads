@@ -10,6 +10,7 @@ from typing import Optional, List, Dict, Any
 from anthropic import Anthropic
 
 from app.core.config import settings
+from app.core.constants import AIConfig, AssessmentScore, LeadScoreThreshold
 from app.services.ai.industry_templates import get_industry_template, list_available_industries
 from app.services.ai.lead_analysis_templates import (
     get_lead_analysis_template,
@@ -22,7 +23,7 @@ class AIService:
 
     def __init__(self):
         self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-        self.model = "claude-3-5-sonnet-20241022"
+        self.model = AIConfig.MODEL_ASSESSMENT
 
     def _validate_assessment(self, assessment_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -185,7 +186,7 @@ class AIService:
         try:
             message = self.client.messages.create(
                 model=self.model,
-                max_tokens=4000,  # Increased for more detailed assessments
+                max_tokens=AIConfig.MAX_TOKENS_ASSESSMENT,
                 messages=[{"role": "user", "content": prompt}],
             )
 
@@ -358,7 +359,7 @@ class AIService:
         try:
             message = self.client.messages.create(
                 model=self.model,
-                max_tokens=1500,  # Increased for more detailed analysis
+                max_tokens=AIConfig.MAX_TOKENS_ANALYSIS,
                 messages=[{"role": "user", "content": prompt}],
             )
 
@@ -450,7 +451,7 @@ Return ONLY valid JSON, no additional text."""
         try:
             message = self.client.messages.create(
                 model=self.model,
-                max_tokens=800,
+                max_tokens=AIConfig.MAX_TOKENS_REPHRASE,
                 messages=[{"role": "user", "content": prompt}],
             )
 
