@@ -125,6 +125,7 @@ async def analyze_lead_responses(
         result = await ai_service.analyze_lead_insights(
             assessment_responses=request.assessment_responses,
             assessment_title=request.assessment_title,
+            industry=request.industry,
         )
 
         if not result["success"]:
