@@ -1,15 +1,38 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Bell, Settings, User, LogOut, Building2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Bell, Settings, User, LogOut, Building2, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useHelpStore } from '../../store/helpStore';
+import { Tooltip } from '../ui/tooltip';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
-  
+  const { openHelp } = useHelpStore();
+
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const getPageKeyFromPath = () => {
+    const path = location.pathname;
+    if (path.includes('/assessments/create')) return 'assessments-create';
+    if (path.includes('/assessments') && path.includes('/edit')) return 'assessments-edit';
+    if (path.includes('/assessments')) return 'assessments';
+    if (path.includes('/leads')) return 'leads';
+    if (path.includes('/analytics')) return 'analytics';
+    if (path.includes('/settings')) return 'settings';
+    if (path.includes('/admin/masters')) return 'admin-masters';
+    if (path.includes('/admin/audit-logs')) return 'admin-audit-logs';
+    if (path.includes('/dashboard')) return 'dashboard';
+    return 'dashboard';
+  };
+
+  const handleHelpClick = () => {
+    const pageKey = getPageKeyFromPath();
+    openHelp(pageKey);
   };
 
   const getPlanBadgeColor = (plan?: string) => {
@@ -57,21 +80,36 @@ const Header: React.FC = () => {
         
         {/* Right side - user actions */}
         <div className="flex items-center space-x-4">
+          {/* Help */}
+          <Tooltip content="このページのヘルプを表示" position="bottom">
+            <button
+              onClick={handleHelpClick}
+              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="ヘルプ"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+          </Tooltip>
+
           {/* Notifications */}
-          <button
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            title="通知"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
-          
+          <Tooltip content="通知" position="bottom">
+            <button
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="通知"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+          </Tooltip>
+
           {/* Settings */}
-          <button
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            title="設定"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+          <Tooltip content="設定" position="bottom">
+            <button
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="設定"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </Tooltip>
           
           {/* User Profile */}
           <div

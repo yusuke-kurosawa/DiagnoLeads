@@ -19,6 +19,7 @@ import ComponentsShowcase from './pages/ComponentsShowcase';
 import AdminMasterPage from './pages/admin/AdminMasterPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import SettingsPage from './pages/settings/SettingsPage';
+import { HelpCenterPage } from './pages/help/HelpCenterPage';
 import ErrorPage from './pages/ErrorPage';
 import './App.css';
 
@@ -187,6 +188,16 @@ function App() {
           element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Help Center */}
+        <Route
+          path="/help"
+          element={
+            <ProtectedRoute>
+              <HelpCenterPage />
             </ProtectedRoute>
           }
         />
