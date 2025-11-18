@@ -12,7 +12,7 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test configuration
 const BASE_URL = 'http://localhost:5173';
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const _API_BASE_URL = 'http://localhost:8000/api/v1'; // Reserved for future API testing
 
 // Demo credentials
 const SYSTEM_ADMIN = {

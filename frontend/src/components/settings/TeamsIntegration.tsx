@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { MessageSquare, Check, Send, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
@@ -27,11 +27,7 @@ export default function TeamsIntegration() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSettings();
-  }, [tenantId]);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/v1/tenants/${tenantId}/integrations/teams`);
@@ -43,7 +39,11 @@ export default function TeamsIntegration() {
       setError('設定の読み込みに失敗しました');
       setLoading(false);
     }
-  };
+  }, [tenantId]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const handleSave = async () => {
     try {

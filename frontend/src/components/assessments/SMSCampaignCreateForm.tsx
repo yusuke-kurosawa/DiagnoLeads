@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Plus, Trash2, Send, DollarSign } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 
@@ -35,19 +35,7 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
   const [testPhone, setTestPhone] = useState('');
   const [testSending, setTestSending] = useState(false);
 
-  useEffect(() => {
-    loadQRCodes();
-  }, []);
-
-  useEffect(() => {
-    // Auto-estimate cost when recipients change
-    const validRecipients = recipients.filter((r) => r.trim() !== '');
-    if (validRecipients.length > 0) {
-      estimateCost(validRecipients.length);
-    }
-  }, [recipients]);
-
-  const loadQRCodes = async () => {
+  const loadQRCodes = useCallback(async () => {
     try {
       const response = await apiClient.get(
         `/tenants/${tenantId}/qr-codes?assessment_id=${assessmentId}`
@@ -59,9 +47,9 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
     } catch (error) {
       console.error('Failed to load QR codes:', error);
     }
-  };
+  }, [tenantId, assessmentId]);
 
-  const estimateCost = async (numMessages: number) => {
+  const estimateCost = useCallback(async (numMessages: number) => {
     try {
       const response = await apiClient.post(
         `/tenants/${tenantId}/sms/estimate`,
@@ -74,7 +62,19 @@ export const SMSCampaignCreateForm: React.FC<SMSCampaignCreateFormProps> = ({
     } catch (error) {
       console.error('Failed to estimate cost:', error);
     }
-  };
+  }, [tenantId]);
+
+  useEffect(() => {
+    loadQRCodes();
+  }, [loadQRCodes]);
+
+  useEffect(() => {
+    // Auto-estimate cost when recipients change
+    const validRecipients = recipients.filter((r) => r.trim() !== '');
+    if (validRecipients.length > 0) {
+      estimateCost(validRecipients.length);
+    }
+  }, [recipients, estimateCost]);
 
   const handleAddRecipient = () => {
     if (recipients.length >= 1000) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, GripVertical, AlertCircle, Loader } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { getTopics, createTopic, updateTopic, deleteTopic, getIndustries, createIndustry, updateIndustry, deleteIndustry } from '../../services/taxonomyService';
@@ -32,19 +32,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
     icon: '',
   });
 
-  useEffect(() => {
-    loadItems();
-  }, [type]);
-
-  // Auto-hide success message
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -64,7 +52,19 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenantId, type]);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  // Auto-hide success message
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

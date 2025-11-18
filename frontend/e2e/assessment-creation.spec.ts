@@ -96,9 +96,6 @@ test.describe('診断管理機能', () => {
     // A/Bテスト管理ページに移動
     await page.goto('/assessments/test-id/ab-tests');
 
-    // 初期データを取得
-    const initialTestCount = await page.locator('[class*="grid"]').count();
-
     // リフレッシュボタンをクリック
     await page.click('button:has-text("更新")');
 

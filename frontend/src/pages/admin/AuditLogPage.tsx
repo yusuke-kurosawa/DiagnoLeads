@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertCircle, Loader, Download } from 'lucide-react';
 import { getAuditLogs } from '../../services/auditLogService';
@@ -17,15 +17,11 @@ export default function AuditLogPage() {
   const [skip, setSkip] = useState(0);
   const limit = 50;
 
-  useEffect(() => {
-    loadLogs();
-  }, [entityType, action, skip]);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      
+
       if (!tenantId) {
         setError('テナントIDが見つかりません');
         return;
@@ -46,7 +42,11 @@ export default function AuditLogPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenantId, entityType, action, skip, limit]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const exportLogs = () => {
     try {

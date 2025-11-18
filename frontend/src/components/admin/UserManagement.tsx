@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle, Loader } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { getUsers, createUser, updateUser, deleteUser } from '../../services/userService';
@@ -26,19 +26,7 @@ export default function UserManagement() {
     role: 'user',
   });
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  // Auto-hide success message after 3 seconds
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -53,7 +41,19 @@ export default function UserManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser?.role, currentUser?.tenant_id]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  // Auto-hide success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
