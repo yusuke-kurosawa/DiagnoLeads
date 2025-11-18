@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, CheckCircle, Plus, TrendingUp, Target } from 'lucide-react';
+import { Play, Pause, CheckCircle, Plus, TrendingUp, Target, RefreshCw } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 import { ABTestCreateForm } from './ABTestCreateForm';
 
@@ -25,15 +25,20 @@ interface ABTestManagerProps {
 export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tenantId }) => {
   const [tests, setTests] = useState<ABTest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadTests();
   }, [assessmentId, tenantId]);
 
-  const loadTests = async () => {
+  const loadTests = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       const response = await apiClient.get(
         `/tenants/${tenantId}/ab-tests?assessment_id=${assessmentId}`
       );
@@ -42,7 +47,12 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
       console.error('Failed to load A/B tests:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    loadTests(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -85,13 +95,24 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
             Thompson Samplingで自動最適化されるA/Bテストを管理
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={18} />
-          新規テスト作成
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            title="データを再読み込み"
+          >
+            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+            更新
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={18} />
+            新規テスト作成
+          </button>
+        </div>
       </div>
 
       {/* Tests List */}
