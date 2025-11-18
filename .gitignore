@@ -112,3 +112,7 @@ temp/
 # Claude Code
 .claude/sessions/
 backend/.hypothesis/
+
+# Playwright
+playwright-report/
+test-results/
