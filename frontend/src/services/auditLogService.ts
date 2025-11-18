@@ -26,8 +26,8 @@ export interface AuditLog {
   entity_id: string;
   action: string;
   entity_name?: string;
-  old_values?: Record<string, any>;
-  new_values?: Record<string, any>;
+  old_values?: Record<string, unknown>;
+  new_values?: Record<string, unknown>;
   reason?: string;
   ip_address?: string;
   user_agent?: string;

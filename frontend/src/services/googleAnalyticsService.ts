@@ -31,7 +31,7 @@ export interface GoogleAnalyticsIntegration {
   track_frontend: boolean;
   track_embed_widget: boolean;
   track_server_events: boolean;
-  custom_dimensions?: Record<string, any>;
+  custom_dimensions?: Record<string, unknown>;
   created_at: string;
   updated_at?: string;
 }
@@ -43,7 +43,7 @@ export interface GoogleAnalyticsIntegrationCreate {
   track_frontend: boolean;
   track_embed_widget: boolean;
   track_server_events: boolean;
-  custom_dimensions?: Record<string, any>;
+  custom_dimensions?: Record<string, unknown>;
 }
 
 export interface GoogleAnalyticsTestResponse {

@@ -34,6 +34,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
 
   useEffect(() => {
     loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
   // Auto-hide success message
@@ -57,8 +58,8 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
         data = await getIndustries(tenantId);
       }
       setItems(data || []);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'データの読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'データの読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading items:', err);
     } finally {
@@ -98,8 +99,8 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       await loadItems();
       resetForm();
       setShowForm(false);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '保存に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || '保存に失敗しました';
       setError(errorMsg);
       console.error('Error submitting form:', err);
     } finally {
@@ -133,8 +134,8 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       }
       setSuccessMessage('削除しました');
       await loadItems();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '削除に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || '削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting item:', err);
     }
@@ -186,15 +187,15 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
 
       for (const item of updates) {
         if (type === 'topics') {
-          await updateTopic(tenantId, item.id, { sort_order: item.sort_order } as any);
+          await updateTopic(tenantId, item.id, { sort_order: item.sort_order });
         } else {
-          await updateIndustry(tenantId, item.id, { sort_order: item.sort_order } as any);
+          await updateIndustry(tenantId, item.id, { sort_order: item.sort_order });
         }
       }
 
       setSuccessMessage('並び順を更新しました');
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '並び順の更新に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || '並び順の更新に失敗しました';
       setError(errorMsg);
       console.error('Error updating sort order:', err);
       // Reload to revert

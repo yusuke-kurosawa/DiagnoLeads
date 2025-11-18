@@ -3,7 +3,7 @@ export interface Tenant {
   name: string;
   slug: string;
   plan: string;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }

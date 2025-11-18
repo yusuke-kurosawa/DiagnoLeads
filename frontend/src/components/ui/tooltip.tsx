@@ -90,6 +90,7 @@ export function Tooltip({
     if (isVisible) {
       calculatePosition();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]);
 
   useEffect(() => {

@@ -37,7 +37,7 @@ export default function SettingsPage() {
     dataRetention: 365,
   });
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (key: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
