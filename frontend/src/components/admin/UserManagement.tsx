@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit2, Trash2, AlertCircle, Loader } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { getUsers, createUser, updateUser, deleteUser } from '../../services/userService';
 import { ApiErrorHandler } from '@/lib/errorHandler';
+import { AlertError } from '../common/AlertError';
+import { AlertSuccess } from '../common/AlertSuccess';
 import type { UserAdmin } from '../../types/user';
 
 interface UserFormData {
@@ -179,22 +181,8 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded flex gap-2 items-start">
-          <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">エラーが発生しました</p>
-            <p className="text-sm mt-1">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded flex gap-2">
-          <span className="text-lg">✓</span>
-          <span>{successMessage}</span>
-        </div>
-      )}
+      {error && <AlertError message={error} onClose={() => setError('')} />}
+      {successMessage && <AlertSuccess message={successMessage} onClose={() => setSuccessMessage('')} />}
 
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">ユーザー一覧</h3>

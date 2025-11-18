@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertCircle, Loader, Download } from 'lucide-react';
+import { Loader, Download } from 'lucide-react';
 import { getAuditLogs } from '../../services/auditLogService';
 import { ApiErrorHandler } from '@/lib/errorHandler';
+import { AlertError } from '../../components/common/AlertError';
 import AuditLogTable from '../../components/admin/AuditLogTable';
 import type { AuditLog } from '../../services/auditLogService';
 
@@ -93,12 +94,8 @@ export default function AuditLogPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded flex gap-2 items-start">
-            <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold">エラーが発生しました</p>
-              <p className="text-sm mt-1">{error}</p>
-            </div>
+          <div className="mb-6">
+            <AlertError message={error} onClose={() => setError('')} />
           </div>
         )}
 
