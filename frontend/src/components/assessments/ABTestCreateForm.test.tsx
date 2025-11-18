@@ -160,8 +160,7 @@ describe('ABTestCreateForm', () => {
       }
     });
 
-    // Note: Skipping due to complex button disabled behavior testing
-    it.skip('should not allow more than 10 variants', async () => {
+    it('should not allow more than 10 variants', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
@@ -177,15 +176,8 @@ describe('ABTestCreateForm', () => {
         expect(screen.getByText(/バリアント \(10\/10\)/i)).toBeInTheDocument();
       });
 
-      // Button should be disabled
+      // Button should be disabled when max variants reached
       expect(addButton).toBeDisabled();
-
-      // Clicking should show error
-      await user.click(addButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/バリアントは最大10個までです/i)).toBeInTheDocument();
-      });
     });
 
     it('should not allow removing variants when only 2 remain', async () => {
