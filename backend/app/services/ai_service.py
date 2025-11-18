@@ -16,8 +16,10 @@ Improvements:
 from typing import Optional, Dict, Any
 from uuid import UUID
 import logging
+import time
 
 from anthropic import AsyncAnthropic
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.constants import AIConfig, LeadScoreThreshold
@@ -37,6 +39,7 @@ from app.services.ai.prompt_templates import (
     IndustryTemplateData,
     LeadAnalysisTemplateData,
 )
+from app.models.ai_usage import AIUsageLog
 
 logger = get_logger(__name__)
 
@@ -72,6 +75,8 @@ class AIService:
         industry: str,
         num_questions: int = 5,
         tenant_id: Optional[UUID] = None,
+        user_id: Optional[UUID] = None,
+        db: Optional[Session] = None,
     ) -> Dict[str, Any]:
         """
         Generate an assessment structure using Claude AI.
@@ -117,12 +122,14 @@ class AIService:
         )
 
         # Call Claude API with retry logic
+        start_time = time.time()
         try:
             message = await retry_with_backoff(
                 self._call_claude_api,
                 prompt=prompt,
                 max_tokens=AIConfig.MAX_TOKENS_ASSESSMENT,
             )
+            duration_ms = int((time.time() - start_time) * 1000)
 
             # Extract and parse JSON response
             response_text = message.content[0].text
@@ -152,7 +159,11 @@ class AIService:
             self._log_token_usage(
                 operation="generate_assessment",
                 tenant_id=tenant_id,
+                user_id=user_id,
                 usage=usage_info,
+                db=db,
+                duration_ms=duration_ms,
+                success=True,
             )
 
             logger.info(
@@ -195,6 +206,9 @@ class AIService:
         assessment_title: str = "Assessment",
         industry: str = "general",
         tenant_id: Optional[UUID] = None,
+        user_id: Optional[UUID] = None,
+        lead_id: Optional[UUID] = None,
+        db: Optional[Session] = None,
     ) -> Dict[str, Any]:
         """
         Analyze lead responses and generate insights using Claude AI.
@@ -238,12 +252,14 @@ class AIService:
         )
 
         # Call Claude API with retry logic
+        start_time = time.time()
         try:
             message = await retry_with_backoff(
                 self._call_claude_api,
                 prompt=prompt,
                 max_tokens=AIConfig.MAX_TOKENS_ANALYSIS,
             )
+            duration_ms = int((time.time() - start_time) * 1000)
 
             # Extract and parse JSON response
             response_text = message.content[0].text
@@ -273,7 +289,12 @@ class AIService:
             self._log_token_usage(
                 operation="analyze_lead_insights",
                 tenant_id=tenant_id,
+                user_id=user_id,
+                lead_id=lead_id,
                 usage=usage_info,
+                db=db,
+                duration_ms=duration_ms,
+                success=True,
             )
 
             logger.info(
@@ -310,6 +331,8 @@ class AIService:
         style: str = "professional",
         target_audience: str = "general",
         tenant_id: Optional[UUID] = None,
+        user_id: Optional[UUID] = None,
+        db: Optional[Session] = None,
     ) -> Dict[str, Any]:
         """
         Rephrase or improve content using Claude AI.
@@ -344,12 +367,14 @@ class AIService:
         )
 
         # Call Claude API with retry logic
+        start_time = time.time()
         try:
             message = await retry_with_backoff(
                 self._call_claude_api,
                 prompt=prompt,
                 max_tokens=AIConfig.MAX_TOKENS_REPHRASE,
             )
+            duration_ms = int((time.time() - start_time) * 1000)
 
             # Extract and parse JSON response
             response_text = message.content[0].text
@@ -363,7 +388,11 @@ class AIService:
             self._log_token_usage(
                 operation="rephrase_content",
                 tenant_id=tenant_id,
+                user_id=user_id,
                 usage=usage_info,
+                db=db,
+                duration_ms=duration_ms,
+                success=True,
             )
 
             logger.info("Content rephrased successfully")
@@ -516,6 +545,12 @@ class AIService:
         operation: str,
         usage: Dict[str, int],
         tenant_id: Optional[UUID] = None,
+        user_id: Optional[UUID] = None,
+        assessment_id: Optional[UUID] = None,
+        lead_id: Optional[UUID] = None,
+        db: Optional[Session] = None,
+        duration_ms: Optional[int] = None,
+        success: bool = True,
     ) -> None:
         """
         Log token usage for monitoring and billing.
@@ -524,14 +559,45 @@ class AIService:
             operation: Operation name
             usage: Usage dictionary with input/output tokens
             tenant_id: Optional tenant ID
+            user_id: Optional user ID
+            assessment_id: Optional assessment ID
+            lead_id: Optional lead ID
+            db: Optional database session for persistence
+            duration_ms: Optional request duration in milliseconds
+            success: Whether the operation succeeded
         """
-        total_tokens = usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
+        total_tokens = input_tokens + output_tokens
+
         logger.info(
             f"Token usage - operation={operation}, tenant_id={tenant_id}, "
-            f"input={usage.get('input_tokens', 0)}, "
-            f"output={usage.get('output_tokens', 0)}, "
-            f"total={total_tokens}"
+            f"input={input_tokens}, output={output_tokens}, total={total_tokens}"
         )
 
-        # TODO: Store in database for billing and analytics
-        # This can be implemented later with a dedicated AIUsageLog model
+        # Store in database if session provided
+        if db and tenant_id:
+            try:
+                usage_log = AIUsageLog(
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    operation=operation,
+                    model=self.model,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    total_tokens=total_tokens,
+                    assessment_id=assessment_id,
+                    lead_id=lead_id,
+                    duration_ms=duration_ms,
+                    success="success" if success else "failure",
+                )
+                usage_log.update_cost()  # Calculate cost
+                db.add(usage_log)
+                db.commit()
+                logger.debug(
+                    f"Saved AI usage log: id={usage_log.id}, cost=${usage_log.cost_usd}"
+                )
+            except Exception as e:
+                logger.error(f"Failed to save AI usage log: {e}", exc_info=True)
+                # Don't fail the main operation if logging fails
+                db.rollback()
