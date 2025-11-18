@@ -15,6 +15,7 @@ from app.core.database import SessionLocal
 from app.models.user import User
 from app.models.tenant import Tenant
 from app.services.auth import AuthService
+from app.services.ai_service import AIService
 
 security = HTTPBearer()
 
@@ -119,7 +120,7 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
 def verify_tenant_admin(current_user: User = Depends(get_current_user)) -> User:
     """
     Verify current user is a tenant admin
-    
+
     Raises:
         HTTPException: If user is not a tenant admin
     """
@@ -130,3 +131,13 @@ def verify_tenant_admin(current_user: User = Depends(get_current_user)) -> User:
         )
 
     return current_user
+
+
+def get_ai_service() -> AIService:
+    """
+    Get AI service instance for dependency injection.
+
+    Returns:
+        AIService instance
+    """
+    return AIService()

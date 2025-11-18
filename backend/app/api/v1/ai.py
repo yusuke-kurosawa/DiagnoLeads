@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_db, get_current_user, get_ai_service
 from app.models.user import User
 from app.schemas.ai import (
     AssessmentGenerationRequest,
@@ -22,7 +22,6 @@ from app.services.ai_service import AIService
 from app.services.ai.industry_templates import list_available_industries
 
 router = APIRouter()
-ai_service = AIService()
 
 
 @router.get(
@@ -52,13 +51,14 @@ async def generate_assessment(
     tenant_id: UUID,
     request: AssessmentGenerationRequest,
     current_user: User = Depends(get_current_user),
+    ai_service: AIService = Depends(get_ai_service),
     db: Session = Depends(get_db),
 ):
     """
     Generate an assessment structure using Claude AI.
 
     Takes a topic and industry, generates questions and scoring rules.
-    
+
     **Security**: Only accessible by authenticated users within their tenant.
     """
     # Verify user belongs to this tenant
@@ -69,11 +69,12 @@ async def generate_assessment(
         )
 
     try:
-        # Call AI service to generate assessment
+        # Call AI service to generate assessment with tenant context
         result = await ai_service.generate_assessment(
             topic=request.topic,
             industry=request.industry,
             num_questions=request.num_questions,
+            tenant_id=tenant_id,
         )
 
         if not result["success"]:
@@ -104,13 +105,14 @@ async def analyze_lead_responses(
     tenant_id: UUID,
     request: LeadAnalysisRequest,
     current_user: User = Depends(get_current_user),
+    ai_service: AIService = Depends(get_ai_service),
     db: Session = Depends(get_db),
 ):
     """
     Analyze lead assessment responses and generate sales insights.
 
     Provides lead scoring, identified needs, and sales recommendations.
-    
+
     **Security**: Only accessible by authenticated users within their tenant.
     """
     # Verify user belongs to this tenant
@@ -121,11 +123,12 @@ async def analyze_lead_responses(
         )
 
     try:
-        # Call AI service to analyze responses
+        # Call AI service to analyze responses with tenant context
         result = await ai_service.analyze_lead_insights(
             assessment_responses=request.assessment_responses,
             assessment_title=request.assessment_title,
             industry=request.industry,
+            tenant_id=tenant_id,
         )
 
         if not result["success"]:
@@ -156,13 +159,14 @@ async def rephrase_content(
     tenant_id: UUID,
     request: RephraseRequest,
     current_user: User = Depends(get_current_user),
+    ai_service: AIService = Depends(get_ai_service),
     db: Session = Depends(get_db),
 ):
     """
     Rephrase content with different style or for different audience.
 
     Useful for improving question wording, descriptions, etc.
-    
+
     **Security**: Only accessible by authenticated users within their tenant.
     """
     # Verify user belongs to this tenant
@@ -173,11 +177,12 @@ async def rephrase_content(
         )
 
     try:
-        # Call AI service to rephrase content
+        # Call AI service to rephrase content with tenant context
         result = await ai_service.rephrase_content(
             text=request.text,
             style=request.style,
             target_audience=request.target_audience,
+            tenant_id=tenant_id,
         )
 
         if not result["success"]:
