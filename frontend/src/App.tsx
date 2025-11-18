@@ -3,6 +3,8 @@ import { useAuthStore } from './store/authStore';
 import { ToastProvider } from './contexts/ToastContext';
 import { Layout } from './components/layout/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { GATracker } from './components/analytics/GATracker';
+import { CookieConsent } from './components/analytics/CookieConsent';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -49,6 +51,9 @@ function App() {
     <ToastProvider>
       <ErrorBoundary>
         <Router>
+          {/* Google Analytics Tracking */}
+          <GATracker />
+
           <Routes>
           {/* Error Routes */}
           <Route path="/error" element={<ErrorPage />} />
@@ -197,6 +202,9 @@ function App() {
         {/* Default redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+
+          {/* Cookie Consent Banner (GDPR/CCPA) */}
+          <CookieConsent />
         </Router>
       </ErrorBoundary>
     </ToastProvider>
