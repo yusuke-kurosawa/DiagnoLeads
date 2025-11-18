@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Loader } from 'lucide-react';
 import { getTenants, createTenant, updateTenant, deleteTenant } from '../../services/tenantService';
-import { ApiErrorHandler } from '@/lib/errorHandler';
 import { AlertError } from '../common/AlertError';
 import { AlertSuccess } from '../common/AlertSuccess';
+import { useAdminCRUD } from '../../hooks/useAdminCRUD';
 import type { Tenant } from '../../types/tenant';
 
 interface TenantFormData {
@@ -13,114 +12,45 @@ interface TenantFormData {
 }
 
 export default function TenantManagement() {
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<TenantFormData>({
-    name: '',
-    slug: '',
-    plan: 'free',
-  });
-
-  useEffect(() => {
-    loadTenants();
-  }, []);
-
-  // Auto-hide success message after 3 seconds
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  const loadTenants = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await getTenants();
-      setTenants(data);
-    } catch (err: unknown) {
-      const errorMsg = ApiErrorHandler.getErrorMessage(err, 'テナント情報の読み込みに失敗しました');
-      setError(errorMsg);
-      console.error('Error loading tenants:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form data
-    if (!formData.name.trim() || !formData.slug.trim()) {
-      setError('テナント名とスラッグは必須です');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError('');
-      
-      if (editingId) {
-        await updateTenant(editingId, formData);
-        setSuccessMessage('テナントを更新しました');
-      } else {
-        await createTenant(formData);
-        setSuccessMessage('テナントを作成しました');
-      }
-      
-      await loadTenants();
-      resetForm();
-      setShowForm(false);
-    } catch (err: unknown) {
-      const errorMsg = ApiErrorHandler.getErrorMessage(err,
-        editingId ? 'テナントの更新に失敗しました' : 'テナントの作成に失敗しました');
-      setError(errorMsg);
-      console.error('Error submitting form:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEdit = (tenant: Tenant) => {
-    setFormData({
-      name: tenant.name,
-      slug: tenant.slug,
-      plan: tenant.plan as 'free' | 'pro' | 'enterprise',
-    });
-    setEditingId(tenant.id);
-    setShowForm(true);
-    setError('');
-  };
-
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`「${name}」を削除してもよろしいですか？この操作は取り消せません。`)) return;
-
-    try {
-      setError('');
-      await deleteTenant(id);
-      setSuccessMessage('テナントを削除しました');
-      await loadTenants();
-    } catch (err: unknown) {
-      const errorMsg = ApiErrorHandler.getErrorMessage(err, 'テナントの削除に失敗しました');
-      setError(errorMsg);
-      console.error('Error deleting tenant:', err);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
+  const {
+    items: tenants,
+    loading,
+    error,
+    setError,
+    successMessage,
+    setSuccessMessage,
+    showForm,
+    setShowForm,
+    editingId,
+    isSubmitting,
+    formData,
+    setFormData,
+    resetForm,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+  } = useAdminCRUD<Tenant, TenantFormData>({
+    fetchItems: getTenants,
+    createItem: createTenant,
+    updateItem: updateTenant,
+    deleteItem: deleteTenant,
+    initialFormData: {
       name: '',
       slug: '',
       plan: 'free',
-    });
-    setEditingId(null);
-  };
+    },
+    validateForm: (data) => {
+      if (!data.name.trim() || !data.slug.trim()) {
+        return 'テナント名とスラッグは必須です';
+      }
+      return null;
+    },
+    successMessages: {
+      create: 'テナントを作成しました',
+      update: 'テナントを更新しました',
+      delete: 'テナントを削除しました',
+    },
+  });
 
   const getPlanBadgeColor = (plan: string) => {
     switch (plan) {
