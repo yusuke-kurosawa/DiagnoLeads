@@ -1,0 +1,86 @@
+# テスト環境用 Docker Compose 設定
+#
+# 使用方法:
+#   docker-compose -f docker-compose.test.yml up -d
+#   docker-compose -f docker-compose.test.yml exec backend pytest
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database (テスト用)
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: diagnoleads-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: diagnoleads_test
+    ports:
+      - "5433:5432"  # 本番と競合しないポート
+    tmpfs:
+      - /var/lib/postgresql/data  # テストデータは永続化しない
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Redis Cache (テスト用)
+  redis-test:
+    image: redis:7-alpine
+    container_name: diagnoleads-redis-test
+    command: redis-server
+    ports:
+      - "6380:6379"  # 本番と競合しないポート
+    tmpfs:
+      - /data  # テストデータは永続化しない
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Backend Test Runner
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: diagnoleads-backend-test
+    command: |
+      sh -c "
+        echo 'Waiting for database...';
+        sleep 3;
+        echo 'Running tests...';
+        pytest tests/ -v --cov=app --cov-report=term-missing;
+      "
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/diagnoleads_test
+      - REDIS_URL=redis://redis-test:6379/0
+      - SECRET_KEY=test-secret-key-do-not-use-in-production
+      - ENVIRONMENT=test
+      - DEBUG=False
+      - ANTHROPIC_API_KEY=sk-ant-test-key-mock
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+
+  # Frontend Test Runner
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: diagnoleads-frontend-test
+    command: npm test -- --run
+    volumes:
+      - ./frontend:/app
+      - frontend_test_node_modules:/app/node_modules
+    environment:
+      - VITE_API_URL=http://backend-test:8000
+      - VITE_ENVIRONMENT=test
+
+volumes:
+  frontend_test_node_modules:
