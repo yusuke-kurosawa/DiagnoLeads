@@ -38,7 +38,7 @@ export default function AssessmentForm({
   const [topics, setTopics] = useState<Topic[]>([]);
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [loadingTaxonomy, setLoadingTaxonomy] = useState(false);
-  const { trackAssessmentCreated, trackAssessmentUpdated } = useTrackAssessmentEvents();
+  const { trackAssessmentCreated } = useTrackAssessmentEvents();
 
   useEffect(() => {
     const loadTaxonomy = async () => {
@@ -76,12 +76,12 @@ export default function AssessmentForm({
   const createMutation = useMutation({
     mutationFn: (data: CreateAssessmentData) =>
       assessmentService.create(tenantId, data),
-    onSuccess: (assessment, variables) => {
+    onSuccess: (_assessment, variables) => {
       // Track assessment creation
       trackAssessmentCreated(
         assessment.id,
         variables.title,
-        variables.ai_generated || 'manual'
+        variables.ai_generated ? 'ai' : 'manual'
       );
 
       queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
@@ -92,9 +92,9 @@ export default function AssessmentForm({
   const updateMutation = useMutation({
     mutationFn: (data: CreateAssessmentData) =>
       assessmentService.update(tenantId, assessmentId!, data),
-    onSuccess: (assessment, variables) => {
+    onSuccess: (_assessment, variables) => {
       // Track assessment update
-      trackAssessmentUpdated(assessmentId!, variables.title);
+      // trackAssessmentUpdated not available
 
       queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['assessment', tenantId, assessmentId] });

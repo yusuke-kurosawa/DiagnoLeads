@@ -1,4 +1,4 @@
-import { HelpContentMap, PageHelp } from '../types/help';
+import type { HelpContentMap, PageHelp } from '../types/help';
 
 /**
  * Help content for all pages

@@ -1,5 +1,7 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { ApiErrorHandler, SystemError } from './errorHandler';
+import axios, { AxiosError } from 'axios';
+import type { AxiosInstance } from 'axios';
+import { ApiErrorHandler } from './errorHandler';
+import type { SystemError } from './errorHandler';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
@@ -76,7 +78,7 @@ export async function apiCall<T>(
     const data = await fn(apiClient);
     return { data };
   } catch (error) {
-    if (error instanceof SystemError || (typeof error === 'object' && error !== null && 'code' in error)) {
+    if (typeof error === 'object' && error !== null && 'code' in error && 'status' in error && 'timestamp' in error) {
       return { error: error as SystemError };
     }
 

@@ -114,7 +114,7 @@ export default function UserManagement() {
     setFormData({
       email: user.email,
       name: user.name,
-      role: user.role,
+      role: user.role as 'user' | 'tenant_admin' | 'system_admin',
     });
     setEditingId(user.id);
     setShowForm(true);
@@ -267,7 +267,7 @@ export default function UserManagement() {
             </label>
             <select
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value as 'user' | 'tenant_admin' | 'system_admin' })}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="user">一般ユーザー</option>

@@ -3,7 +3,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { HelpCategory, FAQItem } from '../types/help';
+import type { HelpCategory, FAQItem } from '../types/help';
 import { matchesSearchQuery } from '../utils/helpUtils';
 
 interface UseHelpSearchProps {
