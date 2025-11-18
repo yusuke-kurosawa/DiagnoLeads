@@ -48,7 +48,7 @@ export default function UserManagement() {
       const data = await getUsers(tenantIdParam);
       setUsers(data);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'ユーザー情報の読み込みに失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'ユーザー情報の読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading users:', err);
     } finally {
@@ -101,7 +101,7 @@ export default function UserManagement() {
       resetForm();
       setShowForm(false);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message ||
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message ||
         (editingId ? 'ユーザーの更新に失敗しました' : 'ユーザーの作成に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
@@ -114,7 +114,7 @@ export default function UserManagement() {
     setFormData({
       email: user.email,
       name: user.name,
-      role: user.role,
+      role: user.role as 'user' | 'tenant_admin' | 'system_admin',
     });
     setEditingId(user.id);
     setShowForm(true);
@@ -130,7 +130,7 @@ export default function UserManagement() {
       setSuccessMessage('ユーザーを削除しました');
       await loadUsers();
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'ユーザーの削除に失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'ユーザーの削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting user:', err);
     }
@@ -267,7 +267,7 @@ export default function UserManagement() {
             </label>
             <select
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value as 'user' | 'tenant_admin' | 'system_admin' })}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="user">一般ユーザー</option>

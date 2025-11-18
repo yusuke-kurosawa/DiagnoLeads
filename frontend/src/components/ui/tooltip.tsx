@@ -22,7 +22,7 @@ export function Tooltip({
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const triggerRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -104,10 +104,10 @@ export function Tooltip({
   const clonedChild = useMemo(
     () =>
       React.cloneElement(children, {
-        ref: triggerRef,
+        ref: triggerRef as React.Ref<HTMLElement>,
         onMouseEnter: handleMouseEnter,
         onMouseLeave: handleMouseLeave,
-      }),
+      } as React.HTMLAttributes<HTMLElement>),
     [children, handleMouseEnter, handleMouseLeave]
   );
 

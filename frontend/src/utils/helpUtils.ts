@@ -2,7 +2,7 @@
  * Utility functions for help system
  */
 
-import { PageKey } from '../types/help';
+import { type PageKey } from '../types/help';
 
 /**
  * Determines the help page key from the current pathname

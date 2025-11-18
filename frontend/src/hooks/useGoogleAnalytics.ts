@@ -136,6 +136,13 @@ export const useTrackAssessmentEvents = () => {
       });
     },
 
+    trackAssessmentUpdated: (assessmentId: string, title: string) => {
+      trackEvent('assessment_updated', {
+        assessment_id: assessmentId,
+        assessment_title: title,
+      });
+    },
+
     trackAssessmentPublished: (assessmentId: string) => {
       trackEvent('assessment_published', {
         assessment_id: assessmentId,

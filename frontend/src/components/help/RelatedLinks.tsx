@@ -3,9 +3,8 @@
  * Displays related help links
  */
 
-import React from 'react';
 import { ExternalLink } from 'lucide-react';
-import { HelpLink } from '../../types/help';
+import { type HelpLink } from '../../types/help';
 
 interface RelatedLinksProps {
   links: HelpLink[];
