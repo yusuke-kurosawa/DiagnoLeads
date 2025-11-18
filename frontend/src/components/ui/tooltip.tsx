@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface TooltipProps {
@@ -9,6 +9,10 @@ export interface TooltipProps {
   disabled?: boolean;
 }
 
+/**
+ * Tooltip component with smart positioning
+ * Automatically adjusts position to stay within viewport
+ */
 export function Tooltip({
   content,
   children,
@@ -22,7 +26,7 @@ export function Tooltip({
   const triggerRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  const calculatePosition = () => {
+  const calculatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
@@ -65,22 +69,22 @@ export function Tooltip({
     }
 
     setTooltipPosition({ top, left });
-  };
+  }, [position]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (disabled) return;
 
     timeoutRef.current = setTimeout(() => {
       setIsVisible(true);
     }, delay);
-  };
+  }, [disabled, delay]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     setIsVisible(false);
-  };
+  }, []);
 
   useEffect(() => {
     if (isVisible) {
@@ -96,13 +100,17 @@ export function Tooltip({
     };
   }, []);
 
-  const clonedChild = React.cloneElement(children, {
-    ref: triggerRef,
-    onMouseEnter: handleMouseEnter,
-    onMouseLeave: handleMouseLeave,
-  });
+  const clonedChild = useMemo(
+    () =>
+      React.cloneElement(children, {
+        ref: triggerRef,
+        onMouseEnter: handleMouseEnter,
+        onMouseLeave: handleMouseLeave,
+      }),
+    [children, handleMouseEnter, handleMouseLeave]
+  );
 
-  const getArrowStyle = () => {
+  const arrowStyle = useMemo(() => {
     const base = 'absolute w-2 h-2 bg-gray-900 transform rotate-45';
     switch (position) {
       case 'top':
@@ -116,7 +124,7 @@ export function Tooltip({
       default:
         return base;
     }
-  };
+  }, [position]);
 
   return (
     <>
@@ -133,7 +141,7 @@ export function Tooltip({
           >
             <div className="relative bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg max-w-xs">
               {content}
-              <div className={getArrowStyle()} />
+              <div className={arrowStyle} />
             </div>
           </div>,
           document.body

@@ -7,12 +7,7 @@ import {
   DialogBody,
 } from '../ui/dialog';
 import { BookOpen, ExternalLink } from 'lucide-react';
-
-export interface HelpStep {
-  title: string;
-  description: string;
-  image?: string;
-}
+import { HelpStep, HelpSection, HelpLink } from '../../types/help';
 
 export interface HelpDialogProps {
   open: boolean;
@@ -20,14 +15,8 @@ export interface HelpDialogProps {
   title: string;
   description?: string;
   steps?: HelpStep[];
-  sections?: {
-    title: string;
-    content: string | React.ReactNode;
-  }[];
-  relatedLinks?: {
-    title: string;
-    url: string;
-  }[];
+  sections?: HelpSection[];
+  relatedLinks?: HelpLink[];
 }
 
 export function HelpDialog({

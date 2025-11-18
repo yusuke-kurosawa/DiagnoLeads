@@ -1,20 +1,10 @@
-import { HelpStep } from '../components/help/HelpDialog';
+import { HelpContentMap, PageHelp } from '../types/help';
 
-export interface PageHelp {
-  title: string;
-  description: string;
-  steps?: HelpStep[];
-  sections?: {
-    title: string;
-    content: string;
-  }[];
-  relatedLinks?: {
-    title: string;
-    url: string;
-  }[];
-}
-
-export const helpContent: Record<string, PageHelp> = {
+/**
+ * Help content for all pages
+ * Organized by page key for easy lookup
+ */
+export const helpContent: HelpContentMap = {
   dashboard: {
     title: 'ダッシュボードの使い方',
     description: 'DiagnoLeadsのダッシュボードで主要な指標とアクティビティを一目で確認できます。',

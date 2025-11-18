@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Settings, User, LogOut, Building2, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useHelpStore } from '../../store/helpStore';
 import { Tooltip } from '../ui/tooltip';
+import { getPageKeyFromPath } from '../../utils/helpUtils';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -11,29 +12,15 @@ const Header: React.FC = () => {
   const { user, logout } = useAuthStore();
   const { openHelp } = useHelpStore();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate('/login');
-  };
+  }, [logout, navigate]);
 
-  const getPageKeyFromPath = () => {
-    const path = location.pathname;
-    if (path.includes('/assessments/create')) return 'assessments-create';
-    if (path.includes('/assessments') && path.includes('/edit')) return 'assessments-edit';
-    if (path.includes('/assessments')) return 'assessments';
-    if (path.includes('/leads')) return 'leads';
-    if (path.includes('/analytics')) return 'analytics';
-    if (path.includes('/settings')) return 'settings';
-    if (path.includes('/admin/masters')) return 'admin-masters';
-    if (path.includes('/admin/audit-logs')) return 'admin-audit-logs';
-    if (path.includes('/dashboard')) return 'dashboard';
-    return 'dashboard';
-  };
-
-  const handleHelpClick = () => {
-    const pageKey = getPageKeyFromPath();
+  const handleHelpClick = useCallback(() => {
+    const pageKey = getPageKeyFromPath(location.pathname);
     openHelp(pageKey);
-  };
+  }, [location.pathname, openHelp]);
 
   const getPlanBadgeColor = (plan?: string) => {
     switch (plan) {
