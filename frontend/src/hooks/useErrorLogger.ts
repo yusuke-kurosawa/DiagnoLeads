@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { ApiErrorHandler, SystemError } from '../lib/errorHandler';
+import type { SystemError } from '../lib/errorHandler';
 
 export const useErrorLogger = () => {
   const logError = useCallback((error: unknown, context?: string) => {

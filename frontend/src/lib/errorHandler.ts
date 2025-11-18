@@ -135,12 +135,15 @@ export class ApiErrorHandler {
 }
 
 export class UserFacingError extends Error {
-  constructor(
-    public code: string,
-    public userMessage: string,
-    public technicalDetails?: any
-  ) {
+  code: string;
+  userMessage: string;
+  technicalDetails?: any;
+
+  constructor(code: string, userMessage: string, technicalDetails?: any) {
     super(userMessage);
     this.name = 'UserFacingError';
+    this.code = code;
+    this.userMessage = userMessage;
+    this.technicalDetails = technicalDetails;
   }
 }

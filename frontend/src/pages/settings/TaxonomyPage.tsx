@@ -6,7 +6,7 @@ import TaxonomyManagement from '../../components/admin/TaxonomyManagement';
 type TaxonomyTab = 'topics' | 'industries';
 
 export default function TaxonomyPage() {
-  const { tenantId } = useParams<{ tenantId: string }>();
+  const { tenantId: _tenantId } = useParams<{ tenantId: string }>();
   const [activeTab, setActiveTab] = useState<TaxonomyTab>('topics');
 
   return (

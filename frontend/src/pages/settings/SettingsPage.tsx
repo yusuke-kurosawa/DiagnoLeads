@@ -6,7 +6,7 @@ import TeamsIntegration from '@/components/settings/TeamsIntegration';
 type SettingsTab = 'general' | 'notifications' | 'security' | 'appearance' | 'integrations' | 'advanced';
 
 export default function SettingsPage() {
-  const { tenantId } = useParams<{ tenantId: string }>();
+  const { tenantId: _tenantId } = useParams<{ tenantId: string }>();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [settings, setSettings] = useState({
     // General settings

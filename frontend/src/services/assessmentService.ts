@@ -25,6 +25,7 @@ export interface Assessment {
   ai_generated: 'manual' | 'ai' | 'hybrid';
   scoring_logic: Record<string, unknown>;
   questions?: AssessmentQuestion[];
+  qr_code_url?: string;
   created_by: string;
   updated_by?: string;
   created_at: string;
