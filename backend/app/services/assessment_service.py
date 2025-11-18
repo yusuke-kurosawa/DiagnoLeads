@@ -17,7 +17,7 @@ from app.schemas.assessment import AssessmentCreate, AssessmentUpdate
 class AssessmentService:
     """
     Assessment service with strict multi-tenant isolation
-    
+
     **IMPORTANT**: All methods enforce tenant_id filtering
     """
 
@@ -33,13 +33,13 @@ class AssessmentService:
     ) -> List[Assessment]:
         """
         List all assessments for a specific tenant
-        
+
         Args:
             tenant_id: Tenant ID (REQUIRED for isolation)
             skip: Number of records to skip
             limit: Maximum number of records to return
             status: Filter by status (optional)
-        
+
         Returns:
             List of assessments
         """
@@ -61,20 +61,24 @@ class AssessmentService:
     def get_by_id(self, assessment_id: UUID, tenant_id: UUID) -> Optional[Assessment]:
         """
         Get assessment by ID with tenant isolation
-        
+
         Args:
             assessment_id: Assessment ID
             tenant_id: Tenant ID (REQUIRED for isolation)
-        
+
         Returns:
             Assessment or None if not found
         """
-        assessment = self.db.query(Assessment).filter(
-            and_(
-                Assessment.id == assessment_id,
-                Assessment.tenant_id == tenant_id,  # REQUIRED: Tenant filtering
+        assessment = (
+            self.db.query(Assessment)
+            .filter(
+                and_(
+                    Assessment.id == assessment_id,
+                    Assessment.tenant_id == tenant_id,  # REQUIRED: Tenant filtering
+                )
             )
-        ).first()
+            .first()
+        )
 
         return assessment
 
@@ -83,12 +87,12 @@ class AssessmentService:
     ) -> Assessment:
         """
         Create a new assessment
-        
+
         Args:
             data: Assessment creation data
             tenant_id: Tenant ID (REQUIRED for isolation)
             created_by: User ID who created the assessment
-        
+
         Returns:
             Created assessment
         """
@@ -109,19 +113,17 @@ class AssessmentService:
     ) -> Optional[Assessment]:
         """
         Update an existing assessment
-        
+
         Args:
             assessment_id: Assessment ID
             data: Update data
             tenant_id: Tenant ID (REQUIRED for isolation)
-        
+
         Returns:
             Updated assessment or None if not found
         """
         # Get assessment with tenant filtering
-        assessment = self.get_by_id(
-            assessment_id=assessment_id, tenant_id=tenant_id
-        )
+        assessment = self.get_by_id(assessment_id=assessment_id, tenant_id=tenant_id)
 
         if not assessment:
             return None
@@ -139,18 +141,16 @@ class AssessmentService:
     def delete(self, assessment_id: UUID, tenant_id: UUID) -> bool:
         """
         Delete an assessment
-        
+
         Args:
             assessment_id: Assessment ID
             tenant_id: Tenant ID (REQUIRED for isolation)
-        
+
         Returns:
             True if deleted, False if not found
         """
         # Get assessment with tenant filtering
-        assessment = self.get_by_id(
-            assessment_id=assessment_id, tenant_id=tenant_id
-        )
+        assessment = self.get_by_id(assessment_id=assessment_id, tenant_id=tenant_id)
 
         if not assessment:
             return False
@@ -163,11 +163,11 @@ class AssessmentService:
     def count_by_tenant(self, tenant_id: UUID, status: Optional[str] = None) -> int:
         """
         Count assessments for a tenant
-        
+
         Args:
             tenant_id: Tenant ID (REQUIRED for isolation)
             status: Filter by status (optional)
-        
+
         Returns:
             Number of assessments
         """
@@ -185,12 +185,12 @@ class AssessmentService:
     ) -> List[Assessment]:
         """
         Search assessments by title
-        
+
         Args:
             tenant_id: Tenant ID (REQUIRED for isolation)
             title_query: Search query
             limit: Maximum number of results
-        
+
         Returns:
             List of matching assessments
         """
@@ -199,7 +199,9 @@ class AssessmentService:
             .filter(
                 and_(
                     Assessment.tenant_id == tenant_id,  # REQUIRED: Tenant filtering
-                    Assessment.title.ilike(f"%{title_query}%"),  # Case-insensitive search
+                    Assessment.title.ilike(
+                        f"%{title_query}%"
+                    ),  # Case-insensitive search
                 )
             )
             .limit(limit)

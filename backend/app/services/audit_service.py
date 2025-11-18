@@ -32,7 +32,7 @@ class AuditService:
         user_agent: Optional[str] = None,
     ) -> AuditLog:
         """Create an audit log entry"""
-        
+
         audit_log = AuditLog(
             tenant_id=tenant_id,
             user_id=user_id,
@@ -46,11 +46,11 @@ class AuditService:
             ip_address=ip_address,
             user_agent=user_agent,
         )
-        
+
         db.add(audit_log)
         db.commit()
         db.refresh(audit_log)
-        
+
         return audit_log
 
     @staticmethod
@@ -66,31 +66,31 @@ class AuditService:
         limit: int = 100,
     ) -> tuple[List[AuditLog], int]:
         """Get audit logs with optional filtering"""
-        
+
         query = db.query(AuditLog).filter(AuditLog.tenant_id == tenant_id)
-        
+
         # Apply filters
         if entity_type:
             query = query.filter(AuditLog.entity_type == entity_type)
-        
+
         if entity_id:
             query = query.filter(AuditLog.entity_id == entity_id)
-        
+
         if action:
             query = query.filter(AuditLog.action == action)
-        
+
         if start_date:
             query = query.filter(AuditLog.created_at >= start_date)
-        
+
         if end_date:
             query = query.filter(AuditLog.created_at <= end_date)
-        
+
         # Get total count
         total_count = query.count()
-        
+
         # Order by created_at descending (newest first)
         logs = query.order_by(desc(AuditLog.created_at)).offset(skip).limit(limit).all()
-        
+
         return logs, total_count
 
     @staticmethod
@@ -101,15 +101,20 @@ class AuditService:
         days: int = 30,
     ) -> List[AuditLog]:
         """Get recent activity for a specific user"""
-        
+
         start_date = datetime.utcnow() - timedelta(days=days)
-        
-        logs = db.query(AuditLog).filter(
-            AuditLog.tenant_id == tenant_id,
-            AuditLog.user_id == user_id,
-            AuditLog.created_at >= start_date,
-        ).order_by(desc(AuditLog.created_at)).all()
-        
+
+        logs = (
+            db.query(AuditLog)
+            .filter(
+                AuditLog.tenant_id == tenant_id,
+                AuditLog.user_id == user_id,
+                AuditLog.created_at >= start_date,
+            )
+            .order_by(desc(AuditLog.created_at))
+            .all()
+        )
+
         return logs
 
     @staticmethod
@@ -120,13 +125,18 @@ class AuditService:
         entity_id: UUID,
     ) -> List[AuditLog]:
         """Get complete change history for a specific entity"""
-        
-        logs = db.query(AuditLog).filter(
-            AuditLog.tenant_id == tenant_id,
-            AuditLog.entity_type == entity_type,
-            AuditLog.entity_id == entity_id,
-        ).order_by(desc(AuditLog.created_at)).all()
-        
+
+        logs = (
+            db.query(AuditLog)
+            .filter(
+                AuditLog.tenant_id == tenant_id,
+                AuditLog.entity_type == entity_type,
+                AuditLog.entity_id == entity_id,
+            )
+            .order_by(desc(AuditLog.created_at))
+            .all()
+        )
+
         return logs
 
     @staticmethod
@@ -135,13 +145,11 @@ class AuditService:
         days: int = 90,
     ) -> int:
         """Delete audit logs older than specified days"""
-        
+
         cutoff_date = datetime.utcnow() - timedelta(days=days)
-        
-        count = db.query(AuditLog).filter(
-            AuditLog.created_at < cutoff_date
-        ).delete()
-        
+
+        count = db.query(AuditLog).filter(AuditLog.created_at < cutoff_date).delete()
+
         db.commit()
-        
+
         return count

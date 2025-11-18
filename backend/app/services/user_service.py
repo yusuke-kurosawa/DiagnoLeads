@@ -18,12 +18,12 @@ class UserService:
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password using bcrypt"""
-        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     @staticmethod
     def verify_password(password: str, password_hash: str) -> bool:
         """Verify a password against a hash"""
-        return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
     @staticmethod
     def create_user(db: Session, user_data: UserCreate) -> User:
@@ -53,4 +53,10 @@ class UserService:
     @staticmethod
     def get_tenant_users(db: Session, tenant_id: UUID, skip: int = 0, limit: int = 100):
         """Get all users for a tenant"""
-        return db.query(User).filter(User.tenant_id == tenant_id).offset(skip).limit(limit).all()
+        return (
+            db.query(User)
+            .filter(User.tenant_id == tenant_id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )

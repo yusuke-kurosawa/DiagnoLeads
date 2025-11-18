@@ -4,7 +4,17 @@ Lead Model
 Represents a lead (prospect) in the sales funnel.
 """
 
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text, JSON, Index, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    DateTime,
+    ForeignKey,
+    Text,
+    JSON,
+    Index,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship

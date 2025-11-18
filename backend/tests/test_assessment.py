@@ -224,16 +224,16 @@ def test_cross_tenant_access_denied(
 ):
     """
     Test that users cannot access assessments from other tenants
-    
+
     This is a critical security test.
     """
     # Create another tenant
     other_tenant = Tenant(
-        id=uuid.uuid4(), 
-        name="Other Tenant", 
-        slug="other-tenant", 
+        id=uuid.uuid4(),
+        name="Other Tenant",
+        slug="other-tenant",
         plan="free",
-        settings={}
+        settings={},
     )
     db_session.add(other_tenant)
     db_session.flush()

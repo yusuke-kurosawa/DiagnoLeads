@@ -2,6 +2,7 @@
 
 REST API for managing GA4 integrations with multi-tenant support.
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -13,7 +14,7 @@ from app.schemas.google_analytics import (
     GoogleAnalyticsIntegrationCreate,
     GoogleAnalyticsIntegrationResponse,
     GoogleAnalyticsIntegrationPublic,
-    GoogleAnalyticsTestResponse
+    GoogleAnalyticsTestResponse,
 )
 
 router = APIRouter()
@@ -24,13 +25,13 @@ router = APIRouter()
     response_model=GoogleAnalyticsIntegrationResponse,
     status_code=status.HTTP_200_OK,
     summary="Create or update Google Analytics integration",
-    operation_id="createOrUpdateGoogleAnalytics"
+    operation_id="createOrUpdateGoogleAnalytics",
 )
 async def create_or_update_ga_integration(
     tenant_id: UUID,
     data: GoogleAnalyticsIntegrationCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Create or update Google Analytics 4 integration for a tenant
 
@@ -50,14 +51,14 @@ async def create_or_update_ga_integration(
     if str(current_user.tenant_id) != str(tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access to this tenant's Google Analytics settings is forbidden"
+            detail="Access to this tenant's Google Analytics settings is forbidden",
         )
 
     # Check if user is tenant admin
     if current_user.role not in ["tenant_admin", "system_admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only tenant admins can configure Google Analytics"
+            detail="Only tenant admins can configure Google Analytics",
         )
 
     service = GoogleAnalyticsService(db)
@@ -67,22 +68,19 @@ async def create_or_update_ga_integration(
         return GoogleAnalyticsIntegrationResponse.model_validate(integration)
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get(
     "/tenants/{tenant_id}/integrations/google-analytics",
     response_model=GoogleAnalyticsIntegrationResponse,
     summary="Get Google Analytics integration",
-    operation_id="getGoogleAnalytics"
+    operation_id="getGoogleAnalytics",
 )
 async def get_ga_integration(
     tenant_id: UUID,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Get Google Analytics 4 integration settings for a tenant
 
@@ -94,7 +92,7 @@ async def get_ga_integration(
     if str(current_user.tenant_id) != str(tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access to this tenant's Google Analytics settings is forbidden"
+            detail="Access to this tenant's Google Analytics settings is forbidden",
         )
 
     service = GoogleAnalyticsService(db)
@@ -103,7 +101,7 @@ async def get_ga_integration(
     if not integration:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Google Analytics integration not configured for this tenant"
+            detail="Google Analytics integration not configured for this tenant",
         )
 
     return GoogleAnalyticsIntegrationResponse.model_validate(integration)
@@ -113,12 +111,12 @@ async def get_ga_integration(
     "/tenants/{tenant_id}/integrations/google-analytics",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete Google Analytics integration",
-    operation_id="deleteGoogleAnalytics"
+    operation_id="deleteGoogleAnalytics",
 )
 async def delete_ga_integration(
     tenant_id: UUID,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Delete Google Analytics 4 integration for a tenant
 
@@ -130,14 +128,14 @@ async def delete_ga_integration(
     if str(current_user.tenant_id) != str(tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access to this tenant's Google Analytics settings is forbidden"
+            detail="Access to this tenant's Google Analytics settings is forbidden",
         )
 
     # Check if user is tenant admin
     if current_user.role not in ["tenant_admin", "system_admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only tenant admins can delete Google Analytics integration"
+            detail="Only tenant admins can delete Google Analytics integration",
         )
 
     service = GoogleAnalyticsService(db)
@@ -146,7 +144,7 @@ async def delete_ga_integration(
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Google Analytics integration not found"
+            detail="Google Analytics integration not found",
         )
 
     return None
@@ -156,12 +154,12 @@ async def delete_ga_integration(
     "/tenants/{tenant_id}/integrations/google-analytics/test",
     response_model=GoogleAnalyticsTestResponse,
     summary="Test Google Analytics connection",
-    operation_id="testGoogleAnalyticsConnection"
+    operation_id="testGoogleAnalyticsConnection",
 )
 async def test_ga_connection(
     tenant_id: UUID,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Test Google Analytics 4 connection by sending a test event
 
@@ -175,14 +173,14 @@ async def test_ga_connection(
     if str(current_user.tenant_id) != str(tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access to this tenant's Google Analytics settings is forbidden"
+            detail="Access to this tenant's Google Analytics settings is forbidden",
         )
 
     # Check if user is tenant admin
     if current_user.role not in ["tenant_admin", "system_admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only tenant admins can test Google Analytics connection"
+            detail="Only tenant admins can test Google Analytics connection",
         )
 
     service = GoogleAnalyticsService(db)
@@ -195,12 +193,9 @@ async def test_ga_connection(
     "/public/assessments/{assessment_id}/google-analytics-config",
     response_model=GoogleAnalyticsIntegrationPublic,
     summary="Get public GA4 configuration for embed widget",
-    operation_id="getPublicGoogleAnalyticsConfig"
+    operation_id="getPublicGoogleAnalyticsConfig",
 )
-async def get_public_ga_config(
-    assessment_id: UUID,
-    db: Session = Depends(get_db)
-):
+async def get_public_ga_config(assessment_id: UUID, db: Session = Depends(get_db)):
     """Get public Google Analytics configuration for embed widget
 
     **No authentication required** - This is a public endpoint for embed widgets
@@ -215,7 +210,7 @@ async def get_public_ga_config(
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Google Analytics not configured for this assessment"
+            detail="Google Analytics not configured for this assessment",
         )
 
     return GoogleAnalyticsIntegrationPublic(**config)

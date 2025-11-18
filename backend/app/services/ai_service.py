@@ -436,12 +436,12 @@ class AIService:
                 if "text" not in question:
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Missing 'text' field",
+                        "error": f"Question {i + 1}: Missing 'text' field",
                     }
                 if "options" not in question:
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Missing 'options' field",
+                        "error": f"Question {i + 1}: Missing 'options' field",
                     }
 
                 # Validate options
@@ -449,7 +449,7 @@ class AIService:
                 if not isinstance(options, list) or len(options) < 2:
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Must have at least 2 options",
+                        "error": f"Question {i + 1}: Must have at least 2 options",
                     }
 
                 # Check scoring
@@ -457,12 +457,12 @@ class AIService:
                 if not all(isinstance(s, (int, float)) for s in scores):
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: All scores must be numbers",
+                        "error": f"Question {i + 1}: All scores must be numbers",
                     }
                 if not (min(scores) >= 0 and max(scores) <= 100):
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Scores must be between 0 and 100",
+                        "error": f"Question {i + 1}: Scores must be between 0 and 100",
                     }
 
             return {"valid": True, "error": None}

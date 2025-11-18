@@ -37,7 +37,7 @@ async def list_assessments(
 ):
     """
     List all assessments for a specific tenant
-    
+
     **Security**: Verifies user belongs to the requested tenant
     """
     # Verify user belongs to this tenant
@@ -69,7 +69,7 @@ async def search_assessments(
 ):
     """
     Search assessments by title
-    
+
     **Security**: Only searches within the user's tenant
     """
     # Verify user belongs to this tenant
@@ -99,7 +99,7 @@ async def get_assessment(
 ):
     """
     Get a specific assessment by ID
-    
+
     **Security**: Verifies user belongs to the tenant and assessment exists
     """
     # Verify user belongs to this tenant
@@ -133,7 +133,7 @@ async def create_assessment(
 ):
     """
     Create a new assessment
-    
+
     **Security**: Automatically sets tenant_id and created_by
     """
     # Verify user belongs to this tenant
@@ -164,7 +164,7 @@ async def update_assessment(
 ):
     """
     Update an existing assessment
-    
+
     **Security**: Verifies tenant ownership before update
     """
     # Verify user belongs to this tenant
@@ -206,7 +206,7 @@ async def delete_assessment(
 ):
     """
     Delete an assessment
-    
+
     **Security**: Verifies tenant ownership before deletion
     """
     # Verify user belongs to this tenant

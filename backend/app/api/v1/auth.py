@@ -13,10 +13,10 @@ from uuid import UUID
 from app.core.database import get_db
 from app.core.config import settings
 from app.schemas.auth import (
-    Token, 
-    UserCreate, 
-    UserLogin, 
-    UserResponse, 
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
     PasswordResetRequest,
     PasswordResetConfirm,
     TokenRefresh,
@@ -37,12 +37,12 @@ def build_user_response(user) -> UserResponse:
     tenant_name = None
     tenant_slug = None
     tenant_plan = None
-    
-    if hasattr(user, 'tenant') and user.tenant:
+
+    if hasattr(user, "tenant") and user.tenant:
         tenant_name = user.tenant.name
         tenant_slug = user.tenant.slug
         tenant_plan = user.tenant.plan
-    
+
     return UserResponse(
         id=user.id,
         tenant_id=user.tenant_id,
@@ -249,7 +249,7 @@ async def confirm_password_reset(
     Validates the reset token and updates the password.
     """
     user = AuthService.verify_password_reset_token(db, request.token)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -278,7 +278,7 @@ async def refresh_token(
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
-        
+
         token_type = payload.get("type")
         if token_type != "refresh":
             raise HTTPException(

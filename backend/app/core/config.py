@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     SALESFORCE_CLIENT_SECRET: str = ""
     HUBSPOT_API_KEY: str = ""
     SLACK_WEBHOOK_URL: str = ""
-    
+
     # Microsoft Teams Integration
     MICROSOFT_CLIENT_ID: str = ""
     MICROSOFT_CLIENT_SECRET: str = ""

@@ -274,9 +274,7 @@ async def update_lead_score(
         )
 
     # Update score
-    lead = service.update_score(
-        lead_id=lead_id, data=score_data, tenant_id=tenant_id
-    )
+    lead = service.update_score(lead_id=lead_id, data=score_data, tenant_id=tenant_id)
 
     return lead
 

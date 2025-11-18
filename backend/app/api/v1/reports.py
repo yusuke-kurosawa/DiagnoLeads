@@ -298,9 +298,7 @@ async def export_report(
 
         # Export based on format
         if format == "csv":
-            content = export_service.export_to_csv(
-                report.name, results["data_points"]
-            )
+            content = export_service.export_to_csv(report.name, results["data_points"])
             media_type = "text/csv"
             filename = f"{report.name.replace(' ', '_')}.csv"
 
@@ -311,7 +309,9 @@ async def export_report(
                 results["summary"],
                 report.config,
             )
-            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            media_type = (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
             filename = f"{report.name.replace(' ', '_')}.xlsx"
 
         elif format == "pdf":
