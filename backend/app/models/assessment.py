@@ -52,6 +52,15 @@ class Assessment(Base):
     )
 
     # Relationships
+    questions = relationship(
+        "Question",
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        order_by="Question.order",
+    )
+    responses = relationship(
+        "Response", back_populates="assessment", cascade="all, delete-orphan"
+    )
     qr_codes = relationship("QRCode", back_populates="assessment", cascade="all, delete-orphan")
 
     # Indexes for performance
