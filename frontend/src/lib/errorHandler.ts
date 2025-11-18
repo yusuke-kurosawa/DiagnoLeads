@@ -4,7 +4,7 @@ export interface SystemError {
   code: string;
   message: string;
   status: number;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -15,7 +15,7 @@ export class ApiErrorHandler {
     // Axios Error
     if (error instanceof AxiosError) {
       const status = error.response?.status || 500;
-      const errorData = error.response?.data as any;
+      const errorData = error.response?.data as { detail?: string } | undefined;
 
       return {
         code: `API_ERROR_${status}`,
@@ -138,7 +138,7 @@ export class UserFacingError extends Error {
   constructor(
     public code: string,
     public userMessage: string,
-    public technicalDetails?: any
+    public technicalDetails?: unknown
   ) {
     super(userMessage);
     this.name = 'UserFacingError';

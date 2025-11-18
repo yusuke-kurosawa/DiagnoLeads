@@ -19,6 +19,7 @@ export default function AuditLogPage() {
 
   useEffect(() => {
     loadLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityType, action, skip]);
 
   const loadLogs = async () => {
@@ -39,8 +40,10 @@ export default function AuditLogPage() {
       });
 
       setLogs(response.items);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || '監査ログの読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail
+        || (err as { message?: string }).message
+        || '監査ログの読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading audit logs:', err);
     } finally {

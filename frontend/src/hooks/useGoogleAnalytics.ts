@@ -11,7 +11,7 @@ import googleAnalyticsService from '../services/googleAnalyticsService';
 
 interface UseGoogleAnalyticsReturn {
   trackPageView: (path: string, title?: string) => void;
-  trackEvent: (eventName: string, params?: Record<string, any>) => void;
+  trackEvent: (eventName: string, params?: Record<string, unknown>) => void;
   isInitialized: boolean;
 }
 
@@ -56,8 +56,9 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
         } else {
           console.log('GA4: Tracking disabled or not configured');
         }
-      } catch (err: any) {
-        if (err.response?.status === 404) {
+      } catch (err: unknown) {
+        const errorWithResponse = err as { response?: { status?: number } };
+        if (errorWithResponse.response?.status === 404) {
           console.log('GA4: Integration not configured for this tenant');
         } else {
           console.error('GA4: Failed to initialize:', err);
@@ -66,6 +67,7 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     };
 
     initGA();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.tenant_id]);
 
   /**
@@ -92,7 +94,7 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
    * Track custom event
    */
   const trackEvent = useCallback(
-    (eventName: string, params: Record<string, any> = {}) => {
+    (eventName: string, params: Record<string, unknown> = {}) => {
       try {
         // Add tenant_id to all events
         const eventParams = {

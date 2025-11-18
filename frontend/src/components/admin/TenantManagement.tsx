@@ -41,8 +41,8 @@ export default function TenantManagement() {
       setError('');
       const data = await getTenants();
       setTenants(data);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'テナント情報の読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'テナント情報の読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading tenants:', err);
     } finally {
@@ -74,8 +74,8 @@ export default function TenantManagement() {
       await loadTenants();
       resetForm();
       setShowForm(false);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 
         (editingId ? 'テナントの更新に失敗しました' : 'テナントの作成に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
@@ -103,8 +103,8 @@ export default function TenantManagement() {
       await deleteTenant(id);
       setSuccessMessage('テナントを削除しました');
       await loadTenants();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'テナントの削除に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'テナントの削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting tenant:', err);
     }
@@ -211,7 +211,7 @@ export default function TenantManagement() {
             </label>
             <select
               value={formData.plan}
-              onChange={(e) => setFormData({ ...formData, plan: e.target.value as any })}
+              onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="free">フリー</option>

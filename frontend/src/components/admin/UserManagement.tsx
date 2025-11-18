@@ -28,6 +28,7 @@ export default function UserManagement() {
 
   useEffect(() => {
     loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-hide success message after 3 seconds
@@ -46,8 +47,8 @@ export default function UserManagement() {
       const tenantIdParam = currentUser?.role === 'system_admin' ? undefined : currentUser?.tenant_id;
       const data = await getUsers(tenantIdParam);
       setUsers(data);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'ユーザー情報の読み込みに失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'ユーザー情報の読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading users:', err);
     } finally {
@@ -99,8 +100,8 @@ export default function UserManagement() {
       await loadUsers();
       resetForm();
       setShowForm(false);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message ||
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message ||
         (editingId ? 'ユーザーの更新に失敗しました' : 'ユーザーの作成に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
@@ -113,7 +114,7 @@ export default function UserManagement() {
     setFormData({
       email: user.email,
       name: user.name,
-      role: user.role as any,
+      role: user.role,
     });
     setEditingId(user.id);
     setShowForm(true);
@@ -128,8 +129,8 @@ export default function UserManagement() {
       await deleteUser(id);
       setSuccessMessage('ユーザーを削除しました');
       await loadUsers();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'ユーザーの削除に失敗しました';
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'ユーザーの削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting user:', err);
     }
@@ -266,7 +267,7 @@ export default function UserManagement() {
             </label>
             <select
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="user">一般ユーザー</option>
@@ -322,7 +323,7 @@ export default function UserManagement() {
                 <td className="px-6 py-3 text-sm text-gray-600">{user.email}</td>
                 {currentUser?.role === 'system_admin' && (
                   <td className="px-6 py-3 text-sm text-gray-600">
-                    {(user as any).tenant_name || 'N/A'}
+                    {((user as { tenant_name?: string }).tenant_name) || 'N/A'}
                   </td>
                 )}
                 <td className="px-6 py-3">

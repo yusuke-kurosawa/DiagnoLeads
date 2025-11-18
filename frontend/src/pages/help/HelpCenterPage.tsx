@@ -65,7 +65,9 @@ export function HelpCenterPage() {
         {filteredCategories.map((category, categoryIndex) => (
           <div key={categoryIndex} className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="text-blue-600">{category.icon}</div>
+              <div className="text-blue-600">
+                <category.icon className="w-5 h-5" />
+              </div>
               <h3 className="text-lg font-semibold text-gray-900">
                 {category.title}
               </h3>

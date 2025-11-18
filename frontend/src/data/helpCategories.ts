@@ -15,7 +15,7 @@ import { HelpCategory, FAQItem } from '../types/help';
 export const helpCategories: HelpCategory[] = [
   {
     title: '基本機能',
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: LayoutDashboard,
     items: [
       {
         key: 'dashboard',
@@ -41,7 +41,7 @@ export const helpCategories: HelpCategory[] = [
   },
   {
     title: '診断機能',
-    icon: <ClipboardList className="w-5 h-5" />,
+    icon: ClipboardList,
     items: [
       {
         key: 'assessments-create',
@@ -57,7 +57,7 @@ export const helpCategories: HelpCategory[] = [
   },
   {
     title: '設定と管理',
-    icon: <Settings className="w-5 h-5" />,
+    icon: Settings,
     items: [
       {
         key: 'settings',

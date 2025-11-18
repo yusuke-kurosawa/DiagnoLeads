@@ -5,7 +5,7 @@ interface RouteError {
   status?: number;
   statusText?: string;
   message?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export default function ErrorPage() {
