@@ -284,7 +284,7 @@ describe('ABTestManager', () => {
   });
 
   describe('Conditional Action Buttons', () => {
-    // Note: Skipping draft button test due to rendering timing issues
+    // Note: Skipping draft button test due to button not rendering in test environment
     // The functionality is verified in manual testing
     it.skip('should show "開始" button for draft tests', async () => {
       const draftTest = {

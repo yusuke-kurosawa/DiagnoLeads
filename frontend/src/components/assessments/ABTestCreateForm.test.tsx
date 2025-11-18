@@ -205,8 +205,7 @@ describe('ABTestCreateForm', () => {
   });
 
   describe('Test Type Configuration', () => {
-    // Note: Skipping due to element selection/placeholder issues
-    it.skip('should show CTA text input when test type is cta_text', async () => {
+    it('should show CTA text input when test type is cta_text', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
@@ -235,8 +234,7 @@ describe('ABTestCreateForm', () => {
       });
     });
 
-    // Note: Skipping due to element selection issues
-    it.skip('should show JSON textarea when test type is custom', async () => {
+    it('should show JSON textarea when test type is custom', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
