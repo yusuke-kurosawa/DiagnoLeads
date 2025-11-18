@@ -38,7 +38,7 @@ export class GA4Tracker {
 
     // Initialize gtag
     (window as any).dataLayer = (window as any).dataLayer || [];
-    function gtag(...args: any[]) {
+    function gtag(..._args: any[]) {
       (window as any).dataLayer.push(arguments);
     }
     (window as any).gtag = gtag;
