@@ -189,8 +189,6 @@ describe('ABTestCreateForm', () => {
     });
 
     it('should not allow removing variants when only 2 remain', async () => {
-      const user = userEvent.setup();
-
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
 
       // Try to find delete buttons
@@ -218,8 +216,7 @@ describe('ABTestCreateForm', () => {
       });
     });
 
-    // Note: Skipping due to element selection issues
-    it.skip('should show color picker when test type is cta_color', async () => {
+    it('should show color picker when test type is cta_color', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<ABTestCreateForm {...defaultProps} />);
@@ -228,9 +225,8 @@ describe('ABTestCreateForm', () => {
       await user.selectOptions(testTypeSelect, 'cta_color');
 
       await waitFor(() => {
-        const colorInputs = screen.getAllByRole('textbox', { name: '' });
-        const colorPickers = colorInputs.filter((input) => input.getAttribute('type') === 'color');
-        expect(colorPickers.length).toBeGreaterThan(0);
+        const colorInputs = document.querySelectorAll('input[type="color"]');
+        expect(colorInputs.length).toBeGreaterThan(0);
       });
     });
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { MessageSquare, Check, X, Send, AlertCircle } from 'lucide-react';
+import { MessageSquare, Check, Send, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 
 interface TeamsSettings {

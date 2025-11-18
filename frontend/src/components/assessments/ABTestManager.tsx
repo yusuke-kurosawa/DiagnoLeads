@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, CheckCircle, Plus, TrendingUp, Target, RefreshCw, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 import { ABTestCreateForm } from './ABTestCreateForm';
