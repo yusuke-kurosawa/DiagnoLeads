@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, CheckCircle, Plus, TrendingUp, Target, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Play, Pause, CheckCircle, Plus, TrendingUp, Target, RefreshCw, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 import { ABTestCreateForm } from './ABTestCreateForm';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface ABTest {
   id: string;
@@ -27,12 +28,10 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [testToDelete, setTestToDelete] = useState<ABTest | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    loadTests();
-  }, [assessmentId, tenantId]);
-
-  const loadTests = async (isRefresh = false) => {
+  const loadTests = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -49,13 +48,33 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [assessmentId, tenantId]);
 
-  const handleRefresh = () => {
+  useEffect(() => {
+    loadTests();
+  }, [loadTests]);
+
+  const handleRefresh = useCallback(() => {
     loadTests(true);
-  };
+  }, [loadTests]);
 
-  const getStatusBadge = (status: string) => {
+  const handleDeleteTest = useCallback(async () => {
+    if (!testToDelete) return;
+
+    try {
+      setDeleting(true);
+      await apiClient.delete(`/tenants/${tenantId}/ab-tests/${testToDelete.id}`);
+      setTests(tests.filter((t) => t.id !== testToDelete.id));
+      setTestToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete A/B test:', error);
+      alert('削除に失敗しました。もう一度お試しください。');
+    } finally {
+      setDeleting(false);
+    }
+  }, [testToDelete, tenantId, tests]);
+
+  const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
       draft: { label: '下書き', className: 'bg-gray-100 text-gray-800' },
       running: { label: '実行中', className: 'bg-green-100 text-green-800' },
@@ -71,11 +90,11 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
         {config.label}
       </span>
     );
-  };
+  }, []);
 
-  const formatConversionRate = (rate: number) => {
+  const formatConversionRate = useCallback((rate: number) => {
     return `${(rate * 100).toFixed(2)}%`;
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -175,38 +194,48 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => window.location.href = `/ab-tests/${test.id}`}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  <TrendingUp size={16} />
-                  詳細を見る
-                </button>
-                {test.status === 'draft' && (
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   <button
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    onClick={() => window.location.href = `/ab-tests/${test.id}`}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
-                    <Play size={16} />
-                    開始
+                    <TrendingUp size={16} />
+                    詳細を見る
                   </button>
-                )}
-                {test.status === 'running' && (
-                  <>
+                  {test.status === 'draft' && (
                     <button
-                      className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
-                      <Pause size={16} />
-                      一時停止
+                      <Play size={16} />
+                      開始
                     </button>
-                    <button
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <CheckCircle size={16} />
-                      完了
-                    </button>
-                  </>
-                )}
+                  )}
+                  {test.status === 'running' && (
+                    <>
+                      <button
+                        className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                      >
+                        <Pause size={16} />
+                        一時停止
+                      </button>
+                      <button
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <CheckCircle size={16} />
+                        完了
+                      </button>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => setTestToDelete(test)}
+                  className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  title="削除"
+                >
+                  <Trash2 size={16} />
+                  削除
+                </button>
               </div>
             </div>
           ))}
@@ -225,6 +254,18 @@ export const ABTestManager: React.FC<ABTestManagerProps> = ({ assessmentId, tena
           onCancel={() => setShowCreateModal(false)}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={testToDelete !== null}
+        title="A/Bテストを削除"
+        message={`「${testToDelete?.name}」を削除してもよろしいですか？\n\nこの操作は取り消せません。テストに関連するすべてのデータが削除されます。`}
+        confirmText={deleting ? '削除中...' : '削除'}
+        cancelText="キャンセル"
+        onConfirm={handleDeleteTest}
+        onCancel={() => setTestToDelete(null)}
+        variant="danger"
+      />
     </div>
   );
 };

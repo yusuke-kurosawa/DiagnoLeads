@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Send, MessageSquare, CheckCircle, XCircle, Clock, Plus, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Send, MessageSquare, CheckCircle, XCircle, Clock, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 import { SMSCampaignCreateForm } from './SMSCampaignCreateForm';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface SMSCampaign {
   id: string;
@@ -31,12 +32,10 @@ export const SMSCampaignManager: React.FC<SMSCampaignManagerProps> = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<SMSCampaign | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    loadCampaigns();
-  }, [tenantId]);
-
-  const loadCampaigns = async (isRefresh = false) => {
+  const loadCampaigns = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -51,13 +50,33 @@ export const SMSCampaignManager: React.FC<SMSCampaignManagerProps> = ({
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [tenantId]);
 
-  const handleRefresh = () => {
+  useEffect(() => {
+    loadCampaigns();
+  }, [loadCampaigns]);
+
+  const handleRefresh = useCallback(() => {
     loadCampaigns(true);
-  };
+  }, [loadCampaigns]);
 
-  const getStatusBadge = (status: string) => {
+  const handleDeleteCampaign = useCallback(async () => {
+    if (!campaignToDelete) return;
+
+    try {
+      setDeleting(true);
+      await apiClient.delete(`/tenants/${tenantId}/sms/campaigns/${campaignToDelete.id}`);
+      setCampaigns(campaigns.filter((c) => c.id !== campaignToDelete.id));
+      setCampaignToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete SMS campaign:', error);
+      alert('削除に失敗しました。もう一度お試しください。');
+    } finally {
+      setDeleting(false);
+    }
+  }, [campaignToDelete, tenantId, campaigns]);
+
+  const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
       pending: { label: '送信待ち', icon: Clock, className: 'bg-yellow-100 text-yellow-800' },
       sent: { label: '送信済み', icon: Send, className: 'bg-blue-100 text-blue-800' },
@@ -75,12 +94,12 @@ export const SMSCampaignManager: React.FC<SMSCampaignManagerProps> = ({
         {config.label}
       </span>
     );
-  };
+  }, []);
 
-  const calculateSuccessRate = (campaign: SMSCampaign) => {
+  const calculateSuccessRate = useCallback((campaign: SMSCampaign) => {
     if (campaign.sent_count === 0) return 0;
     return ((campaign.delivered_count / campaign.sent_count) * 100).toFixed(1);
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -197,12 +216,20 @@ export const SMSCampaignManager: React.FC<SMSCampaignManagerProps> = ({
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 mt-4">
+              <div className="flex items-center justify-between gap-2 mt-4">
                 <button
                   onClick={() => window.location.href = `/sms/campaigns/${campaign.id}`}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   詳細を見る
+                </button>
+                <button
+                  onClick={() => setCampaignToDelete(campaign)}
+                  className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  title="削除"
+                >
+                  <Trash2 size={16} />
+                  削除
                 </button>
               </div>
             </div>
@@ -222,6 +249,18 @@ export const SMSCampaignManager: React.FC<SMSCampaignManagerProps> = ({
           onCancel={() => setShowCreateModal(false)}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={campaignToDelete !== null}
+        title="SMSキャンペーンを削除"
+        message={`「${campaignToDelete?.name}」を削除してもよろしいですか？\n\nこの操作は取り消せません。キャンペーンに関連するすべてのデータが削除されます。`}
+        confirmText={deleting ? '削除中...' : '削除'}
+        cancelText="キャンセル"
+        onConfirm={handleDeleteCampaign}
+        onCancel={() => setCampaignToDelete(null)}
+        variant="danger"
+      />
     </div>
   );
 };
