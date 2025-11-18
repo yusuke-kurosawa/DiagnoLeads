@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Settings, Bell, Lock, Palette, Database } from 'lucide-react';
+import { Settings, Bell, Lock, Palette, Database, Plug } from 'lucide-react';
+import GoogleAnalyticsSettings from '../../components/settings/GoogleAnalyticsSettings';
 
-type SettingsTab = 'general' | 'notifications' | 'security' | 'appearance' | 'advanced';
+type SettingsTab = 'general' | 'notifications' | 'security' | 'appearance' | 'integrations' | 'advanced';
 
 export default function SettingsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -53,6 +54,7 @@ export default function SettingsPage() {
     { id: 'notifications', label: '通知', icon: <Bell size={18} /> },
     { id: 'security', label: 'セキュリティ', icon: <Lock size={18} /> },
     { id: 'appearance', label: '表示設定', icon: <Palette size={18} /> },
+    { id: 'integrations', label: '外部連携', icon: <Plug size={18} /> },
     { id: 'advanced', label: '詳細設定', icon: <Database size={18} /> },
   ];
 
@@ -330,6 +332,13 @@ export default function SettingsPage() {
                 </div>
               )}
 
+              {/* Integrations */}
+              {activeTab === 'integrations' && (
+                <div className="space-y-6">
+                  <GoogleAnalyticsSettings tenantId={tenantId || ''} />
+                </div>
+              )}
+
               {/* Advanced Settings */}
               {activeTab === 'advanced' && (
                 <div className="space-y-6">
@@ -386,15 +395,17 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* Save Button */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <button
-                  onClick={handleSave}
-                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  設定を保存
-                </button>
-              </div>
+              {/* Save Button - Only show for tabs other than integrations */}
+              {activeTab !== 'integrations' && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={handleSave}
+                    className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    設定を保存
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
