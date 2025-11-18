@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  HomeIcon, 
-  FileTextIcon, 
-  UsersIcon, 
-  BarChart3Icon, 
+import {
+  HomeIcon,
+  FileTextIcon,
+  UsersIcon,
+  BarChart3Icon,
   SettingsIcon,
   Wrench,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  HelpCircle
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -65,6 +66,13 @@ export function Sidebar() {
     icon: SettingsIcon,
     label: '設定',
     path: `/tenants/${currentTenantId}/settings`,
+  };
+
+  // Help Center menu item
+  const helpItem: NavigationItem = {
+    icon: HelpCircle,
+    label: 'ヘルプ',
+    path: '/help',
   };
 
   // Check if user is admin
@@ -189,6 +197,35 @@ export function Sidebar() {
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
                   {isOpen && <span className="font-medium">{settingsItem.label}</span>}
+                </Link>
+              </li>
+            );
+          })()}
+
+          {/* Separator before help */}
+          <li className="my-4 border-t border-gray-700" />
+
+          {/* Help Center */}
+          {(() => {
+            const Icon = helpItem.icon;
+            const active = isActive(helpItem.path);
+            return (
+              <li>
+                <Link
+                  to={helpItem.path}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-lg
+                    transition-colors duration-200
+                    ${
+                      active
+                        ? 'bg-green-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }
+                  `}
+                  title={!isOpen ? helpItem.label : undefined}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {isOpen && <span className="font-medium">{helpItem.label}</span>}
                 </Link>
               </li>
             );
