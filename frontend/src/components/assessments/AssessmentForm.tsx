@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { assessmentService, type CreateAssessmentData } from '../../services/assessmentService';
 import { getTopics, getIndustries } from '../../services/taxonomyService';
 import type { Topic, Industry } from '../../types/taxonomy';
+import { useTrackAssessmentEvents } from '../../hooks/useGoogleAnalytics';
 
 const assessmentSchema = z.object({
   title: z.string().min(1, '診断名は必須です').max(255, '診断名は255文字以下である必要があります'),
@@ -26,17 +27,18 @@ interface AssessmentFormProps {
   mode: 'create' | 'edit';
 }
 
-export default function AssessmentForm({ 
-  tenantId, 
-  initialData, 
+export default function AssessmentForm({
+  tenantId,
+  initialData,
   assessmentId,
-  mode 
+  mode
 }: AssessmentFormProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [loadingTaxonomy, setLoadingTaxonomy] = useState(false);
+  const { trackAssessmentCreated, trackAssessmentUpdated } = useTrackAssessmentEvents();
 
   useEffect(() => {
     const loadTaxonomy = async () => {
@@ -72,18 +74,28 @@ export default function AssessmentForm({
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateAssessmentData) => 
+    mutationFn: (data: CreateAssessmentData) =>
       assessmentService.create(tenantId, data),
-    onSuccess: () => {
+    onSuccess: (assessment, variables) => {
+      // Track assessment creation
+      trackAssessmentCreated(
+        assessment.id,
+        variables.title,
+        variables.ai_generated || 'manual'
+      );
+
       queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
       navigate(`/tenants/${tenantId}/assessments`);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: CreateAssessmentData) => 
+    mutationFn: (data: CreateAssessmentData) =>
       assessmentService.update(tenantId, assessmentId!, data),
-    onSuccess: () => {
+    onSuccess: (assessment, variables) => {
+      // Track assessment update
+      trackAssessmentUpdated(assessmentId!, variables.title);
+
       queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['assessment', tenantId, assessmentId] });
       navigate(`/tenants/${tenantId}/assessments/${assessmentId}`);

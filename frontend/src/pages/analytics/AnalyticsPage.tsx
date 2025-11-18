@@ -1,6 +1,6 @@
 /**
  * Analytics Page
- * 
+ *
  * Main analytics dashboard displaying overview, charts, and trends
  */
 
@@ -14,6 +14,7 @@ import type {
 import MetricCard from '../../components/analytics/MetricCard';
 import StatusPieChart from '../../components/analytics/StatusPieChart';
 import TrendLineChart from '../../components/analytics/TrendLineChart';
+import { useTrackDashboardEvents } from '../../hooks/useGoogleAnalytics';
 
 const AnalyticsPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -22,6 +23,12 @@ const AnalyticsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
+  const { trackDashboardViewed } = useTrackDashboardEvents();
+
+  // Track analytics page view
+  useEffect(() => {
+    trackDashboardViewed('analytics');
+  }, [trackDashboardViewed]);
 
   useEffect(() => {
     if (!user?.tenant_id) return;
