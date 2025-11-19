@@ -65,6 +65,7 @@ export function AssessmentDetailPage() {
   }
 
   return (
+    <div>
       <div className="container mx-auto max-w-4xl">
       {deleteMutation.error && (
         <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
@@ -178,6 +179,7 @@ export function AssessmentDetailPage() {
         </div>
       </div>
       </div>
+    </div>
   );
 }
 

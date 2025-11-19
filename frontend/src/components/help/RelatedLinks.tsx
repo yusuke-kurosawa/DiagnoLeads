@@ -4,7 +4,7 @@
  */
 
 import { ExternalLink } from 'lucide-react';
-import { type HelpLink } from '../../types/help';
+import type { HelpLink } from '../../types/help';
 
 interface RelatedLinksProps {
   links: HelpLink[];
