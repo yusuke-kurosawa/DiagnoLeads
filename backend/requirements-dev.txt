@@ -4,11 +4,11 @@
 # Install with: pip install -r requirements.txt -r requirements-dev.txt
 
 # Testing Framework
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-faker==20.1.0
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+faker==33.1.0
 
 # Code Quality & Linting
 ruff==0.8.4
@@ -16,14 +16,14 @@ mypy==1.13.0
 black==24.10.0
 
 # Type Stubs
-types-redis==4.6.0.11
-types-passlib==1.7.7.13
-sqlalchemy[mypy]==2.0.23
+types-redis==4.6.0.20241004
+types-passlib==1.7.7.20240819
+sqlalchemy[mypy]==2.0.36
 
 # Development Tools
-ipython==8.18.1
+ipython==8.31.0
 ipdb==0.13.13
 
 # Documentation
-mkdocs==1.5.3
-mkdocs-material==9.5.2
+mkdocs==1.6.1
+mkdocs-material==9.5.48
