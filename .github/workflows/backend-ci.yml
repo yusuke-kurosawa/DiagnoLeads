@@ -47,19 +47,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: |
-            backend/requirements.txt
-            backend/requirements-dev.txt
 
       - name: Install dependencies
         working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
           echo "Installing requirements.txt..."
-          pip install -r requirements.txt
+          pip install --no-cache-dir -r requirements.txt
           echo "Installing requirements-dev.txt..."
-          pip install -r requirements-dev.txt
+          pip install --no-cache-dir -r requirements-dev.txt
           echo "Verifying installations..."
           pip list | grep -E "(pytest|ruff|mypy)"
 
@@ -105,19 +101,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: |
-            backend/requirements.txt
-            backend/requirements-dev.txt
 
       - name: Install dependencies
         working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
           echo "Installing requirements.txt..."
-          pip install -r requirements.txt
+          pip install --no-cache-dir -r requirements.txt
           echo "Installing requirements-dev.txt..."
-          pip install -r requirements-dev.txt
+          pip install --no-cache-dir -r requirements-dev.txt
           echo "Verifying installations..."
           pip list | grep -E "(pytest|ruff|mypy)"
 
