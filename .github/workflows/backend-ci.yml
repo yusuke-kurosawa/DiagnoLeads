@@ -55,8 +55,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements.txt
           pip install --no-cache-dir -r requirements-dev.txt
-          echo "--- Installed packages ---"
-          pip show pytest ruff mypy || true
+          echo "--- Verify installations ---"
+          pip show pytest ruff mypy
 
       - name: Run tests
         working-directory: ./backend
@@ -66,7 +66,8 @@ jobs:
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          export PATH="$HOME/.local/bin:$PATH"
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: Run multi-tenant isolation tests
         working-directory: ./backend
@@ -76,7 +77,8 @@ jobs:
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          python -m pytest tests/integration/test_multi_tenant_isolation.py -v
+          export PATH="$HOME/.local/bin:$PATH"
+          pytest tests/integration/test_multi_tenant_isolation.py -v
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -102,18 +104,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements.txt
           pip install --no-cache-dir -r requirements-dev.txt
-          echo "--- Installed packages ---"
-          pip show pytest ruff mypy || true
-          echo "--- Checking ruff executable ---"
-          which ruff || echo "ruff not in PATH"
-          python -c "import ruff; print(f'ruff module found at: {ruff.__file__}')" || echo "ruff module import failed"
+          echo "--- Verify installations ---"
+          pip show ruff mypy
+          echo "--- PATH ---"
+          echo $PATH
+          echo "--- Python bin directory ---"
+          python -m site --user-base
+          ls -la $(python -m site --user-base)/bin/ || true
 
       - name: Run Ruff
         working-directory: ./backend
         run: |
-          python -m ruff check . || ruff check .
+          export PATH="$HOME/.local/bin:$PATH"
+          ruff check .
 
       - name: Run MyPy
         working-directory: ./backend
         run: |
-          python -m mypy app/ || mypy app/
+          export PATH="$HOME/.local/bin:$PATH"
+          mypy app/
