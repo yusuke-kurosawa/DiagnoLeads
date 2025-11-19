@@ -46,31 +46,8 @@ def upgrade() -> None:
     """
     )
 
-    # Enable RLS on qr_codes table
-    op.execute("ALTER TABLE qr_codes ENABLE ROW LEVEL SECURITY;")
-
-    # Create policy for qr_codes: users can only see QR codes from their tenant
-    op.execute(
-        """
-        CREATE POLICY qr_code_tenant_isolation ON qr_codes
-        FOR ALL
-        USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
-        WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid);
-    """
-    )
-
-    # Enable RLS on qr_code_scans table
-    op.execute("ALTER TABLE qr_code_scans ENABLE ROW LEVEL SECURITY;")
-
-    # Create policy for qr_code_scans: users can only see scans from their tenant
-    op.execute(
-        """
-        CREATE POLICY qr_code_scan_tenant_isolation ON qr_code_scans
-        FOR ALL
-        USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
-        WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid);
-    """
-    )
+    # NOTE: QR code tables (qr_codes, qr_code_scans) RLS will be added
+    # in their respective migration files when those tables are created
 
     # Grant necessary permissions to authenticated users
     op.execute("GRANT SELECT ON assessments TO postgres;")
@@ -90,11 +67,7 @@ def downgrade() -> None:
     # Drop RLS policies
     op.execute("DROP POLICY IF EXISTS assessment_tenant_isolation ON assessments;")
     op.execute("DROP POLICY IF EXISTS lead_tenant_isolation ON leads;")
-    op.execute("DROP POLICY IF EXISTS qr_code_tenant_isolation ON qr_codes;")
-    op.execute("DROP POLICY IF EXISTS qr_code_scan_tenant_isolation ON qr_code_scans;")
 
     # Disable RLS
     op.execute("ALTER TABLE assessments DISABLE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE leads DISABLE ROW LEVEL SECURITY;")
-    op.execute("ALTER TABLE qr_codes DISABLE ROW LEVEL SECURITY;")
-    op.execute("ALTER TABLE qr_code_scans DISABLE ROW LEVEL SECURITY;")
