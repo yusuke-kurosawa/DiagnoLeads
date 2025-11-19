@@ -33,11 +33,18 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    include: ['**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/.cache/**', '**/e2e/**'],
+    // Only scan src directory for tests to avoid node_modules
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['node_modules', 'dist', 'e2e'],
     testTimeout: 10000,
     hookTimeout: 10000,
     teardownTimeout: 10000,
+    // Prevent Vitest from watching node_modules
+    server: {
+      watch: {
+        ignored: ['**/node_modules/**', '**/dist/**'],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
