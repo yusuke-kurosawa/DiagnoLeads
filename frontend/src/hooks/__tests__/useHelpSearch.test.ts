@@ -5,12 +5,13 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHelpSearch } from '../useHelpSearch';
-import { HelpCategory, FAQItem } from '../../types/help';
+import type { HelpCategory, FAQItem } from '../../types/help';
+import { LayoutDashboard } from 'lucide-react';
 
 const mockCategories: HelpCategory[] = [
   {
     title: 'テストカテゴリー',
-    icon: null,
+    icon: LayoutDashboard,
     items: [
       {
         key: 'test-1',

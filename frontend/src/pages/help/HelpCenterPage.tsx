@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { BookOpen, Search, ChevronRight } from 'lucide-react';
 import { useHelpStore } from '../../store/helpStore';
 import { helpCategories, faqItems } from '../../data/helpCategories';
@@ -62,14 +62,16 @@ export function HelpCenterPage() {
       {/* Help Categories */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">機能ガイド</h2>
-        {filteredCategories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="text-blue-600">{category.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                {category.title}
-              </h3>
-            </div>
+        {filteredCategories.map((category, categoryIndex) => {
+          const Icon = category.icon;
+          return (
+            <div key={categoryIndex} className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Icon className="w-5 h-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {category.title}
+                </h3>
+              </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {category.items.map((item) => (
@@ -89,7 +91,8 @@ export function HelpCenterPage() {
               ))}
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
 
       {/* FAQ Section */}

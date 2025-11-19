@@ -22,7 +22,7 @@ export function Tooltip({
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<number | undefined>(undefined);
   const triggerRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +106,7 @@ export function Tooltip({
         ref: triggerRef,
         onMouseEnter: handleMouseEnter,
         onMouseLeave: handleMouseLeave,
-      }),
+      } as React.HTMLAttributes<HTMLElement>),
     [children, handleMouseEnter, handleMouseLeave]
   );
 
