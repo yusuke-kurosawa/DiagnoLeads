@@ -6,7 +6,7 @@ Handles password hashing, JWT token generation, and user authentication.
 
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -200,8 +200,9 @@ class AuthService:
             return True, None
 
         # Check if account is locked
-        if user.locked_until and user.locked_until > datetime.utcnow():
-            remaining_minutes = int((user.locked_until - datetime.utcnow()).total_seconds() / 60)
+        now = datetime.now(timezone.utc)
+        if user.locked_until and user.locked_until > now:
+            remaining_minutes = int((user.locked_until - now).total_seconds() / 60)
             return (
                 False,
                 f"アカウントが一時的にロックされています。{remaining_minutes}分後に再試行してください",
@@ -209,7 +210,7 @@ class AuthService:
 
         # Check if max attempts exceeded
         if user.failed_login_attempts >= 5:
-            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+            user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=15)
             db.commit()
             return (
                 False,
@@ -221,7 +222,7 @@ class AuthService:
         db.commit()
 
         if user.failed_login_attempts >= 5:
-            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+            user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=15)
             db.commit()
             return (
                 False,

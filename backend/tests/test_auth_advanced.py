@@ -249,20 +249,28 @@ class TestAuthTokenDecoding:
 
     def test_decode_access_token_with_custom_expiry(self):
         """Test creating and decoding token with custom expiry"""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "email": "test@example.com"}
+        from uuid import uuid4
+
+        user_id = str(uuid4())
+        tenant_id = str(uuid4())
+        data = {"sub": user_id, "tenant_id": tenant_id, "email": "test@example.com"}
         custom_expiry = timedelta(hours=2)
         token = AuthService.create_access_token(data, expires_delta=custom_expiry)
 
         decoded = AuthService.decode_access_token(token)
 
         assert decoded.user_id is not None
-        assert str(decoded.user_id) == "user-123"
-        assert str(decoded.tenant_id) == "tenant-456"
+        assert str(decoded.user_id) == user_id
+        assert str(decoded.tenant_id) == tenant_id
         assert decoded.email == "test@example.com"
 
     def test_decode_access_token_without_email(self):
         """Test decoding token without email field"""
-        data = {"sub": "user-123", "tenant_id": "tenant-456"}
+        from uuid import uuid4
+
+        user_id = str(uuid4())
+        tenant_id = str(uuid4())
+        data = {"sub": user_id, "tenant_id": tenant_id}
         token = AuthService.create_access_token(data)
 
         decoded = AuthService.decode_access_token(token)

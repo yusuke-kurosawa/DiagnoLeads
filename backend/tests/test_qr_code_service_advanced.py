@@ -76,8 +76,8 @@ class TestQRCodeServiceLogoHandling:
         result = service.generate_qr_with_logo("https://example.com", "logo.png")
 
         assert isinstance(result, Image.Image)
-        # Verify paste was called with mask (for transparency)
-        assert qr_img.paste.called or True  # Logo paste happens
+        # Verify logo was opened
+        mock_image_open.assert_called_once()
 
     @patch("builtins.open")
     @patch("app.services.qr_code_service.Image.open")

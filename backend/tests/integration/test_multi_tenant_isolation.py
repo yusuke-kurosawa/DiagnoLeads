@@ -378,12 +378,11 @@ class TestAPIEndpointIsolation:
         lead_alpha: Lead,
         lead_beta: Lead,
     ):
-        """GET /api/v1/leads がテナントのデータのみを返すことを確認"""
+        """GET /api/v1/tenants/{tenant_id}/leads がテナントのデータのみを返すことを確認"""
         # テナントAlphaのユーザーとしてログイン
-        # （実際のテストでは、認証ヘッダーを設定）
         headers = {"Authorization": f"Bearer {create_test_token(user_alpha)}"}
 
-        response = client.get("/api/v1/leads", headers=headers)
+        response = client.get(f"/api/v1/tenants/{tenant_alpha.id}/leads", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
