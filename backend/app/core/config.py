@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # ========================================================================
     PROJECT_NAME: str = "DiagnoLeads API"
     VERSION: str = "0.1.0"
-    ENVIRONMENT: Literal["development", "staging", "production"] = "development"
+    ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
     DEBUG: bool = True
 
     # ========================================================================
