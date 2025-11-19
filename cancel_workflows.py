@@ -45,39 +45,52 @@ def get_github_token():
 
 def get_running_workflows(token):
     """実行中またはキューイング中のワークフローを取得"""
-    try:
-        result = subprocess.run(
-            ['curl', '-s', '-H', f'Authorization: token {token}',
-             '-H', 'Accept: application/vnd.github.v3+json',
-             'https://api.github.com/repos/yusuke-kurosawa/DiagnoLeads/actions/runs?status=in_progress&status=queued'],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+    workflows = []
 
-        data = json.loads(result.stdout)
-        workflows = data.get('workflow_runs', [])
+    # in_progress と queued の両方を取得
+    for status in ['in_progress', 'queued']:
+        try:
+            result = subprocess.run(
+                ['curl', '-s', '-H', f'Authorization: Bearer {token}',
+                 '-H', 'Accept: application/vnd.github+json',
+                 '-H', 'X-GitHub-Api-Version: 2022-11-28',
+                 f'https://api.github.com/repos/yusuke-kurosawa/DiagnoLeads/actions/runs?status={status}&per_page=100'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
 
-        # in_progress または queued のもののみフィルター
-        return [wf for wf in workflows if wf['status'] in ['in_progress', 'queued']]
-    except Exception as e:
-        print(f"エラー: ワークフロー取得に失敗しました: {e}")
-        return []
+            data = json.loads(result.stdout)
+            workflows.extend(data.get('workflow_runs', []))
+        except Exception as e:
+            print(f"エラー: {status}ワークフロー取得に失敗しました: {e}")
+
+    return workflows
 
 def cancel_workflow(run_id, workflow_name, token):
     """指定されたワークフローをキャンセル"""
     try:
         result = subprocess.run(
-            ['curl', '-s', '-X', 'POST',
-             '-H', f'Authorization: token {token}',
-             '-H', 'Accept: application/vnd.github.v3+json',
+            ['curl', '-s', '-X', 'POST', '-w', '\n%{http_code}',
+             '-H', f'Authorization: Bearer {token}',
+             '-H', 'Accept: application/vnd.github+json',
+             '-H', 'X-GitHub-Api-Version: 2022-11-28',
              f'https://api.github.com/repos/yusuke-kurosawa/DiagnoLeads/actions/runs/{run_id}/cancel'],
             capture_output=True,
             text=True,
-            check=True
+            check=False
         )
-        print(f"✓ キャンセル完了: {workflow_name} (ID: {run_id})")
-        return True
+
+        # HTTPステータスコードを確認
+        lines = result.stdout.strip().split('\n')
+        http_code = lines[-1] if lines else ''
+
+        if http_code in ['202', '200']:
+            print(f"✓ キャンセル完了: {workflow_name} (ID: {run_id})")
+            return True
+        else:
+            print(f"✗ キャンセル失敗: {workflow_name} (ID: {run_id}) - HTTP {http_code}")
+            return False
     except Exception as e:
         print(f"✗ キャンセル失敗: {workflow_name} (ID: {run_id}) - {e}")
         return False

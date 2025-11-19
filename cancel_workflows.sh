@@ -24,14 +24,16 @@ echo ""
 
 # 実行中のワークフローを取得
 RUNNING_WORKFLOWS=$(curl -s \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Accept: application/vnd.github.v3+json" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?status=in_progress&per_page=100")
 
 # キューイング中のワークフローを取得
 QUEUED_WORKFLOWS=$(curl -s \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Accept: application/vnd.github.v3+json" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?status=queued&per_page=100")
 
 # 結果をマージしてjqで処理
@@ -74,8 +76,9 @@ for RUN_ID in $(echo "$ALL_WORKFLOWS" | jq -r '.[].id'); do
 
     RESPONSE=$(curl -s -w "\n%{http_code}" \
         -X POST \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -H "Accept: application/vnd.github.v3+json" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github+json" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
         "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs/$RUN_ID/cancel")
 
     HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
