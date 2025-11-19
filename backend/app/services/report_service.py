@@ -83,9 +83,11 @@ class ReportService:
 
         # Handle nested models
         if "config" in update_data and update_data["config"]:
-            update_data["config"] = update_data["config"].model_dump()
+            if hasattr(update_data["config"], "model_dump"):
+                update_data["config"] = update_data["config"].model_dump()
         if "schedule_config" in update_data and update_data["schedule_config"]:
-            update_data["schedule_config"] = update_data["schedule_config"].model_dump()
+            if hasattr(update_data["schedule_config"], "model_dump"):
+                update_data["schedule_config"] = update_data["schedule_config"].model_dump()
 
         for key, value in update_data.items():
             setattr(report, key, value)

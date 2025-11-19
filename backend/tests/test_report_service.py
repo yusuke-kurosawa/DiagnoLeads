@@ -5,7 +5,6 @@ Comprehensive test coverage for report_service.py
 Target: 100% coverage
 """
 
-from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest

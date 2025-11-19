@@ -7,8 +7,6 @@ Target: 100% coverage
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from app.services.email_service import EmailService
 
 

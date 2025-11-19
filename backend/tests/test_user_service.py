@@ -7,8 +7,6 @@ Target: 100% coverage
 
 from uuid import UUID, uuid4
 
-import pytest
-
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.services.user_service import UserService

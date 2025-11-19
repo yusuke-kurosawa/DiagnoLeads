@@ -8,8 +8,6 @@ Target: 100% coverage
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-import pytest
-
 from app.models.audit_log import AuditLog
 from app.services.audit_service import AuditService
 
@@ -224,7 +222,7 @@ class TestAuditServiceGetAuditLogs:
         entity_id = uuid4()
 
         # Create log
-        log = AuditService.log_change(
+        AuditService.log_change(
             db=db_session,
             tenant_id=test_tenant.id,
             user_id=test_user.id,
@@ -446,10 +444,8 @@ class TestAuditServiceCleanupOldLogs:
         db_session.flush()
 
         # Update created_at to be 100 days ago
-        db_session.execute(
-            db_session.query(AuditLog)
-            .filter(AuditLog.id == old_log.id)
-            .update({"created_at": datetime.utcnow() - timedelta(days=100)})
+        db_session.query(AuditLog).filter(AuditLog.id == old_log.id).update(
+            {"created_at": datetime.utcnow() - timedelta(days=100)}
         )
         db_session.commit()
 
