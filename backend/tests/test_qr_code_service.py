@@ -1,15 +1,16 @@
 """Unit tests for QRCode Service"""
 
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
+
+import pytest
 from PIL import Image
 
-from app.services.qr_code_service import QRCodeService
+from app.models.assessment import Assessment
 from app.models.qr_code import QRCode
 from app.models.tenant import Tenant
-from app.models.assessment import Assessment
 from app.schemas.qr_code import QRCodeCreate, QRCodeStyleBase
+from app.services.qr_code_service import QRCodeService
 
 
 class TestShortCodeGeneration:
@@ -37,7 +38,7 @@ class TestShortCodeGeneration:
         for _ in range(100):
             code = service.generate_short_code()
             codes.add(code)
-        
+
         # With 62^7 possible codes, 100 should be unique
         assert len(codes) == 100
 
@@ -48,7 +49,7 @@ class TestShortCodeGeneration:
         mock_result = Mock()
         mock_result.scalar_one_or_none.return_value = None
         service.db.execute = AsyncMock(return_value=mock_result)
-        
+
         is_unique = await service.is_short_code_unique("abc123")
         assert is_unique is True
 
@@ -60,7 +61,7 @@ class TestShortCodeGeneration:
         mock_result = Mock()
         mock_result.scalar_one_or_none.return_value = existing_qr
         service.db.execute = AsyncMock(return_value=mock_result)
-        
+
         is_unique = await service.is_short_code_unique("abc123")
         assert is_unique is False
 
@@ -71,7 +72,7 @@ class TestShortCodeGeneration:
         mock_result = Mock()
         mock_result.scalar_one_or_none.return_value = None
         service.db.execute = AsyncMock(return_value=mock_result)
-        
+
         code = await service.generate_unique_short_code()
         assert len(code) == 7
         assert code.isalnum()
@@ -81,7 +82,7 @@ class TestShortCodeGeneration:
         """Test collision handling in unique code generation"""
         # Mock: first 3 attempts return existing codes, 4th is unique
         call_count = 0
-        
+
         def mock_execute(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -93,9 +94,9 @@ class TestShortCodeGeneration:
                 # Return None (unique)
                 mock_result.scalar_one_or_none.return_value = None
             return mock_result
-        
+
         service.db.execute = AsyncMock(side_effect=mock_execute)
-        
+
         code = await service.generate_unique_short_code()
         assert len(code) == 7
         assert call_count == 4
@@ -107,7 +108,7 @@ class TestShortCodeGeneration:
         mock_result = Mock()
         mock_result.scalar_one_or_none.return_value = QRCode(short_code="test")
         service.db.execute = AsyncMock(return_value=mock_result)
-        
+
         with pytest.raises(RuntimeError, match="Failed to generate unique short code"):
             await service.generate_unique_short_code(max_attempts=5)
 
@@ -125,7 +126,7 @@ class TestQRImageGeneration:
         """Test QR image generation returns PIL Image"""
         url = "https://example.com/test"
         img = service.generate_qr_image(url)
-        
+
         assert isinstance(img, Image.Image)
         assert img.size == (512, 512)  # Default size
 
@@ -133,7 +134,7 @@ class TestQRImageGeneration:
         """Test QR image with custom size"""
         url = "https://example.com/test"
         img = service.generate_qr_image(url, size=256)
-        
+
         assert img.size == (256, 256)
 
     def test_generate_qr_image_custom_color(self, service):
@@ -142,50 +143,50 @@ class TestQRImageGeneration:
         # Color is applied during generation, hard to test directly
         # Just verify it doesn't raise exception
         img = service.generate_qr_image(url, color="#FF0000")
-        
+
         assert isinstance(img, Image.Image)
 
     def test_qr_image_to_bytes_png(self, service):
         """Test converting QR image to PNG bytes"""
         url = "https://example.com/test"
         img = service.generate_qr_image(url, size=256)
-        
+
         img_bytes = service.qr_image_to_bytes(img, format="PNG")
-        
+
         assert isinstance(img_bytes, bytes)
         assert len(img_bytes) > 0
         # Check PNG magic bytes
-        assert img_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+        assert img_bytes[:8] == b"\x89PNG\r\n\x1a\n"
 
     def test_generate_qr_with_logo_no_logo(self, service):
         """Test QR generation without logo"""
         url = "https://example.com/test"
         img = service.generate_qr_with_logo(url, logo_path=None)
-        
+
         assert isinstance(img, Image.Image)
 
-    @patch('app.services.qr_code_service.Image.open')
+    @patch("app.services.qr_code_service.Image.open")
     def test_generate_qr_with_logo_success(self, mock_open, service):
         """Test QR generation with logo"""
         # Create mock logo
-        mock_logo = Image.new('RGB', (100, 100), color='red')
+        mock_logo = Image.new("RGB", (100, 100), color="red")
         mock_open.return_value = mock_logo
-        
+
         url = "https://example.com/test"
         img = service.generate_qr_with_logo(url, logo_path="/fake/logo.png")
-        
+
         assert isinstance(img, Image.Image)
         mock_open.assert_called_once_with("/fake/logo.png")
 
-    @patch('app.services.qr_code_service.Image.open')
+    @patch("app.services.qr_code_service.Image.open")
     def test_generate_qr_with_logo_failure_fallback(self, mock_open, service):
         """Test QR generation falls back when logo fails"""
         # Mock logo opening to raise exception
         mock_open.side_effect = IOError("File not found")
-        
+
         url = "https://example.com/test"
         img = service.generate_qr_with_logo(url, logo_path="/fake/logo.png")
-        
+
         # Should still return valid image without logo
         assert isinstance(img, Image.Image)
 
@@ -204,9 +205,9 @@ class TestCloudStorageUpload:
         """Test storage upload returns placeholder URL"""
         file_data = b"fake image data"
         filename = "test.png"
-        
+
         url = await service.upload_to_storage(file_data, filename)
-        
+
         assert isinstance(url, str)
         assert filename in url
         assert url.startswith("https://")
@@ -224,11 +225,7 @@ class TestCompleteQRCodeCreation:
     @pytest.fixture
     def mock_tenant(self):
         """Create mock tenant"""
-        return Tenant(
-            id=uuid4(),
-            name="Test Company",
-            slug="test-company"
-        )
+        return Tenant(id=uuid4(), name="Test Company", slug="test-company")
 
     @pytest.fixture
     def mock_assessment(self, mock_tenant):
@@ -237,7 +234,7 @@ class TestCompleteQRCodeCreation:
             id=uuid4(),
             tenant_id=mock_tenant.id,
             title="Test Assessment",
-            status="published"
+            status="published",
         )
 
     @pytest.fixture
@@ -248,30 +245,22 @@ class TestCompleteQRCodeCreation:
             utm_source="booth",
             utm_medium="qr",
             utm_campaign="expo_2025",
-            style=QRCodeStyleBase(
-                color="#1E40AF",
-                size=512
-            )
+            style=QRCodeStyleBase(color="#1E40AF", size=512),
         )
 
     @pytest.mark.asyncio
-    async def test_create_qr_code_success(
-        self,
-        service,
-        mock_tenant,
-        mock_assessment,
-        qr_create_data
-    ):
+    async def test_create_qr_code_success(self, service, mock_tenant, mock_assessment, qr_create_data):
         """Test successful QR code creation"""
+
         # Mock database queries
         def mock_execute(query):
             mock_result = Mock()
             # Determine which query based on call order
-            if not hasattr(mock_execute, 'call_count'):
+            if not hasattr(mock_execute, "call_count"):
                 mock_execute.call_count = 0
-            
+
             mock_execute.call_count += 1
-            
+
             if mock_execute.call_count == 1:
                 # Tenant query
                 mock_result.scalar_one_or_none.return_value = mock_tenant
@@ -281,25 +270,23 @@ class TestCompleteQRCodeCreation:
             else:
                 # Short code uniqueness check
                 mock_result.scalar_one_or_none.return_value = None
-            
+
             return mock_result
-        
+
         service.db.execute = AsyncMock(side_effect=mock_execute)
         service.db.commit = AsyncMock()
         service.db.refresh = AsyncMock()
-        
+
         # Mock storage upload
-        service.upload_to_storage = AsyncMock(
-            return_value="https://storage.test.com/qr_abc123.png"
-        )
-        
+        service.upload_to_storage = AsyncMock(return_value="https://storage.test.com/qr_abc123.png")
+
         # Create QR code
         qr_code = await service.create_qr_code(
             tenant_id=mock_tenant.id,
             assessment_id=mock_assessment.id,
-            qr_data=qr_create_data
+            qr_data=qr_create_data,
         )
-        
+
         # Verify result
         assert isinstance(qr_code, QRCode)
         assert qr_code.name == "Test QR Code"
@@ -311,36 +298,24 @@ class TestCompleteQRCodeCreation:
         assert qr_code.short_url.startswith("https://dgnl.ds/")
 
     @pytest.mark.asyncio
-    async def test_create_qr_code_tenant_not_found(
-        self,
-        service,
-        qr_create_data
-    ):
+    async def test_create_qr_code_tenant_not_found(self, service, qr_create_data):
         """Test QR code creation fails when tenant not found"""
         # Mock database to return None for tenant
         mock_result = Mock()
         mock_result.scalar_one_or_none.return_value = None
         service.db.execute = AsyncMock(return_value=mock_result)
-        
+
         with pytest.raises(ValueError, match="Tenant .* not found"):
-            await service.create_qr_code(
-                tenant_id=uuid4(),
-                assessment_id=uuid4(),
-                qr_data=qr_create_data
-            )
+            await service.create_qr_code(tenant_id=uuid4(), assessment_id=uuid4(), qr_data=qr_create_data)
 
     @pytest.mark.asyncio
-    async def test_create_qr_code_assessment_not_found(
-        self,
-        service,
-        mock_tenant,
-        qr_create_data
-    ):
+    async def test_create_qr_code_assessment_not_found(self, service, mock_tenant, qr_create_data):
         """Test QR code creation fails when assessment not found"""
+
         # Mock: tenant found, assessment not found
         def mock_execute(query):
             mock_result = Mock()
-            if not hasattr(mock_execute, 'called'):
+            if not hasattr(mock_execute, "called"):
                 # First call: tenant found
                 mock_execute.called = True
                 mock_result.scalar_one_or_none.return_value = mock_tenant
@@ -348,15 +323,11 @@ class TestCompleteQRCodeCreation:
                 # Second call: assessment not found
                 mock_result.scalar_one_or_none.return_value = None
             return mock_result
-        
+
         service.db.execute = AsyncMock(side_effect=mock_execute)
-        
+
         with pytest.raises(ValueError, match="Assessment .* not found"):
-            await service.create_qr_code(
-                tenant_id=mock_tenant.id,
-                assessment_id=uuid4(),
-                qr_data=qr_create_data
-            )
+            await service.create_qr_code(tenant_id=mock_tenant.id, assessment_id=uuid4(), qr_data=qr_create_data)
 
 
 # Run tests with: pytest tests/test_qr_code_service.py -v

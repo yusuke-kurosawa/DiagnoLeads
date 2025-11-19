@@ -7,17 +7,18 @@ Combines all API endpoints under /api/v1
 from fastapi import APIRouter
 
 from app.api.v1 import (
-    auth,
-    assessments,
-    leads,
+    ai,
     analytics,
+    assessments,
+    audit_logs,
+    auth,
+    google_analytics,
+    leads,
     qr_codes,
     qr_scans,
-    ai,
-    audit_logs,
+    responses,
     taxonomies,
     users,
-    google_analytics
 )
 
 api_router = APIRouter()
@@ -26,6 +27,7 @@ api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(users.router, tags=["Users"])
 api_router.include_router(assessments.router, tags=["Assessments"])
+api_router.include_router(responses.router, tags=["Public Responses"])
 api_router.include_router(leads.router, tags=["Leads"])
 api_router.include_router(analytics.router, tags=["Analytics"])
 api_router.include_router(qr_codes.router, tags=["QR Codes"])

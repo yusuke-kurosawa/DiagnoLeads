@@ -6,14 +6,13 @@ Provides retry logic with exponential backoff for API calls.
 
 import asyncio
 import logging
-from typing import Callable, TypeVar, Any
-from functools import wraps
+from typing import Awaitable, Callable, TypeVar
 
 from anthropic import (
-    APIError,
     APIConnectionError,
-    RateLimitError,
+    APIError,
     APITimeoutError,
+    RateLimitError,
 )
 
 from .exceptions import AIAPIError, AIRateLimitError
@@ -24,7 +23,7 @@ T = TypeVar("T")
 
 
 async def retry_with_backoff(
-    func: Callable[..., T],
+    func: Callable[..., Awaitable[T]],
     max_retries: int = 3,
     initial_delay: float = 1.0,
     backoff_factor: float = 2.0,
@@ -55,9 +54,7 @@ async def retry_with_backoff(
     for attempt in range(max_retries + 1):
         try:
             if attempt > 0:
-                logger.info(
-                    f"Retry attempt {attempt}/{max_retries} after {delay}s delay"
-                )
+                logger.info(f"Retry attempt {attempt}/{max_retries} after {delay}s delay")
                 await asyncio.sleep(delay)
 
             result = await func(*args, **kwargs)
@@ -67,9 +64,7 @@ async def retry_with_backoff(
 
         except RateLimitError as e:
             last_exception = e
-            logger.warning(
-                f"Rate limit hit on attempt {attempt + 1}/{max_retries + 1}: {e}"
-            )
+            logger.warning(f"Rate limit hit on attempt {attempt + 1}/{max_retries + 1}: {e}")
             if attempt == max_retries:
                 raise AIRateLimitError(
                     f"Rate limit exceeded after {max_retries} retries",
@@ -79,9 +74,7 @@ async def retry_with_backoff(
 
         except (APIConnectionError, APITimeoutError) as e:
             last_exception = e
-            logger.warning(
-                f"Connection error on attempt {attempt + 1}/{max_retries + 1}: {e}"
-            )
+            logger.warning(f"Connection error on attempt {attempt + 1}/{max_retries + 1}: {e}")
             if attempt == max_retries:
                 raise AIAPIError(
                     f"API connection failed after {max_retries} retries",

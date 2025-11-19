@@ -5,9 +5,9 @@ Robust JSON extraction from various response formats.
 """
 
 import json
-import re
-from typing import Dict, Any, Optional
 import logging
+import re
+from typing import Any, Dict, Optional
 
 from .exceptions import AIJSONParseError
 
@@ -70,9 +70,7 @@ class JSONExtractor:
             logger.debug(f"Direct JSON parse failed: {e}")
 
         # All strategies failed
-        raise AIJSONParseError(
-            f"Failed to extract JSON from response. First 200 chars: {response_text[:200]}"
-        )
+        raise AIJSONParseError(f"Failed to extract JSON from response. First 200 chars: {response_text[:200]}")
 
     @staticmethod
     def _extract_from_markdown_json(text: str) -> Optional[Dict[str, Any]]:

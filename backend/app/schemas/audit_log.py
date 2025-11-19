@@ -4,14 +4,16 @@ Audit Log Schemas
 Pydantic models for audit log request/response validation.
 """
 
-from pydantic import BaseModel
-from uuid import UUID
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class AuditLogResponse(BaseModel):
     """Audit log response model"""
+
     id: UUID
     tenant_id: UUID
     user_id: UUID
@@ -32,6 +34,7 @@ class AuditLogResponse(BaseModel):
 
 class AuditLogsListResponse(BaseModel):
     """List of audit logs with pagination"""
+
     total: int
     skip: int
     limit: int

@@ -3,8 +3,7 @@
  * Displays a section of help content
  */
 
-import React from 'react';
-import { HelpSection as HelpSectionType } from '../../types/help';
+import { type HelpSection as HelpSectionType } from '../../types/help';
 
 interface HelpSectionProps {
   section: HelpSectionType;

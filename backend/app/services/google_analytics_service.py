@@ -2,20 +2,21 @@
 
 Business logic for managing GA4 integrations.
 """
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from uuid import UUID
-import uuid
-import logging
-from typing import Optional
 
+import logging
+import uuid
+from typing import Optional
+from uuid import UUID
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.integrations.google_analytics import GA4MeasurementProtocol
 from app.models.google_analytics_integration import GoogleAnalyticsIntegration
 from app.schemas.google_analytics import (
     GoogleAnalyticsIntegrationCreate,
-    GoogleAnalyticsIntegrationUpdate,
-    GoogleAnalyticsTestResponse
+    GoogleAnalyticsTestResponse,
 )
-from app.integrations.google_analytics import GA4MeasurementProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +27,7 @@ class GoogleAnalyticsService:
     def __init__(self, db: Session):
         self.db = db
 
-    async def create_or_update(
-        self,
-        tenant_id: UUID,
-        data: GoogleAnalyticsIntegrationCreate
-    ) -> GoogleAnalyticsIntegration:
+    async def create_or_update(self, tenant_id: UUID, data: GoogleAnalyticsIntegrationCreate) -> GoogleAnalyticsIntegration:
         """Create or update GA4 integration for a tenant
 
         Args:
@@ -45,9 +42,7 @@ class GoogleAnalyticsService:
         """
         # Validate measurement_id format
         if not GoogleAnalyticsIntegration.validate_measurement_id(data.measurement_id):
-            raise ValueError(
-                "Invalid Measurement ID format. Expected format: G-XXXXXXXXXX"
-            )
+            raise ValueError("Invalid Measurement ID format. Expected format: G-XXXXXXXXXX")
 
         # Check if integration already exists
         existing = self.get_by_tenant(tenant_id)
@@ -83,7 +78,7 @@ class GoogleAnalyticsService:
                 track_frontend=data.track_frontend,
                 track_embed_widget=data.track_embed_widget,
                 track_server_events=data.track_server_events,
-                custom_dimensions=data.custom_dimensions
+                custom_dimensions=data.custom_dimensions,
             )
 
             try:
@@ -108,9 +103,7 @@ class GoogleAnalyticsService:
         Returns:
             GoogleAnalyticsIntegration or None if not found
         """
-        return self.db.query(GoogleAnalyticsIntegration).filter(
-            GoogleAnalyticsIntegration.tenant_id == tenant_id
-        ).first()
+        return self.db.query(GoogleAnalyticsIntegration).filter(GoogleAnalyticsIntegration.tenant_id == tenant_id).first()
 
     def get_by_id(self, integration_id: UUID) -> Optional[GoogleAnalyticsIntegration]:
         """Get GA4 integration by ID
@@ -121,9 +114,7 @@ class GoogleAnalyticsService:
         Returns:
             GoogleAnalyticsIntegration or None if not found
         """
-        return self.db.query(GoogleAnalyticsIntegration).filter(
-            GoogleAnalyticsIntegration.id == integration_id
-        ).first()
+        return self.db.query(GoogleAnalyticsIntegration).filter(GoogleAnalyticsIntegration.id == integration_id).first()
 
     async def delete(self, tenant_id: UUID) -> bool:
         """Delete GA4 integration for a tenant
@@ -159,14 +150,14 @@ class GoogleAnalyticsService:
             return GoogleAnalyticsTestResponse(
                 status="failed",
                 message="Google Analytics integration not found for this tenant",
-                error_details="Please configure GA4 integration first"
+                error_details="Please configure GA4 integration first",
             )
 
         if not integration.enabled:
             return GoogleAnalyticsTestResponse(
                 status="failed",
                 message="Google Analytics integration is disabled",
-                error_details="Enable GA4 integration in settings"
+                error_details="Enable GA4 integration in settings",
             )
 
         # Check if API secret is configured for server-side tracking
@@ -174,14 +165,14 @@ class GoogleAnalyticsService:
             return GoogleAnalyticsTestResponse(
                 status="failed",
                 message="Measurement Protocol API Secret not configured",
-                error_details="Server-side tracking requires API Secret. Configure in settings."
+                error_details="Server-side tracking requires API Secret. Configure in settings.",
             )
 
         # Create GA4 client
         client = GA4MeasurementProtocol(
             measurement_id=integration.measurement_id,
             api_secret=integration.measurement_protocol_api_secret,  # TODO: Decrypt
-            debug=False
+            debug=False,
         )
 
         # Send test event

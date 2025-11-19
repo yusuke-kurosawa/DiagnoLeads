@@ -4,12 +4,13 @@
  * Allows tenant admins to configure GA4 tracking for their DiagnoLeads instance.
  */
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { Check, X, Loader2, ExternalLink, AlertCircle } from 'lucide-react';
 import googleAnalyticsService, {
   type GoogleAnalyticsIntegration,
   type GoogleAnalyticsIntegrationCreate,
 } from '../../services/googleAnalyticsService';
+
+type ApiError = { response?: { status?: number; data?: { detail?: string } } };
 
 interface GoogleAnalyticsSettingsProps {
   tenantId: string;
@@ -36,6 +37,7 @@ export default function GoogleAnalyticsSettings({ tenantId }: GoogleAnalyticsSet
   // Fetch existing integration on mount
   useEffect(() => {
     fetchIntegration();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantId]);
 
   const fetchIntegration = async () => {
@@ -52,8 +54,9 @@ export default function GoogleAnalyticsSettings({ tenantId }: GoogleAnalyticsSet
         track_embed_widget: data.track_embed_widget,
         track_server_events: data.track_server_events,
       });
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      if (apiError.response?.status === 404) {
         // Integration not configured yet
         setIntegration(null);
       } else {
@@ -77,8 +80,9 @@ export default function GoogleAnalyticsSettings({ tenantId }: GoogleAnalyticsSet
       );
       setIntegration(data);
       alert('Google Analytics設定を保存しました');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || '設定の保存に失敗しました';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.detail || '設定の保存に失敗しました';
       setError(errorMessage);
       console.error('Failed to save GA integration:', err);
     } finally {
@@ -94,8 +98,9 @@ export default function GoogleAnalyticsSettings({ tenantId }: GoogleAnalyticsSet
     try {
       const result = await googleAnalyticsService.testGoogleAnalyticsConnection(tenantId);
       setTestResult(result);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || '接続テストに失敗しました';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.detail || '接続テストに失敗しました';
       setTestResult({
         status: 'failed',
         message: errorMessage,
@@ -126,7 +131,7 @@ export default function GoogleAnalyticsSettings({ tenantId }: GoogleAnalyticsSet
         track_server_events: false,
       });
       alert('Google Analytics統合を削除しました');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('削除に失敗しました');
       console.error('Failed to delete GA integration:', err);
     } finally {

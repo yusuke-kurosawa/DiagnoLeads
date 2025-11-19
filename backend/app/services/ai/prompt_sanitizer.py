@@ -4,9 +4,9 @@ Prompt Sanitizer
 Sanitizes user input to prevent prompt injection attacks.
 """
 
-import re
 import logging
-from typing import Dict, Any
+import re
+from typing import Any, Dict, Optional
 
 from .exceptions import AIPromptInjectionError
 
@@ -54,9 +54,7 @@ class PromptSanitizer:
 
         # Check length
         if len(topic) > PromptSanitizer.MAX_TOPIC_LENGTH:
-            raise AIPromptInjectionError(
-                f"Topic too long (max {PromptSanitizer.MAX_TOPIC_LENGTH} chars)"
-            )
+            raise AIPromptInjectionError(f"Topic too long (max {PromptSanitizer.MAX_TOPIC_LENGTH} chars)")
 
         # Check for suspicious patterns
         PromptSanitizer._check_suspicious_patterns(topic, "topic")
@@ -67,7 +65,7 @@ class PromptSanitizer:
         return topic
 
     @staticmethod
-    def sanitize_text(text: str, max_length: int = None) -> str:
+    def sanitize_text(text: str, max_length: Optional[int] = None) -> str:
         """
         Sanitize general text input.
 
@@ -116,7 +114,7 @@ class PromptSanitizer:
         if not isinstance(responses, dict):
             raise AIPromptInjectionError("Responses must be a dictionary")
 
-        sanitized = {}
+        sanitized: Dict[str, Any] = {}
         for key, value in responses.items():
             # Sanitize key
             if not isinstance(key, str):
@@ -135,9 +133,7 @@ class PromptSanitizer:
             elif isinstance(value, dict):
                 sanitized[key] = PromptSanitizer.sanitize_responses(value)
             elif isinstance(value, list):
-                sanitized[key] = [
-                    PromptSanitizer._sanitize_list_item(item) for item in value
-                ]
+                sanitized[key] = [PromptSanitizer._sanitize_list_item(item) for item in value]
             else:
                 logger.warning(f"Unexpected value type in responses: {type(value)}")
                 sanitized[key] = str(value)
@@ -175,9 +171,5 @@ class PromptSanitizer:
 
         for pattern in PromptSanitizer.SUSPICIOUS_PATTERNS:
             if re.search(pattern, text_lower, re.IGNORECASE):
-                logger.warning(
-                    f"Suspicious pattern detected in {field_name}: {pattern}"
-                )
-                raise AIPromptInjectionError(
-                    f"Suspicious content detected in {field_name}. Please rephrase your input."
-                )
+                logger.warning(f"Suspicious pattern detected in {field_name}: {pattern}")
+                raise AIPromptInjectionError(f"Suspicious content detected in {field_name}. Please rephrase your input.")

@@ -4,24 +4,23 @@ Reports API Endpoints
 REST API for custom report management and execution.
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.report import (
     ReportCreate,
-    ReportUpdate,
     ReportResponse,
     ReportResultsResponse,
-    ReportDataPoint,
+    ReportUpdate,
 )
-from app.services.report_service import ReportService
 from app.services.report_export_service import ReportExportService
+from app.services.report_service import ReportService
 
 router = APIRouter()
 
@@ -66,9 +65,7 @@ async def create_report(
 )
 async def list_reports(
     tenant_id: UUID,
-    include_private: bool = Query(
-        False, description="Include private reports created by current user"
-    ),
+    include_private: bool = Query(False, description="Include private reports created by current user"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -299,9 +296,7 @@ async def export_report(
 
         # Export based on format
         if format == "csv":
-            content = export_service.export_to_csv(
-                report.name, results["data_points"]
-            )
+            content = export_service.export_to_csv(report.name, results["data_points"])
             media_type = "text/csv"
             filename = f"{report.name.replace(' ', '_')}.csv"
 

@@ -4,17 +4,17 @@ Report Service
 Business logic for custom report generation, management, and execution.
 """
 
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import UUID
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
 
-from app.models.report import Report
-from app.models.lead import Lead
 from app.models.assessment import Assessment
-from app.schemas.report import ReportCreate, ReportUpdate, ReportDataPoint
+from app.models.lead import Lead
+from app.models.report import Report
+from app.schemas.report import ReportCreate, ReportUpdate
 
 
 class ReportService:
@@ -38,9 +38,7 @@ class ReportService:
             report_type=data.report_type,
             config=data.config.model_dump(),
             is_scheduled=data.is_scheduled,
-            schedule_config=(
-                data.schedule_config.model_dump() if data.schedule_config else None
-            ),
+            schedule_config=(data.schedule_config.model_dump() if data.schedule_config else None),
             created_by=user_id,
             is_public=data.is_public,
         )
@@ -53,15 +51,9 @@ class ReportService:
 
     def get_by_id(self, report_id: UUID, tenant_id: UUID) -> Optional[Report]:
         """Get report by ID with tenant check"""
-        return (
-            self.db.query(Report)
-            .filter(and_(Report.id == report_id, Report.tenant_id == tenant_id))
-            .first()
-        )
+        return self.db.query(Report).filter(and_(Report.id == report_id, Report.tenant_id == tenant_id)).first()
 
-    def list_reports(
-        self, tenant_id: UUID, user_id: UUID, include_private: bool = False
-    ) -> List[Report]:
+    def list_reports(self, tenant_id: UUID, user_id: UUID, include_private: bool = False) -> List[Report]:
         """
         List reports for a tenant
 
@@ -74,18 +66,14 @@ class ReportService:
 
         if include_private:
             # Show public reports or reports created by this user
-            query = query.filter(
-                or_(Report.is_public == True, Report.created_by == user_id)
-            )
+            query = query.filter(or_(Report.is_public, Report.created_by == user_id))
         else:
             # Show only public reports
-            query = query.filter(Report.is_public == True)
+            query = query.filter(Report.is_public)
 
         return query.order_by(Report.created_at.desc()).all()
 
-    def update(
-        self, report_id: UUID, data: ReportUpdate, tenant_id: UUID
-    ) -> Optional[Report]:
+    def update(self, report_id: UUID, data: ReportUpdate, tenant_id: UUID) -> Optional[Report]:
         """Update a report"""
         report = self.get_by_id(report_id, tenant_id)
         if not report:
@@ -142,13 +130,9 @@ class ReportService:
 
         # Execute based on report type
         if report.report_type == "lead_analysis":
-            return self._execute_lead_analysis_report(
-                tenant_id, metrics, filters, group_by
-            )
+            return self._execute_lead_analysis_report(tenant_id, metrics, filters, group_by)
         elif report.report_type == "assessment_performance":
-            return self._execute_assessment_performance_report(
-                tenant_id, metrics, filters, group_by
-            )
+            return self._execute_assessment_performance_report(tenant_id, metrics, filters, group_by)
         else:
             # Custom report - generic execution
             return self._execute_custom_report(tenant_id, metrics, filters, group_by)
@@ -199,9 +183,7 @@ class ReportService:
         if group_by:
             data_points = self._group_assessments(assessments, group_by, metrics)
         else:
-            data_points = [
-                self._aggregate_assessments(assessments, metrics, "All Assessments")
-            ]
+            data_points = [self._aggregate_assessments(assessments, metrics, "All Assessments")]
 
         summary = self._calculate_assessment_summary(assessments, metrics)
 
@@ -224,9 +206,7 @@ class ReportService:
         lead_query = self._apply_lead_filters(lead_query, filters)
         leads = lead_query.all()
 
-        assessment_query = self.db.query(Assessment).filter(
-            Assessment.tenant_id == tenant_id
-        )
+        assessment_query = self.db.query(Assessment).filter(Assessment.tenant_id == tenant_id)
         assessment_query = self._apply_assessment_filters(assessment_query, filters)
         assessments = assessment_query.all()
 
@@ -240,9 +220,7 @@ class ReportService:
             summary.update(self._calculate_lead_summary(leads, metrics))
 
         if any("assessment" in m for m in metrics):
-            assessment_data = self._aggregate_assessments(
-                assessments, metrics, "Assessments"
-            )
+            assessment_data = self._aggregate_assessments(assessments, metrics, "Assessments")
             data_points.append(assessment_data)
             summary.update(self._calculate_assessment_summary(assessments, metrics))
 
@@ -310,11 +288,9 @@ class ReportService:
 
     # Grouping and Aggregation
 
-    def _group_leads(
-        self, leads: List[Lead], group_by: str, metrics: List[str]
-    ) -> List[Dict[str, Any]]:
+    def _group_leads(self, leads: List[Lead], group_by: str, metrics: List[str]) -> List[Dict[str, Any]]:
         """Group leads and aggregate metrics"""
-        groups = {}
+        groups: Dict[str, List[Lead]] = {}
 
         for lead in leads:
             if group_by == "status":
@@ -334,11 +310,9 @@ class ReportService:
 
         return data_points
 
-    def _group_assessments(
-        self, assessments: List[Assessment], group_by: str, metrics: List[str]
-    ) -> List[Dict[str, Any]]:
+    def _group_assessments(self, assessments: List[Assessment], group_by: str, metrics: List[str]) -> List[Dict[str, Any]]:
         """Group assessments and aggregate metrics"""
-        groups = {}
+        groups: Dict[str, List[Assessment]] = {}
 
         for assessment in assessments:
             if group_by == "status":
@@ -356,42 +330,30 @@ class ReportService:
 
         data_points = []
         for label, group_assessments in groups.items():
-            data_points.append(
-                self._aggregate_assessments(group_assessments, metrics, label)
-            )
+            data_points.append(self._aggregate_assessments(group_assessments, metrics, label))
 
         return data_points
 
-    def _aggregate_leads(
-        self, leads: List[Lead], metrics: List[str], label: str
-    ) -> Dict[str, Any]:
+    def _aggregate_leads(self, leads: List[Lead], metrics: List[str], label: str) -> Dict[str, Any]:
         """Aggregate lead metrics"""
-        values = {}
+        values: Dict[str, Any] = {}
 
         if "leads_total" in metrics:
             values["leads_total"] = len(leads)
 
         if "average_score" in metrics:
-            values["average_score"] = (
-                round(sum(lead.score for lead in leads) / len(leads), 2)
-                if leads
-                else 0.0
-            )
+            values["average_score"] = round(sum(lead.score for lead in leads) / len(leads), 2) if leads else 0.0
 
         if "conversion_rate" in metrics:
             converted = sum(1 for lead in leads if lead.status == "converted")
-            values["conversion_rate"] = (
-                round((converted / len(leads)) * 100, 2) if leads else 0.0
-            )
+            values["conversion_rate"] = round((converted / len(leads)) * 100, 2) if leads else 0.0
 
         if "hot_leads" in metrics:
             values["hot_leads"] = sum(1 for lead in leads if lead.score >= 61)
 
         return {"label": label, "values": values}
 
-    def _aggregate_assessments(
-        self, assessments: List[Assessment], metrics: List[str], label: str
-    ) -> Dict[str, Any]:
+    def _aggregate_assessments(self, assessments: List[Assessment], metrics: List[str], label: str) -> Dict[str, Any]:
         """Aggregate assessment metrics"""
         values = {}
 
@@ -399,48 +361,34 @@ class ReportService:
             values["assessments_total"] = len(assessments)
 
         if "published_count" in metrics:
-            values["published_count"] = sum(
-                1 for a in assessments if a.status == "published"
-            )
+            values["published_count"] = sum(1 for a in assessments if a.status == "published")
 
         if "ai_generated_count" in metrics:
-            values["ai_generated_count"] = sum(
-                1 for a in assessments if a.ai_generated == "ai"
-            )
+            values["ai_generated_count"] = sum(1 for a in assessments if a.ai_generated == "ai")
 
         return {"label": label, "values": values}
 
     # Summary Calculations
 
-    def _calculate_lead_summary(
-        self, leads: List[Lead], metrics: List[str]
-    ) -> Dict[str, Any]:
+    def _calculate_lead_summary(self, leads: List[Lead], metrics: List[str]) -> Dict[str, Any]:
         """Calculate summary statistics for leads"""
         summary = {"period": "custom", "total_leads": len(leads)}
 
         if leads and "average_score" in metrics:
-            summary["overall_average_score"] = round(
-                sum(lead.score for lead in leads) / len(leads), 2
-            )
+            summary["overall_average_score"] = round(sum(lead.score for lead in leads) / len(leads), 2)
 
         if leads and "conversion_rate" in metrics:
             converted = sum(1 for lead in leads if lead.status == "converted")
-            summary["overall_conversion_rate"] = round(
-                (converted / len(leads)) * 100, 2
-            )
+            summary["overall_conversion_rate"] = round((converted / len(leads)) * 100, 2)
 
         return summary
 
-    def _calculate_assessment_summary(
-        self, assessments: List[Assessment], metrics: List[str]
-    ) -> Dict[str, Any]:
+    def _calculate_assessment_summary(self, assessments: List[Assessment], metrics: List[str]) -> Dict[str, Any]:
         """Calculate summary statistics for assessments"""
         summary = {"period": "custom", "total_assessments": len(assessments)}
 
         if assessments and "published_count" in metrics:
             published = sum(1 for a in assessments if a.status == "published")
-            summary["published_percentage"] = round(
-                (published / len(assessments)) * 100, 2
-            )
+            summary["published_percentage"] = round((published / len(assessments)) * 100, 2)
 
         return summary

@@ -5,7 +5,7 @@
  * Users must consent before GA4 tracking begins.
  */
 import { useState, useEffect } from 'react';
-import { Cookie, X } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 
 const CONSENT_KEY = 'diagnoleads_cookie_consent';
 
@@ -99,6 +99,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
 /**
  * Check if user has given cookie consent
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const hasCookieConsent = (): boolean => {
   const consent = localStorage.getItem(CONSENT_KEY);
   return consent === 'accepted';
@@ -107,6 +108,7 @@ export const hasCookieConsent = (): boolean => {
 /**
  * Reset cookie consent (for testing or user preference change)
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const resetCookieConsent = (): void => {
   localStorage.removeItem(CONSENT_KEY);
 };

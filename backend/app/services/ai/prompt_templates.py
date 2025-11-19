@@ -4,8 +4,8 @@ AI Prompt Templates
 Centralized prompt templates for consistency and version control.
 """
 
-from typing import Dict, Any, List
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -128,7 +128,7 @@ class PromptTemplates:
 
 ## 質の高い質問の例（{industry_template.name}業界）
 
-{chr(10).join(f"{i+1}. {q}" for i, q in enumerate(industry_template.example_questions[:3]))}
+{chr(10).join(f"{i + 1}. {q}" for i, q in enumerate(industry_template.example_questions[:3]))}
 
 **重要**: 必ず有効なJSON形式で出力してください。JSON以外のテキストは一切含めないでください。"""
 

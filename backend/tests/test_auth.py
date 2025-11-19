@@ -2,7 +2,6 @@
 Test authentication endpoints
 """
 
-import pytest
 from fastapi import status
 
 
@@ -159,9 +158,7 @@ class TestCurrentUser:
             }
         )
 
-        response = client.get(
-            "/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -171,9 +168,7 @@ class TestCurrentUser:
 
     def test_get_current_user_invalid_token(self, client):
         """Test getting current user with invalid token"""
-        response = client.get(
-            "/api/v1/auth/me", headers={"Authorization": "Bearer invalid-token"}
-        )
+        response = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer invalid-token"})
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 

@@ -125,28 +125,30 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 
 ## Roadmap
 
-### Q1 2025
+### Q1 2025 (Phase 1)
 - ✅ Project setup with OpenSpec
-- ⏳ MVP development (auth, multi-tenant, assessment builder)
+- ✅ MVP development (auth, multi-tenant, assessment builder)
 - ⏳ AI integration (Claude API)
 - ⏳ Beta launch
 
-### Q2 2025
+### Q2 2025 (Phase 1.5 - Revenue Foundation) 💰
+- **Subscription & Billing System**: Stripe統合、自動課金、従量課金
+- **White Label & Branding**: カスタムドメイン、ブランディングカスタマイズ
 - Lead management features
 - Analytics dashboard
-- External integrations (Salesforce, HubSpot)
+- External integrations (Microsoft Teams, Slack)
 - Official launch
 
-### Q3 2025
-- Advanced AI features
-- Custom branding
-- White-label options
-- Mobile app (optional)
+### Q3 2025 (Phase 2)
+- Advanced AI features (A/B testing, optimization)
+- Multi-channel distribution (LINE, SMS, Email)
+- Real-time collaboration
+- Assessment marketplace (α版)
 
-### Q4 2025
-- Enterprise features
-- Advanced analytics
-- Custom integrations
+### Q4 2025 (Phase 3)
+- Enterprise features (SSO, advanced security)
+- Advanced analytics & reporting
+- Custom integrations & API
 - Scale to 200+ tenants
 
 ## Feature Specs (Index)
@@ -165,6 +167,14 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 - Publishing & Versioning: [./features/publishing-and-versioning.md](./features/publishing-and-versioning.md)
 - Integrations (Base): [./features/integrations.md](./features/integrations.md)
 
+### Revenue Foundation (Phase 1.5) 💰
+- **Subscription & Billing**: [./features/subscription-billing.md](./features/subscription-billing.md) ⚡ Priority: Critical (Stripe統合、自動課金、従量課金)
+- **White Label & Branding**: [./features/white-label-branding.md](./features/white-label-branding.md) ⚡ Priority: High (カスタムドメイン、ブランディング)
+
+### Growth & Retention (Phase 2) 📈
+- **Lead Nurturing & Automation**: [./features/lead-nurturing-automation.md](./features/lead-nurturing-automation.md) ⚡ Priority: High (ドリップキャンペーン、スコアリング、セグメント化)
+- **Advanced Reporting & BI**: [./features/advanced-reporting-bi.md](./features/advanced-reporting-bi.md) ⚡ Priority: High (カスタムレポート、予測分析、ダッシュボード)
+
 ### Innovative Features (Phase 1-4)
 - **Microsoft Teams Integration**: [./features/microsoft-teams-integration.md](./features/microsoft-teams-integration.md) ⚡ Priority: Critical
 - **Multi-Channel Distribution**: [./features/multi-channel-distribution.md](./features/multi-channel-distribution.md) (LINE, SMS, Email, QR, NFC)
@@ -174,10 +184,9 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 - Gamification Engine (Coming Soon)
 - Video & Voice Assessments (Coming Soon)
 - Assessment Funnel Chains (Coming Soon)
-- White-Label Solutions (Coming Soon)
 
 ### API Reference
 - **Endpoints Overview**: [./api/endpoints-overview.md](./api/endpoints-overview.md) - Complete API documentation v2.0
 
-### Change Proposals
-- **Innovative Features Proposal**: [../changes/2025-11-10-innovative-features/innovative-features.md](../changes/2025-11-10-innovative-features/innovative-features.md) - 12の革新的機能提案
+### Archive
+- **Innovative Features Archive**: [../archive/2025-11-18-innovative-features-proposal.md](../archive/2025-11-18-innovative-features-proposal.md) - 個別機能仕様に分割済み（2025-11-18）

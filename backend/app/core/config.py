@@ -4,8 +4,9 @@ Application Configuration
 Manages environment variables and application settings.
 """
 
-from pydantic_settings import BaseSettings
 from typing import List
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -56,7 +57,7 @@ class Settings(BaseSettings):
     SALESFORCE_CLIENT_SECRET: str = ""
     HUBSPOT_API_KEY: str = ""
     SLACK_WEBHOOK_URL: str = ""
-    
+
     # Microsoft Teams Integration
     MICROSOFT_CLIENT_ID: str = ""
     MICROSOFT_CLIENT_SECRET: str = ""
@@ -64,6 +65,17 @@ class Settings(BaseSettings):
     BOT_APP_ID: str = ""
     BOT_APP_PASSWORD: str = ""
     TEAMS_WEBHOOK_URL: str = ""
+
+    # Email Settings (SMTP)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@diagnoleads.com"
+    FROM_NAME: str = "DiagnoLeads"
+
+    # Frontend URL (for email links)
+    FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
         env_file = ".env"

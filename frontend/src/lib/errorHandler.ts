@@ -4,7 +4,7 @@ export interface SystemError {
   code: string;
   message: string;
   status: number;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -15,7 +15,7 @@ export class ApiErrorHandler {
     // Axios Error
     if (error instanceof AxiosError) {
       const status = error.response?.status || 500;
-      const errorData = error.response?.data as any;
+      const errorData = error.response?.data as { detail?: string } | undefined;
 
       return {
         code: `API_ERROR_${status}`,
@@ -106,24 +106,25 @@ export class ApiErrorHandler {
     if (error.details) {
       console.group('📋 Detailed Information');
       console.error('Details:', error.details);
-      
+
       // If it's an API error, show more details
-      if (error.details.response) {
+      const details = error.details as { response?: { status?: number; data?: unknown; headers?: unknown }; config?: { method?: string; url?: string; data?: unknown } };
+      if (details.response) {
         console.group('🌐 API Response Details');
-        console.error('Response Status:', error.details.response.status);
-        console.error('Response Data:', error.details.response.data);
-        console.error('Response Headers:', error.details.response.headers);
+        console.error('Response Status:', details.response.status);
+        console.error('Response Data:', details.response.data);
+        console.error('Response Headers:', details.response.headers);
         console.groupEnd();
       }
-      
-      if (error.details.config) {
+
+      if (details.config) {
         console.group('⚙️ Request Configuration');
-        console.error('Method:', error.details.config.method);
-        console.error('URL:', error.details.config.url);
-        console.error('Data:', error.details.config.data);
+        console.error('Method:', details.config.method);
+        console.error('URL:', details.config.url);
+        console.error('Data:', details.config.data);
         console.groupEnd();
       }
-      
+
       console.groupEnd();
     }
     
@@ -135,12 +136,19 @@ export class ApiErrorHandler {
 }
 
 export class UserFacingError extends Error {
+  public code: string;
+  public userMessage: string;
+  public technicalDetails?: unknown;
+
   constructor(
-    public code: string,
-    public userMessage: string,
-    public technicalDetails?: any
+    code: string,
+    userMessage: string,
+    technicalDetails?: unknown
   ) {
     super(userMessage);
     this.name = 'UserFacingError';
+    this.code = code;
+    this.userMessage = userMessage;
+    this.technicalDetails = technicalDetails;
   }
 }

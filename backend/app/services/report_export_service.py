@@ -11,8 +11,8 @@ Handles exporting reports to various formats (PDF, Excel, CSV).
 
 import csv
 import io
-from typing import Dict, List, Any
 from datetime import datetime
+from typing import Any, Dict, List
 
 
 class ReportExportService:
@@ -22,9 +22,7 @@ class ReportExportService:
     Supports: PDF, Excel (XLSX), CSV
     """
 
-    def export_to_csv(
-        self, report_name: str, data_points: List[Dict[str, Any]]
-    ) -> bytes:
+    def export_to_csv(self, report_name: str, data_points: List[Dict[str, Any]]) -> bytes:
         """
         Export report to CSV format
 
@@ -84,12 +82,10 @@ class ReportExportService:
         """
         try:
             from openpyxl import Workbook
-            from openpyxl.styles import Font, PatternFill, Alignment
+            from openpyxl.styles import Font, PatternFill
             from openpyxl.utils import get_column_letter
         except ImportError:
-            raise ImportError(
-                "openpyxl is required for Excel export. Install with: pip install openpyxl"
-            )
+            raise ImportError("openpyxl is required for Excel export. Install with: pip install openpyxl")
 
         wb = Workbook()
 
@@ -104,26 +100,22 @@ class ReportExportService:
 
         # Extract metrics
         if data_points:
-            metrics = set()
+            metrics_set = set()
             for dp in data_points:
-                metrics.update(dp.get("values", {}).keys())
-            metrics = sorted(list(metrics))
+                metrics_set.update(dp.get("values", {}).keys())
+            metrics = sorted(list(metrics_set))
 
             # Header row
             row = 4
             ws_data[f"A{row}"] = "Label"
             ws_data[f"A{row}"].font = Font(bold=True)
-            ws_data[f"A{row}"].fill = PatternFill(
-                start_color="CCE5FF", end_color="CCE5FF", fill_type="solid"
-            )
+            ws_data[f"A{row}"].fill = PatternFill(start_color="CCE5FF", end_color="CCE5FF", fill_type="solid")
 
             for col, metric in enumerate(metrics, start=2):
                 cell = ws_data[f"{get_column_letter(col)}{row}"]
                 cell.value = metric.replace("_", " ").title()
                 cell.font = Font(bold=True)
-                cell.fill = PatternFill(
-                    start_color="CCE5FF", end_color="CCE5FF", fill_type="solid"
-                )
+                cell.fill = PatternFill(start_color="CCE5FF", end_color="CCE5FF", fill_type="solid")
 
             # Data rows
             for dp in data_points:
@@ -214,22 +206,20 @@ class ReportExportService:
             PDF file as bytes
         """
         try:
-            from reportlab.lib.pagesizes import letter, A4
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
             from reportlab.lib.units import inch
             from reportlab.platypus import (
+                PageBreak,
+                Paragraph,
                 SimpleDocTemplate,
+                Spacer,
                 Table,
                 TableStyle,
-                Paragraph,
-                Spacer,
-                PageBreak,
             )
-            from reportlab.lib import colors
         except ImportError:
-            raise ImportError(
-                "reportlab is required for PDF export. Install with: pip install reportlab"
-            )
+            raise ImportError("reportlab is required for PDF export. Install with: pip install reportlab")
 
         # Create PDF buffer
         buffer = io.BytesIO()
@@ -238,9 +228,7 @@ class ReportExportService:
         styles = getSampleStyleSheet()
 
         # Title
-        title_style = ParagraphStyle(
-            "CustomTitle", parent=styles["Heading1"], fontSize=20, spaceAfter=30
-        )
+        title_style = ParagraphStyle("CustomTitle", parent=styles["Heading1"], fontSize=20, spaceAfter=30)
         story.append(Paragraph(report_name, title_style))
 
         # Generated timestamp
@@ -280,10 +268,10 @@ class ReportExportService:
             story.append(Paragraph("Detailed Data", styles["Heading2"]))
 
             # Extract metrics
-            metrics = set()
+            metrics_set = set()
             for dp in data_points:
-                metrics.update(dp.get("values", {}).keys())
-            metrics = sorted(list(metrics))
+                metrics_set.update(dp.get("values", {}).keys())
+            metrics = sorted(list(metrics_set))
 
             # Build table data
             table_data = [["Label"] + [m.replace("_", " ").title() for m in metrics]]
@@ -292,10 +280,7 @@ class ReportExportService:
                 label = dp.get("label", "Unknown")
                 values = dp.get("values", {})
                 row = [label] + [
-                    f"{values.get(metric, 0):.2f}"
-                    if isinstance(values.get(metric, 0), float)
-                    else str(values.get(metric, 0))
-                    for metric in metrics
+                    f"{values.get(metric, 0):.2f}" if isinstance(values.get(metric, 0), float) else str(values.get(metric, 0)) for metric in metrics
                 ]
                 table_data.append(row)
 
@@ -312,7 +297,12 @@ class ReportExportService:
                         ("FONTSIZE", (0, 0), (-1, 0), 10),
                         ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                         ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                        (
+                            "ROWBACKGROUNDS",
+                            (0, 1),
+                            (-1, -1),
+                            [colors.white, colors.lightgrey],
+                        ),
                     ]
                 )
             )
@@ -323,9 +313,9 @@ class ReportExportService:
         story.append(Paragraph("Report Configuration", styles["Heading2"]))
 
         config_text = f"""
-        <b>Metrics:</b> {', '.join(config.get('metrics', []))}<br/>
-        <b>Group By:</b> {config.get('group_by', 'None')}<br/>
-        <b>Visualization:</b> {config.get('visualization', 'table')}<br/>
+        <b>Metrics:</b> {", ".join(config.get("metrics", []))}<br/>
+        <b>Group By:</b> {config.get("group_by", "None")}<br/>
+        <b>Visualization:</b> {config.get("visualization", "table")}<br/>
         """
 
         if "filters" in config and config["filters"]:

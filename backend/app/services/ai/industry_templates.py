@@ -4,8 +4,8 @@ Industry Templates for AI Assessment Generation
 Provides industry-specific templates and guidelines for generating high-quality assessments.
 """
 
-from typing import Dict, List, Any
 from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass
@@ -286,7 +286,4 @@ def list_available_industries() -> List[Dict[str, str]]:
     Returns:
         List of dictionaries with 'key', 'name', and 'description'
     """
-    return [
-        {"key": key, "name": template.name, "description": template.description}
-        for key, template in INDUSTRY_TEMPLATES.items()
-    ]
+    return [{"key": key, "name": template.name, "description": template.description} for key, template in INDUSTRY_TEMPLATES.items()]

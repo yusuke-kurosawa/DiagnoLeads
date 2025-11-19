@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { HelpStepItem } from '../HelpStepItem';
-import { HelpStep } from '../../../types/help';
+import { type HelpStep } from '../../../types/help';
 
 describe('HelpStepItem', () => {
   const mockStep: HelpStep = {

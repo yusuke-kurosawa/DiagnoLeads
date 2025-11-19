@@ -13,9 +13,8 @@ Improvements:
 - Standardized prompt templates
 """
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 from uuid import UUID
-import logging
 import time
 
 from anthropic import AsyncAnthropic
@@ -25,15 +24,15 @@ from app.core.config import settings
 from app.core.constants import AIConfig, LeadScoreThreshold
 from app.core.logging_config import get_logger
 from app.services.ai import (
-    get_industry_template,
-    get_lead_analysis_template,
-    get_recommended_action,
+    AIJSONParseError,
+    AIValidationError,
     JSONExtractor,
     PromptSanitizer,
     PromptTemplates,
+    get_industry_template,
+    get_lead_analysis_template,
+    get_recommended_action,
     retry_with_backoff,
-    AIValidationError,
-    AIJSONParseError,
 )
 from app.services.ai.prompt_templates import (
     IndustryTemplateData,
@@ -95,10 +94,7 @@ class AIService:
             AIJSONParseError: If response cannot be parsed
             AIAPIError: If API call fails after retries
         """
-        logger.info(
-            f"Generating assessment: topic='{topic[:50]}...', industry={industry}, "
-            f"num_questions={num_questions}, tenant_id={tenant_id}"
-        )
+        logger.info(f"Generating assessment: topic='{topic[:50]}...', industry={industry}, num_questions={num_questions}, tenant_id={tenant_id}")
 
         # Sanitize inputs
         safe_topic = self.sanitizer.sanitize_topic(topic)
@@ -138,9 +134,7 @@ class AIService:
             # Validate assessment structure
             validation_result = self._validate_assessment(assessment_data)
             if not validation_result["valid"]:
-                raise AIValidationError(
-                    f"Invalid assessment structure: {validation_result['error']}"
-                )
+                raise AIValidationError(f"Invalid assessment structure: {validation_result['error']}")
 
             # Add metadata
             assessment_data["metadata"] = {
@@ -166,10 +160,7 @@ class AIService:
                 success=True,
             )
 
-            logger.info(
-                f"Assessment generated successfully: {usage_info['input_tokens']} "
-                f"input tokens, {usage_info['output_tokens']} output tokens"
-            )
+            logger.info(f"Assessment generated successfully: {usage_info['input_tokens']} input tokens, {usage_info['output_tokens']} output tokens")
 
             result = {
                 "success": True,
@@ -227,10 +218,7 @@ class AIService:
             AIJSONParseError: If response cannot be parsed
             AIAPIError: If API call fails after retries
         """
-        logger.info(
-            f"Analyzing lead insights: assessment='{assessment_title}', "
-            f"industry={industry}, tenant_id={tenant_id}"
-        )
+        logger.info(f"Analyzing lead insights: assessment='{assessment_title}', industry={industry}, tenant_id={tenant_id}")
 
         # Sanitize inputs
         safe_responses = self.sanitizer.sanitize_responses(assessment_responses)
@@ -267,9 +255,7 @@ class AIService:
 
             # Add industry-specific recommended action
             score = insights_data.get("overall_score", 0)
-            insights_data["recommended_action"] = get_recommended_action(
-                score, industry
-            )
+            insights_data["recommended_action"] = get_recommended_action(score, industry)
 
             # Add automatic priority level
             hot_lead = insights_data.get("hot_lead", False)
@@ -277,9 +263,7 @@ class AIService:
             insights_data["priority_level"] = priority_level
 
             # Add follow-up timing recommendation
-            insights_data["follow_up_timing"] = self._calculate_follow_up_timing(
-                score, priority_level
-            )
+            insights_data["follow_up_timing"] = self._calculate_follow_up_timing(score, priority_level)
 
             # Log token usage
             usage_info = {
@@ -297,10 +281,7 @@ class AIService:
                 success=True,
             )
 
-            logger.info(
-                f"Lead insights analyzed successfully: score={score}, "
-                f"hot_lead={hot_lead}, priority={priority_level}"
-            )
+            logger.info(f"Lead insights analyzed successfully: score={score}, hot_lead={hot_lead}, priority={priority_level}")
 
             result = {
                 "success": True,
@@ -351,10 +332,7 @@ class AIService:
             AIJSONParseError: If response cannot be parsed
             AIAPIError: If API call fails after retries
         """
-        logger.info(
-            f"Rephrasing content: style={style}, audience={target_audience}, "
-            f"tenant_id={tenant_id}"
-        )
+        logger.info(f"Rephrasing content: style={style}, audience={target_audience}, tenant_id={tenant_id}")
 
         # Sanitize inputs
         safe_text = self.sanitizer.sanitize_text(text)
@@ -466,12 +444,12 @@ class AIService:
                 if "text" not in question:
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Missing 'text' field",
+                        "error": f"Question {i + 1}: Missing 'text' field",
                     }
                 if "options" not in question:
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Missing 'options' field",
+                        "error": f"Question {i + 1}: Missing 'options' field",
                     }
 
                 # Validate options
@@ -479,7 +457,7 @@ class AIService:
                 if not isinstance(options, list) or len(options) < 2:
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Must have at least 2 options",
+                        "error": f"Question {i + 1}: Must have at least 2 options",
                     }
 
                 # Check scoring
@@ -487,12 +465,12 @@ class AIService:
                 if not all(isinstance(s, (int, float)) for s in scores):
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: All scores must be numbers",
+                        "error": f"Question {i + 1}: All scores must be numbers",
                     }
                 if not (min(scores) >= 0 and max(scores) <= 100):
                     return {
                         "valid": False,
-                        "error": f"Question {i+1}: Scores must be between 0 and 100",
+                        "error": f"Question {i + 1}: Scores must be between 0 and 100",
                     }
 
             return {"valid": True, "error": None}

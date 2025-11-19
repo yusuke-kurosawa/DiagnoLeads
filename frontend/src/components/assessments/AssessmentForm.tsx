@@ -81,7 +81,7 @@ export default function AssessmentForm({
       trackAssessmentCreated(
         assessment.id,
         variables.title,
-        variables.ai_generated || 'manual'
+        (variables.ai_generated as 'manual' | 'ai' | undefined) || 'manual'
       );
 
       queryClient.invalidateQueries({ queryKey: ['assessments', tenantId] });
@@ -92,7 +92,7 @@ export default function AssessmentForm({
   const updateMutation = useMutation({
     mutationFn: (data: CreateAssessmentData) =>
       assessmentService.update(tenantId, assessmentId!, data),
-    onSuccess: (assessment, variables) => {
+    onSuccess: (_assessment, variables) => {
       // Track assessment update
       trackAssessmentUpdated(assessmentId!, variables.title);
 
