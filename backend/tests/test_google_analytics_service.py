@@ -72,15 +72,14 @@ class TestGoogleAnalyticsServiceCreate:
     @pytest.mark.asyncio
     async def test_create_invalid_measurement_id(self, db_session, test_tenant):
         """Test creating integration with invalid measurement ID"""
-        service = GoogleAnalyticsService(db_session)
+        from pydantic import ValidationError
 
-        data = GoogleAnalyticsIntegrationCreate(
-            measurement_id="INVALID-ID",
-            enabled=True,
-        )
-
-        with pytest.raises(ValueError, match="Invalid Measurement ID format"):
-            await service.create_or_update(test_tenant.id, data)
+        # Pydantic validates before service method is called
+        with pytest.raises(ValidationError):
+            GoogleAnalyticsIntegrationCreate(
+                measurement_id="INVALID-ID",
+                enabled=True,
+            )
 
     @pytest.mark.asyncio
     async def test_update_without_api_secret(self, db_session, test_tenant):

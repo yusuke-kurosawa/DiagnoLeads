@@ -4,7 +4,7 @@ Advanced Tests for Auth Service
 Test coverage for password reset, login attempts, and refresh tokens
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from jose import jwt
 
@@ -32,8 +32,8 @@ class TestAuthRefreshTokens:
 
         # Verify expiration is about 7 days
         exp_timestamp = payload["exp"]
-        exp_date = datetime.fromtimestamp(exp_timestamp)
-        expected_exp = datetime.utcnow() + timedelta(days=7)
+        exp_date = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+        expected_exp = datetime.now(timezone.utc) + timedelta(days=7)
         # Allow 1 minute tolerance
         assert abs((exp_date - expected_exp).total_seconds()) < 60
 
@@ -68,7 +68,7 @@ class TestAuthPasswordReset:
         assert user.password_reset_token == token
         assert user.password_reset_expires_at is not None
         # Token should expire in about 1 hour
-        expected_exp = datetime.utcnow() + timedelta(hours=1)
+        expected_exp = datetime.now(timezone.utc) + timedelta(hours=1)
         assert abs((user.password_reset_expires_at - expected_exp).total_seconds()) < 60
 
     def test_create_password_reset_request_nonexistent_user(self, db_session):
@@ -93,7 +93,7 @@ class TestAuthPasswordReset:
         # Manually set expired token
         token = "expired-token-123"
         test_user.password_reset_token = token
-        test_user.password_reset_expires_at = datetime.utcnow() - timedelta(hours=1)
+        test_user.password_reset_expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
         db_session.commit()
 
         # Try to verify
@@ -114,7 +114,7 @@ class TestAuthPasswordReset:
 
         # Set reset token
         test_user.password_reset_token = "some-token"
-        test_user.password_reset_expires_at = datetime.utcnow() + timedelta(hours=1)
+        test_user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
         db_session.commit()
 
         # Reset password
@@ -167,13 +167,13 @@ class TestAuthLoginAttempts:
         db_session.refresh(test_user)
         assert test_user.locked_until is not None
         # Should be locked for about 15 minutes
-        expected_unlock = datetime.utcnow() + timedelta(minutes=15)
+        expected_unlock = datetime.now(timezone.utc) + timedelta(minutes=15)
         assert abs((test_user.locked_until - expected_unlock).total_seconds()) < 60
 
     def test_check_and_increment_login_attempts_already_locked(self, db_session, test_user):
         """Test that locked account cannot attempt login"""
         # Lock the account
-        test_user.locked_until = datetime.utcnow() + timedelta(minutes=10)
+        test_user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=10)
         test_user.failed_login_attempts = 5
         db_session.commit()
 
@@ -199,7 +199,7 @@ class TestAuthLoginAttempts:
         """Test resetting login attempts after successful login"""
         # Set failed attempts
         test_user.failed_login_attempts = 3
-        test_user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+        test_user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=15)
         db_session.commit()
 
         # Reset attempts

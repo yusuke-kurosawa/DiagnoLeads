@@ -18,9 +18,9 @@ class TestQRCodeServiceImageConversion:
     """Tests for image conversion methods"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     def test_qr_image_to_bytes_jpeg(self, service):
         """Test converting image to JPEG bytes"""
@@ -51,9 +51,9 @@ class TestQRCodeServiceLogoHandling:
     """Tests for logo handling in QR codes"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     @patch("builtins.open")
     @patch("app.services.qr_code_service.Image.open")
@@ -106,9 +106,9 @@ class TestQRCodeServiceErrorCorrection:
     """Tests for different error correction levels"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     def test_generate_qr_with_low_error_correction(self, service):
         """Test QR generation with low error correction"""
@@ -139,9 +139,9 @@ class TestQRCodeServiceURLHandling:
     """Tests for URL handling in QR codes"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     def test_generate_qr_with_long_url(self, service):
         """Test QR generation with very long URL"""
@@ -169,9 +169,9 @@ class TestQRCodeServiceShortCodeEdgeCases:
     """Tests for short code edge cases"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     def test_generate_short_code_custom_length(self, service):
         """Test generating short code with custom length"""
@@ -197,9 +197,9 @@ class TestQRCodeServiceStorageUpload:
     """Tests for storage upload functionality"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     @pytest.mark.asyncio
     async def test_upload_to_storage_returns_url(self, service):
@@ -230,9 +230,9 @@ class TestQRCodeServiceColorHandling:
     """Tests for custom color handling"""
 
     @pytest.fixture
-    def service(self, async_db_session):
+    def service(self, db_session):
         """Create service instance"""
-        return QRCodeService(async_db_session)
+        return QRCodeService(db_session)
 
     def test_generate_qr_with_hex_color(self, service):
         """Test QR generation with hex color"""

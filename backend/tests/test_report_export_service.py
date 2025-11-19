@@ -66,7 +66,7 @@ class TestReportExportServiceCSV:
 class TestReportExportServiceExcel:
     """Tests for Excel export"""
 
-    @patch("app.services.report_export_service.Workbook")
+    @patch("openpyxl.Workbook")
     def test_export_to_excel_basic(self, mock_workbook_class):
         """Test basic Excel export"""
         service = ReportExportService()
@@ -104,7 +104,7 @@ class TestReportExportServiceExcel:
             with pytest.raises(ImportError, match="openpyxl is required"):
                 service.export_to_excel("Test", [], {}, {})
 
-    @patch("app.services.report_export_service.Workbook")
+    @patch("openpyxl.Workbook")
     def test_export_to_excel_empty_data(self, mock_workbook_class):
         """Test Excel export with empty data points"""
         service = ReportExportService()
@@ -126,10 +126,10 @@ class TestReportExportServiceExcel:
 
         assert isinstance(result, bytes)
 
-    @patch("app.services.report_export_service.Workbook")
-    @patch("app.services.report_export_service.Font")
-    @patch("app.services.report_export_service.PatternFill")
-    @patch("app.services.report_export_service.get_column_letter")
+    @patch("openpyxl.Workbook")
+    @patch("openpyxl.styles.Font")
+    @patch("openpyxl.styles.PatternFill")
+    @patch("openpyxl.utils.get_column_letter")
     def test_export_to_excel_with_formatting(self, mock_get_col, mock_fill, mock_font, mock_wb_class):
         """Test Excel export includes formatting"""
         service = ReportExportService()
@@ -164,10 +164,10 @@ class TestReportExportServiceExcel:
 class TestReportExportServicePDF:
     """Tests for PDF export"""
 
-    @patch("app.services.report_export_service.SimpleDocTemplate")
-    @patch("app.services.report_export_service.getSampleStyleSheet")
-    @patch("app.services.report_export_service.Paragraph")
-    @patch("app.services.report_export_service.Table")
+    @patch("reportlab.platypus.SimpleDocTemplate")
+    @patch("reportlab.lib.styles.getSampleStyleSheet")
+    @patch("reportlab.platypus.Paragraph")
+    @patch("reportlab.platypus.Table")
     def test_export_to_pdf_basic(self, mock_table, mock_paragraph, mock_styles, mock_doc_class):
         """Test basic PDF export"""
         service = ReportExportService()
@@ -208,13 +208,13 @@ class TestReportExportServicePDF:
             with pytest.raises(ImportError, match="reportlab is required"):
                 service.export_to_pdf("Test", [], {}, {})
 
-    @patch("app.services.report_export_service.SimpleDocTemplate")
-    @patch("app.services.report_export_service.getSampleStyleSheet")
-    @patch("app.services.report_export_service.Paragraph")
-    @patch("app.services.report_export_service.Table")
-    @patch("app.services.report_export_service.TableStyle")
-    @patch("app.services.report_export_service.Spacer")
-    @patch("app.services.report_export_service.PageBreak")
+    @patch("reportlab.platypus.SimpleDocTemplate")
+    @patch("reportlab.lib.styles.getSampleStyleSheet")
+    @patch("reportlab.platypus.Paragraph")
+    @patch("reportlab.platypus.Table")
+    @patch("reportlab.platypus.TableStyle")
+    @patch("reportlab.platypus.Spacer")
+    @patch("reportlab.platypus.PageBreak")
     def test_export_to_pdf_empty_data(
         self, mock_pagebreak, mock_spacer, mock_tablestyle, mock_table, mock_paragraph, mock_styles, mock_doc_class
     ):
@@ -236,12 +236,12 @@ class TestReportExportServicePDF:
         assert isinstance(result, bytes)
         assert mock_doc.build.called
 
-    @patch("app.services.report_export_service.SimpleDocTemplate")
-    @patch("app.services.report_export_service.getSampleStyleSheet")
-    @patch("app.services.report_export_service.Paragraph")
-    @patch("app.services.report_export_service.Table")
-    @patch("app.services.report_export_service.TableStyle")
-    @patch("app.services.report_export_service.ParagraphStyle")
+    @patch("reportlab.platypus.SimpleDocTemplate")
+    @patch("reportlab.lib.styles.getSampleStyleSheet")
+    @patch("reportlab.platypus.Paragraph")
+    @patch("reportlab.platypus.Table")
+    @patch("reportlab.platypus.TableStyle")
+    @patch("reportlab.lib.styles.ParagraphStyle")
     def test_export_to_pdf_with_filters(
         self, mock_para_style, mock_tablestyle, mock_table, mock_paragraph, mock_styles, mock_doc_class
     ):
@@ -277,10 +277,10 @@ class TestReportExportServicePDF:
 
         assert isinstance(result, bytes)
 
-    @patch("app.services.report_export_service.SimpleDocTemplate")
-    @patch("app.services.report_export_service.getSampleStyleSheet")
-    @patch("app.services.report_export_service.Paragraph")
-    @patch("app.services.report_export_service.Table")
+    @patch("reportlab.platypus.SimpleDocTemplate")
+    @patch("reportlab.lib.styles.getSampleStyleSheet")
+    @patch("reportlab.platypus.Paragraph")
+    @patch("reportlab.platypus.Table")
     def test_export_to_pdf_float_formatting(self, mock_table, mock_paragraph, mock_styles, mock_doc_class):
         """Test PDF export formats float values correctly"""
         service = ReportExportService()

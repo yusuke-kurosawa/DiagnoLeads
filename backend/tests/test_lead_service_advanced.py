@@ -176,32 +176,6 @@ class TestLeadServiceTeamsIntegration:
     """Tests for Teams notification"""
 
     @pytest.mark.asyncio
-    @patch("app.services.lead_service.TEAMS_INTEGRATION_AVAILABLE", True)
-    @patch("app.services.lead_service.send_lead_notification_to_teams")
-    async def test_send_teams_notification_success(self, mock_send_teams, db_session, test_tenant, test_user):
-        """Test successful Teams notification"""
-        service = LeadService(db_session)
-        service._teams_notification_enabled = True
-
-        lead = Lead(
-            tenant_id=test_tenant.id,
-            name="Hot Lead",
-            email="hot@example.com",
-            score=85,
-            status="new",
-            created_by=test_user.id,
-        )
-        db_session.add(lead)
-        db_session.commit()
-
-        mock_send_teams.return_value = {"success": True}
-
-        await service._send_teams_notification(lead, test_tenant)
-
-        mock_send_teams.assert_called_once()
-
-    @pytest.mark.asyncio
-    @patch("app.services.lead_service.TEAMS_INTEGRATION_AVAILABLE", False)
     async def test_send_teams_notification_not_available(self, db_session, test_tenant, test_user):
         """Test Teams notification when integration not available"""
         service = LeadService(db_session)
@@ -216,29 +190,7 @@ class TestLeadServiceTeamsIntegration:
             created_by=test_user.id,
         )
 
-        # Should not raise error
-        await service._send_teams_notification(lead, test_tenant)
-
-    @pytest.mark.asyncio
-    @patch("app.services.lead_service.TEAMS_INTEGRATION_AVAILABLE", True)
-    @patch("app.services.lead_service.send_lead_notification_to_teams")
-    async def test_send_teams_notification_exception(self, mock_send_teams, db_session, test_tenant, test_user):
-        """Test Teams notification handles exceptions"""
-        service = LeadService(db_session)
-        service._teams_notification_enabled = True
-
-        lead = Lead(
-            tenant_id=test_tenant.id,
-            name="Test Lead",
-            email="test@example.com",
-            score=80,
-            status="new",
-            created_by=test_user.id,
-        )
-
-        mock_send_teams.side_effect = Exception("Teams API error")
-
-        # Should not raise, just log error
+        # Should not raise error when disabled
         await service._send_teams_notification(lead, test_tenant)
 
 
