@@ -92,7 +92,7 @@ export default function AssessmentForm({
   const updateMutation = useMutation({
     mutationFn: (data: CreateAssessmentData) =>
       assessmentService.update(tenantId, assessmentId!, data),
-    onSuccess: (_assessment, variables) => {
+    onSuccess: () => {
       // Track assessment update
       // trackAssessmentUpdated not available
 
