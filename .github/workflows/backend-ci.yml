@@ -59,8 +59,8 @@ jobs:
         working-directory: ./backend
         run: |
           python -m pytest --version
-          python -c "import ruff; print(f'ruff {ruff.__version__}')"
-          python -c "import mypy; print(f'mypy {mypy.version.__version__}')"
+          python -m ruff --version
+          python -m mypy --version
 
       - name: Run tests
         working-directory: ./backend
@@ -109,8 +109,8 @@ jobs:
       - name: Verify installations
         working-directory: ./backend
         run: |
-          python -c "import ruff; print(f'ruff {ruff.__version__}')"
-          python -c "import mypy; print(f'mypy {mypy.version.__version__}')"
+          python -m ruff --version
+          python -m mypy --version
 
       - name: Run Ruff
         working-directory: ./backend
