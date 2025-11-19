@@ -18,7 +18,8 @@ class PromptSanitizer:
 
     # Suspicious patterns that might indicate prompt injection
     SUSPICIOUS_PATTERNS = [
-        r"ignore\s+(previous|above|all)\s+(instructions|prompts)",
+        r"ignore\s+(all\s+)?(previous|above|any)\s+(instructions|prompts)",
+        r"ignore\s+(instructions|prompts)",
         r"disregard\s+(previous|above|all)",
         r"you\s+are\s+now",
         r"new\s+instructions",
