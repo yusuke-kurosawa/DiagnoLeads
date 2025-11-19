@@ -548,10 +548,7 @@ class AIService:
         output_tokens = usage.get("output_tokens", 0)
         total_tokens = input_tokens + output_tokens
 
-        logger.info(
-            f"Token usage - operation={operation}, tenant_id={tenant_id}, "
-            f"input={input_tokens}, output={output_tokens}, total={total_tokens}"
-        )
+        logger.info(f"Token usage - operation={operation}, tenant_id={tenant_id}, input={input_tokens}, output={output_tokens}, total={total_tokens}")
 
         # Store in database if session provided
         if db and tenant_id:
@@ -572,9 +569,7 @@ class AIService:
                 usage_log.update_cost()  # Calculate cost
                 db.add(usage_log)
                 db.commit()
-                logger.debug(
-                    f"Saved AI usage log: id={usage_log.id}, cost=${usage_log.cost_usd}"
-                )
+                logger.debug(f"Saved AI usage log: id={usage_log.id}, cost=${usage_log.cost_usd}")
             except Exception as e:
                 logger.error(f"Failed to save AI usage log: {e}", exc_info=True)
                 # Don't fail the main operation if logging fails

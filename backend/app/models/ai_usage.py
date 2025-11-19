@@ -26,14 +26,10 @@ class AIUsageLog(Base):
         nullable=False,
         index=True,
     )
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # Operation details
-    operation = Column(
-        String(100), nullable=False, index=True
-    )  # generate_assessment, analyze_lead_insights, rephrase_content
+    operation = Column(String(100), nullable=False, index=True)  # generate_assessment, analyze_lead_insights, rephrase_content
     model = Column(String(100), nullable=False)  # claude-3-5-sonnet-20241022
 
     # Token usage
@@ -45,21 +41,15 @@ class AIUsageLog(Base):
     cost_usd = Column(Float, nullable=True)  # Estimated cost in USD
 
     # Request metadata
-    assessment_id = Column(
-        UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="SET NULL"), nullable=True
-    )
-    lead_id = Column(
-        UUID(as_uuid=True), ForeignKey("leads.id", ondelete="SET NULL"), nullable=True
-    )
+    assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="SET NULL"), nullable=True)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="SET NULL"), nullable=True)
 
     # Performance metrics
     duration_ms = Column(Integer, nullable=True)  # Request duration in milliseconds
     success = Column(String(20), nullable=False, default="success")  # success, failure
 
     # Timestamps
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="ai_usage_logs")
@@ -68,10 +58,7 @@ class AIUsageLog(Base):
     lead = relationship("Lead")
 
     def __repr__(self):
-        return (
-            f"<AIUsageLog(id={self.id}, operation={self.operation}, "
-            f"total_tokens={self.total_tokens}, tenant_id={self.tenant_id})>"
-        )
+        return f"<AIUsageLog(id={self.id}, operation={self.operation}, total_tokens={self.total_tokens}, tenant_id={self.tenant_id})>"
 
     @property
     def cost_per_1k_input(self) -> float:

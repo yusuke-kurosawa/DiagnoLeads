@@ -4,7 +4,6 @@ Tests for AI JSON Extractor
 Tests the robust JSON extraction logic.
 """
 
-
 import pytest
 
 from app.services.ai.exceptions import AIJSONParseError
@@ -121,9 +120,9 @@ Third block:
 
     def test_extract_with_escaped_characters(self):
         """Test extraction with escaped characters"""
-        text = r'''```json
+        text = r"""```json
 {"text": "Line 1\nLine 2", "quote": "He said \"hello\""}
-```'''
+```"""
 
         result = JSONExtractor.extract(text)
 
