@@ -51,12 +51,24 @@ jobs:
       - name: Install dependencies
         working-directory: ./backend
         run: |
-          set -e
           python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements.txt
-          pip install --no-cache-dir -r requirements-dev.txt
-          echo "--- Verify installations ---"
-          pip show pytest ruff mypy
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Add Python scripts to PATH
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$(python -m site --user-base)/bin" >> $GITHUB_PATH
+
+      - name: Verify installations
+        working-directory: ./backend
+        run: |
+          which pytest || echo "pytest not found"
+          which ruff || echo "ruff not found"
+          which mypy || echo "mypy not found"
+          pytest --version
+          ruff --version
+          mypy --version
 
       - name: Run tests
         working-directory: ./backend
@@ -66,7 +78,6 @@ jobs:
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: Run multi-tenant isolation tests
@@ -77,7 +88,6 @@ jobs:
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           pytest tests/integration/test_multi_tenant_isolation.py -v
 
       - name: Upload coverage to Codecov
@@ -100,26 +110,29 @@ jobs:
       - name: Install dependencies
         working-directory: ./backend
         run: |
-          set -e
           python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements.txt
-          pip install --no-cache-dir -r requirements-dev.txt
-          echo "--- Verify installations ---"
-          pip show ruff mypy
-          echo "--- PATH ---"
-          echo $PATH
-          echo "--- Python bin directory ---"
-          python -m site --user-base
-          ls -la $(python -m site --user-base)/bin/ || true
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Add Python scripts to PATH
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$(python -m site --user-base)/bin" >> $GITHUB_PATH
+
+      - name: Verify installations
+        working-directory: ./backend
+        run: |
+          which ruff || echo "ruff not found"
+          which mypy || echo "mypy not found"
+          ruff --version
+          mypy --version
 
       - name: Run Ruff
         working-directory: ./backend
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           ruff check .
 
       - name: Run MyPy
         working-directory: ./backend
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           mypy app/
