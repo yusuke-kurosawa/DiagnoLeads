@@ -5,22 +5,26 @@
  * TODO: 実装を追加してください
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it } from 'vitest';
+// import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // TODO: AssessmentCardコンポーネントをインポート
 // import { AssessmentCard } from '../../assessments/AssessmentCard';
 
+// NOTE: テストの実装時に以下のインポートとモックデータのコメントを解除してください:
+// - expect, vi (from 'vitest')
+// - render, screen, fireEvent (from '@testing-library/react')
+
 describe('AssessmentCard', () => {
-  // モックデータ
-  const mockAssessment = {
-    id: '123e4567-e89b-12d3-a456-426614174000',
-    title: 'サンプル診断',
-    description: 'これはテスト用の診断です',
-    status: 'published',
-    created_at: '2024-01-01T00:00:00Z',
-  };
+  // モックデータ（テスト実装時にコメント解除）
+  // const mockAssessment = {
+  //   id: '123e4567-e89b-12d3-a456-426614174000',
+  //   title: 'サンプル診断',
+  //   description: 'これはテスト用の診断です',
+  //   status: 'published',
+  //   created_at: '2024-01-01T00:00:00Z',
+  // };
 
   it.skip('診断カードが正しくレンダリングされる', () => {
     // TODO: コンポーネントの実装後、skipを削除

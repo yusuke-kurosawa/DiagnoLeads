@@ -5,13 +5,18 @@
  * TODO: 実装を追加してください
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it } from 'vitest';
+// import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+// import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
 // TODO: LeadFormコンポーネントをインポート
 // import { LeadForm } from '../../leads/LeadForm';
+
+// NOTE: テストの実装時に以下のインポートのコメントを解除してください:
+// - expect, vi (from 'vitest')
+// - render, screen, fireEvent, waitFor (from '@testing-library/react')
+// - userEvent (from '@testing-library/user-event')
 
 describe('LeadForm', () => {
   it.skip('フォームが正しくレンダリングされる', () => {

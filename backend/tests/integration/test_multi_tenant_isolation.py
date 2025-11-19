@@ -12,21 +12,16 @@
 - Integration（外部連携）
 """
 
-import pytest
 import uuid
-from datetime import datetime
-from typing import List
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import TenantAccessDeniedError
-from app.models.tenant import Tenant
-from app.models.user import User
 from app.models.assessment import Assessment
 from app.models.lead import Lead
-from app.models.response import Response
-
+from app.models.tenant import Tenant
+from app.models.user import User
 
 # ============================================================================
 # Fixtures
