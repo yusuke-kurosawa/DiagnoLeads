@@ -541,10 +541,9 @@ TEAMS_APP_MANIFEST_URL=https://diagno-leads.com/teams-manifest.json
 
 ## Related Specifications
 
-- [Microsoft Dynamics 365 Integration](./microsoft-dynamics-integration.md)
-- [Microsoft Outlook Integration](./microsoft-outlook-integration.md)
-- [Base Functional Requirements](../../changes/2025-11-10-functional-requirements/functional-requirements.md)
-- [Innovative Features Proposal](../../changes/2025-11-10-innovative-features/innovative-features.md)
+- [Integrations Overview](./integrations.md)
+- [Lead Management](./lead-management.md)
+- [Multi-Channel Distribution](./multi-channel-distribution.md)
 
 ## References
 

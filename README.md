@@ -30,6 +30,7 @@ See [docs/SESSION_SUMMARY.md](./docs/SESSION_SUMMARY.md) for complete session su
 - **🏢 マルチテナント**: テナントID による論理分離、Row-Level Security (RLS)
 - **🔐 認証・認可**: JWT ベース、3つのロール（システム管理者、テナント管理者、一般ユーザー）
 - **🛡️ エラーハンドリング**: 包括的なエラーページ、強化されたエラーロギング
+- **📖 ユーザーガイド機能**: コンテキスト対応ヘルプ、ヘルプセンター、Tooltip（100%テストカバレッジ）
 
 ### 計画中の機能（Phase 1-4）
 - **🤖 AI診断生成**: トピック入力だけでClaude AIが質問・選択肢を自動生成

@@ -4,11 +4,12 @@ Tenant Model
 Represents a tenant (organization/company) in the multi-tenant system.
 """
 
-from sqlalchemy import Column, String, DateTime, JSON
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import JSON, Column, DateTime, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -24,9 +25,7 @@ class Tenant(Base):
     plan = Column(String(50), default="free", nullable=False)  # free, pro, enterprise
     settings = Column(JSON, default={}, nullable=False)
 
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -43,8 +42,9 @@ class Tenant(Base):
         "GoogleAnalyticsIntegration",
         back_populates="tenant",
         uselist=False,
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
+    ai_usage_logs = relationship("AIUsageLog", back_populates="tenant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant(id={self.id}, name={self.name}, plan={self.plan})>"

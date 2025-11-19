@@ -115,6 +115,19 @@ class Settings(BaseSettings):
     TEAMS_WEBHOOK_URL: str = ""
 
     # ========================================================================
+    # Email Settings (SMTP)
+    # ========================================================================
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@diagnoleads.com"
+    FROM_NAME: str = "DiagnoLeads"
+
+    # Frontend URL (for email links)
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    # ========================================================================
     # Security
     # ========================================================================
     BCRYPT_ROUNDS: int = 12

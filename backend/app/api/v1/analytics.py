@@ -6,10 +6,10 @@ REST API for analytics and reporting with multi-tenant support.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.services.analytics_service import AnalyticsService
 
@@ -28,7 +28,7 @@ async def get_overview_analytics(
 ):
     """
     Get overview analytics for dashboard
-    
+
     Returns:
         - Lead statistics (total, status distribution, score distribution)
         - Assessment statistics (total, status distribution, AI generation)
@@ -59,7 +59,7 @@ async def get_lead_analytics(
 ):
     """
     Get detailed lead analytics
-    
+
     Returns:
         - Total leads
         - Status distribution (new, contacted, qualified, converted, disqualified)
@@ -91,7 +91,7 @@ async def get_assessment_analytics(
 ):
     """
     Get detailed assessment analytics
-    
+
     Returns:
         - Total assessments
         - Status distribution (draft, published, archived)
@@ -123,11 +123,11 @@ async def get_trends(
 ):
     """
     Get trend data for a specific metric
-    
+
     Args:
         period: Time period (7d, 30d, 90d)
         metric: Metric type (leads, assessments)
-    
+
     Returns:
         - Data points with date and value
         - Summary statistics

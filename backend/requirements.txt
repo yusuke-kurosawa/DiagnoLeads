@@ -8,9 +8,10 @@ uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy[asyncio]==2.0.23
 alembic==1.12.1
 psycopg2-binary==2.9.9
+asyncpg==0.29.0
 
 # Redis Cache
 redis==5.0.1
@@ -24,7 +25,7 @@ python-dotenv==1.0.0
 # Validation
 pydantic==2.5.0
 pydantic-settings==2.1.0
-email-validator==2.1.0
+email-validator==2.2.0
 
 # HTTP Client
 httpx==0.25.1
@@ -36,8 +37,8 @@ structlog==23.2.0
 # AI & Analytics
 # ============================================================================
 
-# AI - Anthropic Claude
-anthropic==0.7.7
+# AI - Anthropic Claude (Updated for AsyncAnthropic support)
+anthropic>=0.34.0
 
 # A/B Testing & Statistics
 scipy>=1.11.0
@@ -64,10 +65,6 @@ botbuilder-schema>=4.14.0
 # ============================================================================
 # Utilities
 # ============================================================================
-
-# QR Code Generation
-qrcode[pil]==7.4.2
-pillow==10.1.0
 
 # User Agent Parsing & GeoIP
 user-agents==2.2.0

@@ -2,11 +2,13 @@
 
 Manages GA4 integration settings per tenant.
 """
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
+
 import uuid
 from datetime import datetime
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -19,6 +21,7 @@ class GoogleAnalyticsIntegration(Base):
     - Embed widget tracking
     - Server-side event tracking via Measurement Protocol
     """
+
     __tablename__ = "google_analytics_integrations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -27,7 +30,7 @@ class GoogleAnalyticsIntegration(Base):
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
-        index=True
+        index=True,
     )
 
     # GA4 Configuration
@@ -88,5 +91,6 @@ class GoogleAnalyticsIntegration(Base):
             True if valid format, False otherwise
         """
         import re
-        pattern = r'^G-[A-Z0-9]{10}$'
+
+        pattern = r"^G-[A-Z0-9]{10}$"
         return bool(re.match(pattern, measurement_id))

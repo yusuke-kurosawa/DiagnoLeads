@@ -2,7 +2,6 @@
 Test authentication password validation
 """
 
-import pytest
 from fastapi import status
 
 

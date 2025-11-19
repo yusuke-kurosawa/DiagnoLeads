@@ -5,8 +5,9 @@ These tests verify that tenant data is properly isolated
 and cross-tenant access is prevented.
 """
 
-import pytest
 import uuid
+
+import pytest
 from sqlalchemy.orm import Session
 
 from app.models.tenant import Tenant
@@ -91,9 +92,7 @@ def test_tenant_isolation(db_session: Session, tenant_a: Tenant, tenant_b: Tenan
     assert tenant_b.id in tenant_ids
 
 
-def test_user_belongs_to_correct_tenant(
-    db_session: Session, user_a: User, user_b: User, tenant_a: Tenant, tenant_b: Tenant
-):
+def test_user_belongs_to_correct_tenant(db_session: Session, user_a: User, user_b: User, tenant_a: Tenant, tenant_b: Tenant):
     """Test that users are associated with correct tenants"""
     # Verify user A belongs to tenant A
     assert user_a.tenant_id == tenant_a.id
@@ -102,63 +101,43 @@ def test_user_belongs_to_correct_tenant(
     assert user_b.tenant_id == tenant_b.id
 
 
-def test_query_users_by_tenant(
-    db_session: Session, user_a: User, user_b: User, tenant_a: Tenant, tenant_b: Tenant
-):
+def test_query_users_by_tenant(db_session: Session, user_a: User, user_b: User, tenant_a: Tenant, tenant_b: Tenant):
     """Test querying users filtered by tenant_id"""
     # Query users for tenant A
-    users_a = (
-        db_session.query(User).filter(User.tenant_id == tenant_a.id).all()
-    )
+    users_a = db_session.query(User).filter(User.tenant_id == tenant_a.id).all()
     assert len(users_a) == 1
     assert users_a[0].id == user_a.id
 
     # Query users for tenant B
-    users_b = (
-        db_session.query(User).filter(User.tenant_id == tenant_b.id).all()
-    )
+    users_b = db_session.query(User).filter(User.tenant_id == tenant_b.id).all()
     assert len(users_b) == 1
     assert users_b[0].id == user_b.id
 
 
-def test_cross_tenant_data_access_prevented(
-    db_session: Session, user_a: User, user_b: User, tenant_a: Tenant, tenant_b: Tenant
-):
+def test_cross_tenant_data_access_prevented(db_session: Session, user_a: User, user_b: User, tenant_a: Tenant, tenant_b: Tenant):
     """
     Test that cross-tenant data access is prevented
-    
+
     This is a critical security test to ensure tenant isolation.
     """
     # Try to query user B's data with tenant A's filter
-    cross_tenant_query = (
-        db_session.query(User)
-        .filter(User.tenant_id == tenant_a.id)
-        .filter(User.id == user_b.id)
-        .first()
-    )
+    cross_tenant_query = db_session.query(User).filter(User.tenant_id == tenant_a.id).filter(User.id == user_b.id).first()
 
     # Should return None because user B belongs to tenant B, not A
     assert cross_tenant_query is None
 
     # Verify the opposite direction
-    cross_tenant_query_reverse = (
-        db_session.query(User)
-        .filter(User.tenant_id == tenant_b.id)
-        .filter(User.id == user_a.id)
-        .first()
-    )
+    cross_tenant_query_reverse = db_session.query(User).filter(User.tenant_id == tenant_b.id).filter(User.id == user_a.id).first()
 
     # Should also return None
     assert cross_tenant_query_reverse is None
 
 
-def test_tenant_cascade_delete(
-    db_session: Session, tenant_a: Tenant, user_a: User
-):
+def test_tenant_cascade_delete(db_session: Session, tenant_a: Tenant, user_a: User):
     """Test that deleting a tenant cascades to users"""
     # Store user ID before deletion
     user_id = user_a.id
-    
+
     # Verify user exists
     user = db_session.query(User).filter(User.id == user_id).first()
     assert user is not None
@@ -166,7 +145,7 @@ def test_tenant_cascade_delete(
     # Delete tenant
     db_session.delete(tenant_a)
     db_session.commit()
-    
+
     # Expunge all to avoid stale object issues
     db_session.expunge_all()
 

@@ -31,19 +31,22 @@ export class DiagnoLeadsWidget extends HTMLElement {
 
     // Get configuration from attributes
     this.config = {
-      tenantId: this.getAttribute('tenant-id') || '',
-      assessmentId: this.getAttribute('assessment-id') || '',
+      tenantId: (this.getAttribute('tenant-id') || '') as string,
+      assessmentId: (this.getAttribute('assessment-id') || '') as string,
       apiBaseUrl: this.getAttribute('api-url') || 'http://localhost:8000',
       ga4MeasurementId: this.getAttribute('ga4-id') || undefined,
       theme: (this.getAttribute('theme') as 'light' | 'dark') || 'light',
       primaryColor: this.getAttribute('primary-color') || '#3b82f6',
     };
 
-    this.api = new DiagnoLeadsAPI(this.config.apiBaseUrl, this.config.tenantId);
+    this.api = new DiagnoLeadsAPI(
+      this.config.apiBaseUrl || 'http://localhost:8000',
+      this.config.tenantId
+    );
     this.tracker = new GA4Tracker(this.config.ga4MeasurementId);
   }
 
-  async connectedCallback(): void {
+  async connectedCallback(): Promise<void> {
     try {
       // Load assessment data
       this.assessment = await this.api.getAssessment(this.config.assessmentId);
@@ -278,7 +281,7 @@ export class DiagnoLeadsWidget extends HTMLElement {
     }
   }
 
-  private renderThankYou(result: any): void {
+  private renderThankYou(_result: any): void {
     this.shadow.innerHTML = `
       ${this.getStyles()}
       <div class="diagnoleads-widget">

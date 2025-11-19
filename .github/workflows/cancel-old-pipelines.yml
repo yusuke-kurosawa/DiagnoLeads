@@ -1,0 +1,64 @@
+name: Cancel Old Pipelines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel-old-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel in-progress and queued workflow runs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // 実行中およびキューイング中のワークフローを取得
+            const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              status: 'in_progress',
+              per_page: 100
+            });
+
+            const { data: queuedRuns } = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              status: 'queued',
+              per_page: 100
+            });
+
+            const allRuns = [...runs.workflow_runs, ...queuedRuns.workflow_runs];
+
+            // 現在実行中のワークフロー（このワークフロー自体）を除外
+            const currentRunId = context.runId;
+            const runsToCancel = allRuns.filter(run => run.id !== currentRunId);
+
+            if (runsToCancel.length === 0) {
+              console.log('キャンセルするワークフローはありません');
+              return;
+            }
+
+            console.log(`${runsToCancel.length}個のワークフローをキャンセルします:`);
+
+            for (const run of runsToCancel) {
+              console.log(`- ${run.name} (ID: ${run.id}, Branch: ${run.head_branch}, Status: ${run.status})`);
+
+              try {
+                await github.rest.actions.cancelWorkflowRun({
+                  owner,
+                  repo,
+                  run_id: run.id
+                });
+                console.log(`  ✓ キャンセル完了`);
+              } catch (error) {
+                console.log(`  ✗ キャンセル失敗: ${error.message}`);
+              }
+            }
+
+            console.log(`\n完了: ${runsToCancel.length}個のワークフローをキャンセルしました`);

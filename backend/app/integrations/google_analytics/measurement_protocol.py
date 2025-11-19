@@ -4,10 +4,12 @@ Sends events to GA4 using the Measurement Protocol API for server-side tracking.
 
 Reference: https://developers.google.com/analytics/devguides/collection/protocol/ga4
 """
-import httpx
-from typing import Dict, Optional, List
+
 import logging
 from datetime import datetime
+from typing import Dict, List, Optional
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ class GA4MeasurementProtocol:
         measurement_id: str,
         api_secret: str,
         debug: bool = False,
-        timeout: float = 10.0
+        timeout: float = 10.0,
     ):
         """Initialize GA4 Measurement Protocol client
 
@@ -56,7 +58,7 @@ class GA4MeasurementProtocol:
         event_name: str,
         event_params: Optional[Dict] = None,
         user_properties: Optional[Dict] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ) -> bool:
         """Send a single event to GA4
 
@@ -77,10 +79,7 @@ class GA4MeasurementProtocol:
 
         payload = {
             "client_id": client_id,
-            "events": [{
-                "name": event_name,
-                "params": event_params
-            }]
+            "events": [{"name": event_name, "params": event_params}],
         }
 
         # Add user_id if provided
@@ -96,18 +95,11 @@ class GA4MeasurementProtocol:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
 
-                logger.info(
-                    f"GA4 event sent successfully: {event_name}, "
-                    f"client_id: {client_id[:8]}..., "
-                    f"params: {event_params}"
-                )
+                logger.info(f"GA4 event sent successfully: {event_name}, client_id: {client_id[:8]}..., params: {event_params}")
                 return True
 
         except httpx.HTTPStatusError as e:
-            logger.error(
-                f"GA4 HTTP error sending event '{event_name}': "
-                f"status={e.response.status_code}, response={e.response.text}"
-            )
+            logger.error(f"GA4 HTTP error sending event '{event_name}': status={e.response.status_code}, response={e.response.text}")
             return False
 
         except httpx.RequestError as e:
@@ -123,7 +115,7 @@ class GA4MeasurementProtocol:
         client_id: str,
         events: List[Dict],
         user_properties: Optional[Dict] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ) -> bool:
         """Send multiple events in a single request (batch)
 
@@ -148,10 +140,7 @@ class GA4MeasurementProtocol:
 
         url = f"{self.endpoint}?measurement_id={self.measurement_id}&api_secret={self.api_secret}"
 
-        payload = {
-            "client_id": client_id,
-            "events": events
-        }
+        payload = {"client_id": client_id, "events": events}
 
         if user_id:
             payload["user_id"] = user_id
@@ -165,17 +154,11 @@ class GA4MeasurementProtocol:
                 response.raise_for_status()
 
                 event_names = [e.get("name", "unknown") for e in events]
-                logger.info(
-                    f"GA4 batch events sent successfully: {len(events)} events "
-                    f"({', '.join(event_names)}), client_id: {client_id[:8]}..."
-                )
+                logger.info(f"GA4 batch events sent successfully: {len(events)} events ({', '.join(event_names)}), client_id: {client_id[:8]}...")
                 return True
 
         except httpx.HTTPStatusError as e:
-            logger.error(
-                f"GA4 HTTP error sending batch events: "
-                f"status={e.response.status_code}, response={e.response.text}"
-            )
+            logger.error(f"GA4 HTTP error sending batch events: status={e.response.status_code}, response={e.response.text}")
             return False
 
         except httpx.RequestError as e:
@@ -186,12 +169,7 @@ class GA4MeasurementProtocol:
             logger.error(f"GA4 unexpected error sending batch events: {str(e)}")
             return False
 
-    async def validate_event(
-        self,
-        client_id: str,
-        event_name: str,
-        event_params: Optional[Dict] = None
-    ) -> Dict:
+    async def validate_event(self, client_id: str, event_name: str, event_params: Optional[Dict] = None) -> Dict:
         """Validate an event using the Measurement Protocol validation endpoint
 
         Args:
@@ -209,10 +187,7 @@ class GA4MeasurementProtocol:
 
         payload = {
             "client_id": client_id,
-            "events": [{
-                "name": event_name,
-                "params": event_params
-            }]
+            "events": [{"name": event_name, "params": event_params}],
         }
 
         try:
@@ -237,31 +212,28 @@ class GA4MeasurementProtocol:
         event_name = "connection_test"
         event_params = {
             "test": "DiagnoLeads GA4 Integration",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
-        success = await self.send_event(
-            client_id=client_id,
-            event_name=event_name,
-            event_params=event_params
-        )
+        success = await self.send_event(client_id=client_id, event_name=event_name, event_params=event_params)
 
         if success:
             return {
                 "status": "success",
                 "message": "Test event sent successfully to GA4. Check GA4 Realtime Report.",
                 "event_name": event_name,
-                "timestamp": datetime.utcnow()
+                "timestamp": datetime.utcnow(),
             }
         else:
             return {
                 "status": "failed",
                 "message": "Failed to send test event to GA4. Check credentials and network.",
-                "error_details": "See server logs for details"
+                "error_details": "See server logs for details",
             }
 
 
 # Convenience functions for common events
+
 
 async def send_lead_generated_event(
     client: GA4MeasurementProtocol,
@@ -269,7 +241,7 @@ async def send_lead_generated_event(
     assessment_id: str,
     lead_score: int,
     lead_tier: str,
-    tenant_id: str
+    tenant_id: str,
 ) -> bool:
     """Send lead_generated event to GA4
 
@@ -291,8 +263,8 @@ async def send_lead_generated_event(
             "assessment_id": assessment_id,
             "lead_score": lead_score,
             "lead_tier": lead_tier,
-            "tenant_id": tenant_id
-        }
+            "tenant_id": tenant_id,
+        },
     )
 
 
@@ -302,7 +274,7 @@ async def send_hot_lead_generated_event(
     assessment_id: str,
     lead_score: int,
     estimated_value: int = 1000,
-    tenant_id: str = ""
+    tenant_id: str = "",
 ) -> bool:
     """Send hot_lead_generated conversion event to GA4
 
@@ -325,8 +297,8 @@ async def send_hot_lead_generated_event(
             "lead_score": lead_score,
             "value": estimated_value,
             "currency": "JPY",
-            "tenant_id": tenant_id
-        }
+            "tenant_id": tenant_id,
+        },
     )
 
 
@@ -336,7 +308,7 @@ async def send_assessment_completed_event(
     assessment_id: str,
     total_time_seconds: int,
     questions_answered: int,
-    tenant_id: str
+    tenant_id: str,
 ) -> bool:
     """Send assessment_completed event to GA4
 
@@ -358,6 +330,6 @@ async def send_assessment_completed_event(
             "assessment_id": assessment_id,
             "total_time_seconds": total_time_seconds,
             "questions_answered": questions_answered,
-            "tenant_id": tenant_id
-        }
+            "tenant_id": tenant_id,
+        },
     )
