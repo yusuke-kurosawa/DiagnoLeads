@@ -136,9 +136,9 @@ export class ApiErrorHandler {
 }
 
 export class UserFacingError extends Error {
-  public code: string;
-  public userMessage: string;
-  public technicalDetails?: unknown;
+  code: string;
+  userMessage: string;
+  technicalDetails?: unknown;
 
   constructor(
     code: string,
