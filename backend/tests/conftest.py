@@ -15,7 +15,8 @@ from app.core.database import Base, get_db
 import os
 
 SQLALCHEMY_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
+    "TEST_DATABASE_URL",
+    os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"),
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

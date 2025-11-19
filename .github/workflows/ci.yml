@@ -118,6 +118,9 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/diagnoleads_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci
+          ENVIRONMENT: test
         run: |
           alembic upgrade head
 
@@ -125,7 +128,9 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/diagnoleads_test
+          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-for-ci
+          ENVIRONMENT: test
         run: |
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
 
