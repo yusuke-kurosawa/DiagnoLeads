@@ -129,17 +129,17 @@ def assessment_beta(db_session: Session, tenant_beta: Tenant, user_beta: User) -
 
 
 @pytest.fixture
-def lead_alpha(db_session: Session, tenant_alpha: Tenant, assessment_alpha: Assessment) -> Lead:
+def lead_alpha(db_session: Session, tenant_alpha: Tenant, user_alpha: User) -> Lead:
     """テナントAlphaのリード"""
     lead = Lead(
         id=uuid.uuid4(),
         tenant_id=tenant_alpha.id,
-        assessment_id=assessment_alpha.id,
         email="customer@example.com",
         name="山田太郎",
         company="株式会社サンプル",
         score=75,
         status="new",
+        created_by=user_alpha.id,
     )
     db_session.add(lead)
     db_session.commit()
@@ -148,17 +148,17 @@ def lead_alpha(db_session: Session, tenant_alpha: Tenant, assessment_alpha: Asse
 
 
 @pytest.fixture
-def lead_beta(db_session: Session, tenant_beta: Tenant, assessment_beta: Assessment) -> Lead:
+def lead_beta(db_session: Session, tenant_beta: Tenant, user_beta: User) -> Lead:
     """テナントBetaのリード"""
     lead = Lead(
         id=uuid.uuid4(),
         tenant_id=tenant_beta.id,
-        assessment_id=assessment_beta.id,
         email="client@example.com",
         name="佐藤花子",
         company="株式会社テスト",
         score=85,
         status="new",
+        created_by=user_beta.id,
     )
     db_session.add(lead)
     db_session.commit()
@@ -349,7 +349,7 @@ class TestServiceLayerIsolation:
         service = AssessmentService(db_session)
 
         # テナントAlphaの診断を取得
-        assessments_alpha = service.get_assessments_by_tenant(tenant_alpha.id)
+        assessments_alpha = service.list_by_tenant(tenant_alpha.id)
 
         # テナントAlphaの診断のみが返される
         assert len(assessments_alpha) == 1
@@ -495,8 +495,12 @@ class TestTenantIsolationPerformance:
         大量データがあってもテナント分離が正しく機能することを確認
         （パフォーマンス低下がないか）
         """
-        # 複数のテナントを作成
+        # 複数のテナントとユーザーを作成
+        from app.models.user import User
+        from app.services.auth import AuthService
+
         tenants = []
+        users = []
         for i in range(10):
             tenant = Tenant(
                 id=uuid.uuid4(),
@@ -506,12 +510,24 @@ class TestTenantIsolationPerformance:
                 settings={},
             )
             db_session.add(tenant)
+            db_session.flush()  # tenant.idを取得するため
+
+            user = User(
+                id=uuid.uuid4(),
+                tenant_id=tenant.id,
+                email=f"user{i}@tenant-{i}.com",
+                password_hash=AuthService.hash_password("password"),
+                name=f"User {i}",
+                role="tenant_admin",
+            )
+            db_session.add(user)
             tenants.append(tenant)
+            users.append(user)
 
         db_session.commit()
 
         # 各テナントに100個のリードを作成
-        for tenant in tenants:
+        for tenant, user in zip(tenants, users):
             for j in range(100):
                 lead = Lead(
                     id=uuid.uuid4(),
@@ -520,6 +536,7 @@ class TestTenantIsolationPerformance:
                     name=f"Lead {j}",
                     score=50,
                     status="new",
+                    created_by=user.id,
                 )
                 db_session.add(lead)
 
