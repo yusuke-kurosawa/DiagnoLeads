@@ -22,7 +22,32 @@ NC='\033[0m' # No Color
 # Check if GitHub CLI is installed
 if ! command -v gh &> /dev/null; then
     echo -e "${RED}Error: GitHub CLI (gh) is not installed${NC}"
-    echo "Install it from: https://cli.github.com/"
+    echo ""
+    echo -e "${YELLOW}You have two options:${NC}"
+    echo ""
+    echo -e "${GREEN}Option 1: Install GitHub CLI (Recommended)${NC}"
+    echo "  macOS:   brew install gh"
+    echo "  Linux:   sudo apt install gh"
+    echo "  Windows: winget install --id GitHub.cli"
+    echo "  Or visit: https://cli.github.com/"
+    echo ""
+    echo -e "${GREEN}Option 2: Use Python version (No installation required)${NC}"
+    echo "  Run: python scripts/analyze-cicd-errors.py"
+    echo "  Or:  python3 scripts/analyze-cicd-errors.py"
+    echo ""
+    echo -e "${BLUE}The Python version uses GitHub API directly and doesn't require 'gh' command.${NC}"
+    echo ""
+
+    # Try to run Python version automatically
+    if command -v python3 &> /dev/null; then
+        read -p "Do you want to run the Python version now? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            python3 scripts/analyze-cicd-errors.py "$@"
+            exit $?
+        fi
+    fi
+
     exit 1
 fi
 

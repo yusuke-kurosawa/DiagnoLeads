@@ -44,9 +44,18 @@
 
 **仕組み**: CLIツールでエラーログをダウンロードし、Claude Codeで解析します。
 
-**セットアップ**:
+**セットアップ（2つの方法）**:
+
+#### 方法A: 自動セットアップスクリプト（推奨）
 ```bash
-# GitHub CLIをインストール（まだの場合）
+# セットアップヘルパーを実行
+./scripts/setup-cicd-tools.sh
+
+# 環境チェック、インストールガイド、認証を自動実行
+```
+
+#### 方法B: GitHub CLIを手動インストール
+```bash
 # macOS
 brew install gh
 
@@ -60,16 +69,28 @@ sudo apt install gh
 gh auth login
 ```
 
+#### 方法C: Python版を使用（GitHub CLI不要）
+```bash
+# Python 3.7+があればOK
+python3 scripts/analyze-cicd-errors.py
+
+# GitHub Token設定（レート制限回避）
+export GITHUB_TOKEN=your_token_here
+# トークン作成: https://github.com/settings/tokens
+```
+
 **使い方**:
 
 ```bash
-# 最新の失敗したrunを解析
-./scripts/analyze-cicd-errors.sh
+# 方法1: Bash版（GitHub CLI使用）
+./scripts/analyze-cicd-errors.sh              # 最新の失敗したrun
+./scripts/analyze-cicd-errors.sh 1234567890   # 特定のrun ID
 
-# 特定のrun IDを解析
-./scripts/analyze-cicd-errors.sh 1234567890
+# 方法2: Python版（GitHub CLI不要）
+python3 scripts/analyze-cicd-errors.py        # 最新の失敗したrun
+python3 scripts/analyze-cicd-errors.py 1234567890  # 特定のrun ID
 
-# レポートが生成される
+# どちらの方法でもレポートが生成される
 # cicd-errors/1234567890/ERROR_ANALYSIS_REPORT.md
 ```
 
@@ -86,6 +107,8 @@ cat cicd-errors/1234567890/ERROR_ANALYSIS_REPORT.md
 - ✅ 完全にローカルで制御
 - ✅ Claude Codeで柔軟に対応
 - ✅ オンデマンド実行
+- ✅ **Python版はGitHub CLI不要**（標準ライブラリのみ）
+- ✅ クロスプラットフォーム（macOS/Linux/Windows）
 
 ### 3. 自動修正（最も自動化）
 
@@ -292,11 +315,33 @@ npm run lint -- --fix
 
 ### エラーログがダウンロードできない
 
-**原因**: GitHub CLIが認証されていない
+**原因1**: GitHub CLIが認証されていない
 
 **解決策**:
 ```bash
 gh auth login
+```
+
+**原因2**: GitHub CLIがインストールされていない
+
+**解決策**:
+```bash
+# セットアップスクリプトを実行
+./scripts/setup-cicd-tools.sh
+
+# または、Python版を使用（GitHub CLI不要）
+python3 scripts/analyze-cicd-errors.py
+```
+
+**原因3**: Python版でGitHub APIレート制限
+
+**解決策**:
+```bash
+# GitHub Tokenを設定
+export GITHUB_TOKEN=your_token_here
+
+# トークン作成: https://github.com/settings/tokens
+# 必要な権限: repo, workflow
 ```
 
 ### 自動修正が動かない
