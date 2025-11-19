@@ -17,12 +17,10 @@ class AssessmentBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     status: str = Field(default="draft")
-    topic_name: Optional[str] = Field(None, max_length=255, alias="topic")
-    industry_name: Optional[str] = Field(None, max_length=100, alias="industry")
+    topic: Optional[str] = Field(None, max_length=255)
+    industry: Optional[str] = Field(None, max_length=100)
     ai_generated: str = Field(default="manual")
     scoring_logic: Dict[str, Any] = Field(default_factory=dict)
-
-    model_config = {"populate_by_name": True}
 
 
 class AssessmentCreate(AssessmentBase):
@@ -37,12 +35,10 @@ class AssessmentUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     status: Optional[str] = None
-    topic_name: Optional[str] = Field(None, max_length=255, alias="topic")
-    industry_name: Optional[str] = Field(None, max_length=100, alias="industry")
+    topic: Optional[str] = Field(None, max_length=255)
+    industry: Optional[str] = Field(None, max_length=100)
     ai_generated: Optional[str] = None
     scoring_logic: Optional[Dict[str, Any]] = None
-
-    model_config = {"populate_by_name": True}
 
 
 class AssessmentResponse(AssessmentBase):
