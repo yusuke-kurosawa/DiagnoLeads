@@ -4,7 +4,6 @@ Tests for Taxonomy API Endpoints
 Test coverage for Topics and Industries API endpoints.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 

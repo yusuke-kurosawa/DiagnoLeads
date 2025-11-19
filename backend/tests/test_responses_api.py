@@ -4,12 +4,12 @@ Tests for Response API Endpoints
 Public API endpoints for assessment responses (embed widget).
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.assessment import Assessment
 from app.models.question import Question
+from app.models.question_option import QuestionOption
 from app.models.user import User
 
 
@@ -30,18 +30,31 @@ class TestPublicAssessmentAPI:
         db_session.commit()
         db_session.refresh(assessment)
 
-        # Create questions
+        # Create question
         question = Question(
             assessment_id=assessment.id,
             text="What is your goal?",
             type="multiple_choice",
             order=1,
-            options=[
-                {"id": "opt1", "text": "Option 1", "points": 10, "order": 1},
-                {"id": "opt2", "text": "Option 2", "points": 20, "order": 2},
-            ],
         )
         db_session.add(question)
+        db_session.commit()
+        db_session.refresh(question)
+
+        # Create options
+        option1 = QuestionOption(
+            question_id=question.id,
+            text="Option 1",
+            points=10,
+            order=1,
+        )
+        option2 = QuestionOption(
+            question_id=question.id,
+            text="Option 2",
+            points=20,
+            order=2,
+        )
+        db_session.add_all([option1, option2])
         db_session.commit()
 
         # Call public endpoint (no auth)
@@ -53,6 +66,7 @@ class TestPublicAssessmentAPI:
         assert data["description"] == "Public description"
         assert len(data["questions"]) == 1
         assert data["questions"][0]["text"] == "What is your goal?"
+        assert len(data["questions"][0]["options"]) == 2
 
     def test_get_draft_assessment_not_found(self, client: TestClient, db_session: Session, test_user: User):
         """Test that draft assessments are not publicly accessible"""
