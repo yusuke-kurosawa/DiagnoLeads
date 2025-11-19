@@ -9,7 +9,6 @@ Test suite for ER Diagram Generator
 """
 
 import json
-import tempfile
 from pathlib import Path
 import sys
 

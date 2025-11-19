@@ -16,8 +16,8 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, List
+from dataclasses import dataclass
 
 
 @dataclass
@@ -323,7 +323,7 @@ def main():
         if args.verbose:
             print(f"✅ Generated: {json_file}")
 
-    print(f"✅ ER diagram generation complete!")
+    print("✅ ER diagram generation complete!")
 
 
 if __name__ == "__main__":

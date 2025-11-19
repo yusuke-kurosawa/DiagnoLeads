@@ -18,7 +18,6 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_db, get_current_user, get_current_tenant
 from app.models.user import User
 from app.models.tenant import Tenant
-from app.models.resource import ResourceName  # 置換: ResourceName
 from app.schemas.resource import (
     ResourceNameCreate,  # 置換: ResourceName
     ResourceNameUpdate,  # 置換: ResourceName
