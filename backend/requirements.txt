@@ -18,8 +18,8 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-dotenv==1.0.0
 
-# AI - Anthropic Claude
-anthropic==0.7.7
+# AI - Anthropic Claude (Updated for AsyncAnthropic support)
+anthropic>=0.34.0
 
 # Microsoft 365 Integration (Phase 1)
 msal==1.25.0

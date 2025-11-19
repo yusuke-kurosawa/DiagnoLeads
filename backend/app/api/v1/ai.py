@@ -76,6 +76,8 @@ async def generate_assessment(
             industry=request.industry,
             num_questions=request.num_questions,
             tenant_id=tenant_id,
+            user_id=current_user.id,
+            db=db,
         )
 
         if not result["success"]:
@@ -130,6 +132,8 @@ async def analyze_lead_responses(
             assessment_title=request.assessment_title or "Assessment",
             industry=request.industry or "general",
             tenant_id=tenant_id,
+            user_id=current_user.id,
+            db=db,
         )
 
         if not result["success"]:
@@ -184,6 +188,8 @@ async def rephrase_content(
             style=request.style,
             target_audience=request.target_audience,
             tenant_id=tenant_id,
+            user_id=current_user.id,
+            db=db,
         )
 
         if not result["success"]:

@@ -1,5 +1,6 @@
 """Database Models"""
 
+from app.models.ai_usage import AIUsageLog
 from app.models.answer import Answer
 from app.models.assessment import Assessment
 from app.models.lead import Lead
@@ -20,4 +21,5 @@ __all__ = [
     "Answer",
     "Lead",
     "Report",
+    "AIUsageLog",
 ]
