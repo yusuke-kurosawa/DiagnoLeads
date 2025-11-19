@@ -4,10 +4,11 @@ Question and QuestionOption Schemas
 Pydantic models for Question and QuestionOption API request/response validation.
 """
 
-from pydantic import BaseModel, Field
-from uuid import UUID
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 class QuestionOptionBase(BaseModel):

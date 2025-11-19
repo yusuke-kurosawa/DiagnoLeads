@@ -4,11 +4,11 @@ Email Service
 Handles email sending for password resets, notifications, etc.
 """
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from typing import Optional
 import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Optional
 
 from app.core.config import settings
 
@@ -84,9 +84,7 @@ class EmailService:
             logger.error(f"Failed to send email to {to_email}: {e}")
             return False
 
-    def send_password_reset_email(
-        self, to_email: str, reset_token: str, user_name: Optional[str] = None
-    ) -> bool:
+    def send_password_reset_email(self, to_email: str, reset_token: str, user_name: Optional[str] = None) -> bool:
         """
         Send password reset email.
 

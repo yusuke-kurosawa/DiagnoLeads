@@ -3,15 +3,17 @@
 Demo Users Creation Script - Using Direct SQL
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(__file__))
 
+from uuid import uuid4
+
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
 from app.services.auth import AuthService
-from uuid import uuid4
 
 # Database setup
 engine = create_engine(settings.DATABASE_URL)
@@ -75,10 +77,12 @@ def create_demo_users():
                 print(f"🏢 Creating tenant: {account['tenant_name']}")
                 # Create tenant
                 conn.execute(
-                    text("""
+                    text(
+                        """
                     INSERT INTO tenants (id, name, slug, plan, settings, created_at, updated_at)
                     VALUES (:id, :name, :slug, :plan, '{}', NOW(), NOW())
-                """),
+                """
+                    ),
                     {
                         "id": tenant_id,
                         "name": account["tenant_name"],
@@ -91,10 +95,12 @@ def create_demo_users():
                 # Create user
                 password_hash = AuthService.hash_password(account["password"])
                 conn.execute(
-                    text("""
+                    text(
+                        """
                     INSERT INTO users (id, tenant_id, email, password_hash, name, role, failed_login_attempts, created_at, updated_at)
                     VALUES (:id, :tenant_id, :email, :password_hash, :name, :role, 0, NOW(), NOW())
-                """),
+                """
+                    ),
                     {
                         "id": user_id,
                         "tenant_id": tenant_id,

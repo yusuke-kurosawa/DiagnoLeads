@@ -4,8 +4,9 @@ Microsoft Graph API リトライポリシー
 """
 
 import asyncio
-from typing import Callable, TypeVar, Any
 from functools import wraps
+from typing import Any, Callable, TypeVar
+
 import httpx
 
 T = TypeVar("T")
@@ -92,9 +93,7 @@ class RetryPolicy:
         delay = self.initial_delay * (self.exponential_base**attempt)
         return min(delay, self.max_delay)
 
-    async def execute_with_retry(
-        self, func: Callable[..., Any], *args, **kwargs
-    ) -> Any:
+    async def execute_with_retry(self, func: Callable[..., Any], *args, **kwargs) -> Any:
         """
         関数をリトライロジック付きで実行
 
@@ -129,9 +128,7 @@ class RetryPolicy:
                 # 待機時間を計算
                 delay = self.get_retry_after(e, attempt)
 
-                print(
-                    f"⚠️  Retry {attempt + 1}/{self.max_retries} after {delay:.1f}s due to: {str(e)[:100]}"
-                )
+                print(f"⚠️  Retry {attempt + 1}/{self.max_retries} after {delay:.1f}s due to: {str(e)[:100]}")
 
                 # 待機
                 await asyncio.sleep(delay)
@@ -173,6 +170,4 @@ def with_retry(
 
 
 # デフォルトのリトライポリシー
-default_retry_policy = RetryPolicy(
-    max_retries=3, initial_delay=1.0, max_delay=60.0, exponential_base=2.0
-)
+default_retry_policy = RetryPolicy(max_retries=3, initial_delay=1.0, max_delay=60.0, exponential_base=2.0)

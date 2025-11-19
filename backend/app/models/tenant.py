@@ -4,11 +4,12 @@ Tenant Model
 Represents a tenant (organization/company) in the multi-tenant system.
 """
 
-from sqlalchemy import Column, String, DateTime, JSON
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import JSON, Column, DateTime, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -24,9 +25,7 @@ class Tenant(Base):
     plan = Column(String(50), default="free", nullable=False)  # free, pro, enterprise
     settings = Column(JSON, default={}, nullable=False)
 
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -35,18 +34,10 @@ class Tenant(Base):
     )
 
     # Relationships
-    qr_codes = relationship(
-        "QRCode", back_populates="tenant", cascade="all, delete-orphan"
-    )
-    topics = relationship(
-        "Topic", back_populates="tenant", cascade="all, delete-orphan"
-    )
-    industries = relationship(
-        "Industry", back_populates="tenant", cascade="all, delete-orphan"
-    )
-    reports = relationship(
-        "Report", back_populates="tenant", cascade="all, delete-orphan"
-    )
+    qr_codes = relationship("QRCode", back_populates="tenant", cascade="all, delete-orphan")
+    topics = relationship("Topic", back_populates="tenant", cascade="all, delete-orphan")
+    industries = relationship("Industry", back_populates="tenant", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="tenant", cascade="all, delete-orphan")
     google_analytics_integration = relationship(
         "GoogleAnalyticsIntegration",
         back_populates="tenant",

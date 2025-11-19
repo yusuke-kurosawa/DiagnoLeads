@@ -4,10 +4,11 @@ QuestionOption Model
 Represents answer choices for multiple choice questions.
 """
 
-from sqlalchemy import Column, String, ForeignKey, Integer, Index
+import uuid
+
+from sqlalchemy import Column, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-import uuid
 
 from app.core.database import Base
 
@@ -26,9 +27,7 @@ class QuestionOption(Base):
 
     # Option content
     text = Column(String(255), nullable=False)  # Option text displayed to user
-    points = Column(
-        Integer, default=0, nullable=False
-    )  # Points awarded for selecting this option
+    points = Column(Integer, default=0, nullable=False)  # Points awarded for selecting this option
     order = Column(Integer, nullable=False)  # Display order within question
 
     # Relationships

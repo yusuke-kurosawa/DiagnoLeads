@@ -5,9 +5,9 @@ Automatically applies tenant context to all requests.
 """
 
 from fastapi import Request
+from jose import JWTError, jwt
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
-from jose import jwt, JWTError
 
 from app.core.config import settings
 from app.core.deps import current_tenant_id

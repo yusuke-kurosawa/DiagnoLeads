@@ -4,23 +4,23 @@ Response API Endpoints
 Public API for assessment responses (for embed widget).
 """
 
-from uuid import UUID, uuid4
 from datetime import datetime
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
+from app.models.answer import Answer
 from app.models.assessment import Assessment
+from app.models.lead import Lead
 from app.models.question import Question
 from app.models.response import Response
-from app.models.answer import Answer
-from app.models.lead import Lead
 from app.schemas.response import (
-    ResponseSubmit,
-    ResponseResponse,
-    ResponseWithLeadData,
     PublicAssessmentResponse,
+    ResponseResponse,
+    ResponseSubmit,
+    ResponseWithLeadData,
 )
 
 router = APIRouter()
@@ -62,12 +62,7 @@ async def get_public_assessment(
         )
 
     # Get questions with options
-    questions = (
-        db.query(Question)
-        .filter(Question.assessment_id == assessment_id)
-        .order_by(Question.order)
-        .all()
-    )
+    questions = db.query(Question).filter(Question.assessment_id == assessment_id).order_by(Question.order).all()
 
     # Build simplified question structure for widget
     questions_data = []
@@ -290,9 +285,7 @@ async def complete_response(
     # Create lead if email is provided
     if data.email and data.name:
         # Get assessment to find tenant
-        assessment = (
-            db.query(Assessment).filter(Assessment.id == response.assessment_id).first()
-        )
+        assessment = db.query(Assessment).filter(Assessment.id == response.assessment_id).first()
 
         if assessment:
             # Check if lead already exists

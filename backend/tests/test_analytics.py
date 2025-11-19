@@ -6,18 +6,17 @@ Following OpenSpec test strategy from openspec/specs/features/analytics-dashboar
 """
 
 from datetime import datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models.lead import Lead
 from app.models.assessment import Assessment
+from app.models.lead import Lead
 from app.models.user import User
 from app.services.auth import AuthService
 
 
-def test_get_overview_analytics(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_get_overview_analytics(client: TestClient, db_session: Session, test_user: User):
     """Test getting overview analytics"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -167,9 +166,7 @@ def test_get_lead_analytics(client: TestClient, db_session: Session, test_user: 
     assert data["conversion_rate"] == round(expected_rate, 2)
 
 
-def test_get_assessment_analytics(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_get_assessment_analytics(client: TestClient, db_session: Session, test_user: User):
     """Test getting detailed assessment analytics"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -270,9 +267,7 @@ def test_get_trends_leads(client: TestClient, db_session: Session, test_user: Us
     assert "average_per_day" in data["summary"]
 
 
-def test_get_trends_assessments(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_get_trends_assessments(client: TestClient, db_session: Session, test_user: User):
     """Test getting assessment trends over 7 days"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -341,9 +336,7 @@ def test_empty_analytics(client: TestClient, db_session: Session, test_user: Use
     assert data["assessments"]["total"] == 0
 
 
-def test_cross_tenant_analytics_access_denied(
-    client: TestClient, db_session: Session, test_user: User, test_tenant_2
-):
+def test_cross_tenant_analytics_access_denied(client: TestClient, db_session: Session, test_user: User, test_tenant_2):
     """Test that users cannot access analytics from other tenants"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -373,9 +366,7 @@ def test_analytics_unauthorized(client: TestClient, test_user: User):
     assert response.status_code == 401
 
 
-def test_invalid_period_parameter(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_invalid_period_parameter(client: TestClient, db_session: Session, test_user: User):
     """Test trends with invalid period parameter"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -395,9 +386,7 @@ def test_invalid_period_parameter(
     assert response.status_code == 422
 
 
-def test_invalid_metric_parameter(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_invalid_metric_parameter(client: TestClient, db_session: Session, test_user: User):
     """Test trends with invalid metric parameter"""
     auth_service = AuthService()
     token = auth_service.create_access_token(

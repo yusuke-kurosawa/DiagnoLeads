@@ -5,15 +5,17 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import uuid4
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Index
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
 
 if TYPE_CHECKING:
-    from app.models.tenant import Tenant
     from app.models.assessment import Assessment
     from app.models.qr_code_scan import QRCodeScan
+    from app.models.tenant import Tenant
 
 
 class QRCode(Base):
@@ -27,9 +29,7 @@ class QRCode(Base):
     __tablename__ = "qr_codes"
 
     # Primary Key
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
     # Foreign Keys
     tenant_id: Mapped[UUID] = mapped_column(
@@ -46,9 +46,7 @@ class QRCode(Base):
     )
 
     # Basic Info
-    name: Mapped[str] = mapped_column(
-        String(255), nullable=False, comment="Human-readable name (e.g., '展示会2025')"
-    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False, comment="Human-readable name (e.g., '展示会2025')")
     short_code: Mapped[str] = mapped_column(
         String(10),
         unique=True,
@@ -56,9 +54,7 @@ class QRCode(Base):
         nullable=False,
         comment="Unique 7-character code for short URL",
     )
-    short_url: Mapped[str] = mapped_column(
-        String(255), nullable=False, comment="Short URL (e.g., https://dgnl.ds/abc123)"
-    )
+    short_url: Mapped[str] = mapped_column(String(255), nullable=False, comment="Short URL (e.g., https://dgnl.ds/abc123)")
 
     # UTM Parameters for tracking
     utm_source: Mapped[str | None] = mapped_column(String(100))
@@ -83,48 +79,30 @@ class QRCode(Base):
     # }
 
     # Storage URLs
-    qr_code_image_url: Mapped[str | None] = mapped_column(
-        String(500), comment="S3/R2 URL for PNG image"
-    )
-    qr_code_svg_url: Mapped[str | None] = mapped_column(
-        String(500), comment="S3/R2 URL for SVG image"
-    )
+    qr_code_image_url: Mapped[str | None] = mapped_column(String(500), comment="S3/R2 URL for PNG image")
+    qr_code_svg_url: Mapped[str | None] = mapped_column(String(500), comment="S3/R2 URL for SVG image")
 
     # Tracking metrics
-    scan_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0, comment="Total number of scans"
-    )
+    scan_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment="Total number of scans")
     unique_scan_count: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=0,
         comment="Number of unique scans (by session)",
     )
-    last_scanned_at: Mapped[datetime | None] = mapped_column(
-        DateTime, comment="Timestamp of last scan"
-    )
+    last_scanned_at: Mapped[datetime | None] = mapped_column(DateTime, comment="Timestamp of last scan")
 
     # Status
-    enabled: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, comment="Whether QR code is active"
-    )
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, comment="Whether QR code is active")
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.utcnow
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="qr_codes")
-    assessment: Mapped["Assessment"] = relationship(
-        "Assessment", back_populates="qr_codes"
-    )
-    scans: Mapped[list["QRCodeScan"]] = relationship(
-        "QRCodeScan", back_populates="qr_code", cascade="all, delete-orphan"
-    )
+    assessment: Mapped["Assessment"] = relationship("Assessment", back_populates="qr_codes")
+    scans: Mapped[list["QRCodeScan"]] = relationship("QRCodeScan", back_populates="qr_code", cascade="all, delete-orphan")
 
     # Table indexes
     __table_args__ = (

@@ -1,15 +1,16 @@
 """Unit tests for QRCode Service"""
 
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
+
+import pytest
 from PIL import Image
 
-from app.services.qr_code_service import QRCodeService
+from app.models.assessment import Assessment
 from app.models.qr_code import QRCode
 from app.models.tenant import Tenant
-from app.models.assessment import Assessment
 from app.schemas.qr_code import QRCodeCreate, QRCodeStyleBase
+from app.services.qr_code_service import QRCodeService
 
 
 class TestShortCodeGeneration:
@@ -248,9 +249,7 @@ class TestCompleteQRCodeCreation:
         )
 
     @pytest.mark.asyncio
-    async def test_create_qr_code_success(
-        self, service, mock_tenant, mock_assessment, qr_create_data
-    ):
+    async def test_create_qr_code_success(self, service, mock_tenant, mock_assessment, qr_create_data):
         """Test successful QR code creation"""
 
         # Mock database queries
@@ -279,9 +278,7 @@ class TestCompleteQRCodeCreation:
         service.db.refresh = AsyncMock()
 
         # Mock storage upload
-        service.upload_to_storage = AsyncMock(
-            return_value="https://storage.test.com/qr_abc123.png"
-        )
+        service.upload_to_storage = AsyncMock(return_value="https://storage.test.com/qr_abc123.png")
 
         # Create QR code
         qr_code = await service.create_qr_code(
@@ -309,14 +306,10 @@ class TestCompleteQRCodeCreation:
         service.db.execute = AsyncMock(return_value=mock_result)
 
         with pytest.raises(ValueError, match="Tenant .* not found"):
-            await service.create_qr_code(
-                tenant_id=uuid4(), assessment_id=uuid4(), qr_data=qr_create_data
-            )
+            await service.create_qr_code(tenant_id=uuid4(), assessment_id=uuid4(), qr_data=qr_create_data)
 
     @pytest.mark.asyncio
-    async def test_create_qr_code_assessment_not_found(
-        self, service, mock_tenant, qr_create_data
-    ):
+    async def test_create_qr_code_assessment_not_found(self, service, mock_tenant, qr_create_data):
         """Test QR code creation fails when assessment not found"""
 
         # Mock: tenant found, assessment not found
@@ -334,9 +327,7 @@ class TestCompleteQRCodeCreation:
         service.db.execute = AsyncMock(side_effect=mock_execute)
 
         with pytest.raises(ValueError, match="Assessment .* not found"):
-            await service.create_qr_code(
-                tenant_id=mock_tenant.id, assessment_id=uuid4(), qr_data=qr_create_data
-            )
+            await service.create_qr_code(tenant_id=mock_tenant.id, assessment_id=uuid4(), qr_data=qr_create_data)
 
 
 # Run tests with: pytest tests/test_qr_code_service.py -v

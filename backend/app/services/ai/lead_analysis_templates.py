@@ -4,8 +4,8 @@ Lead Analysis Templates for AI-powered insights
 Provides industry-specific templates for analyzing lead responses and generating insights.
 """
 
-from typing import Dict, List
 from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass

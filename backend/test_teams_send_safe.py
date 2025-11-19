@@ -6,6 +6,7 @@ Microsoft Teams 安全なメッセージ送信テストスクリプト
 import asyncio
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Import the TeamsClient
@@ -66,9 +67,7 @@ async def main():
         return
 
     # Teams Client初期化
-    client = TeamsClient(
-        tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
-    )
+    client = TeamsClient(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
 
     # 認証
     print("1. Authenticating...")
@@ -98,9 +97,7 @@ async def main():
 
     while True:
         try:
-            team_choice = input(
-                f"\nSelect team number (1-{min(20, len(teams))}), or 'q' to quit: "
-            )
+            team_choice = input(f"\nSelect team number (1-{min(20, len(teams))}), or 'q' to quit: ")
             if team_choice.lower() == "q":
                 print("❌ Test cancelled by user")
                 return
@@ -145,9 +142,7 @@ async def main():
     # チャネル選択
     while True:
         try:
-            channel_choice = input(
-                f"\nSelect channel number (1-{len(channels)}), or 'q' to quit: "
-            )
+            channel_choice = input(f"\nSelect channel number (1-{len(channels)}), or 'q' to quit: ")
             if channel_choice.lower() == "q":
                 print("❌ Test cancelled by user")
                 return
@@ -170,9 +165,7 @@ async def main():
         print(f"⚠️  Channel: {selected_channel['displayName']}")
         print("⚠️ " * 20)
 
-        confirm = input(
-            "\nAre you ABSOLUTELY SURE you want to send to this channel? (type 'YES' to confirm): "
-        )
+        confirm = input("\nAre you ABSOLUTELY SURE you want to send to this channel? (type 'YES' to confirm): ")
         if confirm != "YES":
             print("❌ Test cancelled for safety")
             return
@@ -231,10 +224,7 @@ async def main():
     except Exception as e:
         error_message = str(e)
 
-        if (
-            "ChannelMessage.Send" in error_message
-            or "permission" in error_message.lower()
-        ):
+        if "ChannelMessage.Send" in error_message or "permission" in error_message.lower():
             print("\n" + "=" * 60)
             print("❌ PERMISSION REQUIRED: ChannelMessage.Send")
             print("=" * 60)

@@ -4,18 +4,18 @@ User Management API Endpoints
 Provides access to user management for tenant admins and system admins.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from uuid import UUID
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.user_service import UserService
-
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -53,13 +53,7 @@ async def list_users(
     if current_user.role == "system_admin":
         if tenant_id:
             # Filter by specific tenant
-            users = (
-                db.query(User)
-                .filter(User.tenant_id == tenant_id)
-                .offset(skip)
-                .limit(limit)
-                .all()
-            )
+            users = db.query(User).filter(User.tenant_id == tenant_id).offset(skip).limit(limit).all()
         else:
             # Return all users from all tenants
             users = db.query(User).offset(skip).limit(limit).all()
@@ -70,13 +64,7 @@ async def list_users(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Tenant admins can only view users in their own tenant",
             )
-        users = (
-            db.query(User)
-            .filter(User.tenant_id == current_user.tenant_id)
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        users = db.query(User).filter(User.tenant_id == current_user.tenant_id).offset(skip).limit(limit).all()
     else:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -112,10 +100,7 @@ async def get_user(
     if current_user.id != user_id:
         if current_user.role == "system_admin":
             pass  # System admin can view any user
-        elif (
-            current_user.role == "tenant_admin"
-            and current_user.tenant_id == user.tenant_id
-        ):
+        elif current_user.role == "tenant_admin" and current_user.tenant_id == user.tenant_id:
             pass  # Tenant admin can view users in their tenant
         else:
             raise HTTPException(
@@ -174,11 +159,7 @@ async def update_user(
 
     if user_data.email is not None:
         # Check for duplicate email
-        duplicate = (
-            db.query(User)
-            .filter(User.email == user_data.email, User.id != user_id)
-            .first()
-        )
+        duplicate = db.query(User).filter(User.email == user_data.email, User.id != user_id).first()
         if duplicate:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

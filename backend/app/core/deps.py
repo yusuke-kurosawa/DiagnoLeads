@@ -4,25 +4,23 @@ Dependencies for FastAPI endpoints
 Provides database session, authentication, and authorization dependencies.
 """
 
-from typing import Generator, Optional
 from contextvars import ContextVar
+from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
-from app.models.user import User
 from app.models.tenant import Tenant
-from app.services.auth import AuthService
+from app.models.user import User
 from app.services.ai_service import AIService
+from app.services.auth import AuthService
 
 security = HTTPBearer()
 
 # Context variable to store current tenant_id (set by TenantMiddleware)
-current_tenant_id: ContextVar[Optional[str]] = ContextVar(
-    "current_tenant_id", default=None
-)
+current_tenant_id: ContextVar[Optional[str]] = ContextVar("current_tenant_id", default=None)
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -86,9 +84,7 @@ def get_current_user(
     return user
 
 
-def get_current_tenant(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> Tenant:
+def get_current_tenant(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Tenant:
     """
     Get current user's tenant
 

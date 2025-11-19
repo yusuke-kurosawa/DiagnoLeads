@@ -4,10 +4,11 @@ Response and Answer Schemas
 Pydantic models for Response and Answer API request/response validation.
 """
 
-from pydantic import BaseModel, Field, EmailStr
-from uuid import UUID
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class AnswerBase(BaseModel):
