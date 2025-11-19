@@ -134,11 +134,14 @@ def upgrade() -> None:
     # Enable Row-Level Security (RLS) for responses table
     # Note: responses table doesn't have tenant_id, but tenant isolation is enforced through assessment_id
     # We'll use a more complex policy that joins with assessments table
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE responses ENABLE ROW LEVEL SECURITY;
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY responses_tenant_isolation
         ON responses
         FOR ALL
@@ -149,14 +152,18 @@ def upgrade() -> None:
                 AND assessments.tenant_id::text = current_setting('app.current_tenant_id', true)
             )
         );
-    """)
+    """
+    )
 
     # Enable RLS for answers table (similar policy through responses)
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE answers ENABLE ROW LEVEL SECURITY;
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY answers_tenant_isolation
         ON answers
         FOR ALL
@@ -168,7 +175,8 @@ def upgrade() -> None:
                 AND assessments.tenant_id::text = current_setting('app.current_tenant_id', true)
             )
         );
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

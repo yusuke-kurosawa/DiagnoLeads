@@ -56,32 +56,40 @@ def upgrade() -> None:
     op.create_index("ix_ga_integration_enabled", "google_analytics_integrations", ["enabled"])
 
     # Enable Row-Level Security (RLS) for multi-tenant isolation
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE google_analytics_integrations ENABLE ROW LEVEL SECURITY;
-    """)
+    """
+    )
 
     # Create RLS policy for tenant isolation
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY tenant_isolation_policy_ga_integration
         ON google_analytics_integrations
         FOR ALL
         USING (tenant_id::text = current_setting('app.current_tenant_id', true));
-    """)
+    """
+    )
 
 
 def downgrade() -> None:
     """Remove Google Analytics integration table"""
 
     # Drop RLS policy
-    op.execute("""
+    op.execute(
+        """
         DROP POLICY IF EXISTS tenant_isolation_policy_ga_integration
         ON google_analytics_integrations;
-    """)
+    """
+    )
 
     # Disable RLS
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE google_analytics_integrations DISABLE ROW LEVEL SECURITY;
-    """)
+    """
+    )
 
     # Drop indexes
     op.drop_index("ix_ga_integration_enabled", table_name="google_analytics_integrations")

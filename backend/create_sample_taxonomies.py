@@ -126,11 +126,13 @@ def create_sample_taxonomies():
                 for topic in sample_topics:
                     topic_id = str(uuid4())
                     conn.execute(
-                        text("""
+                        text(
+                            """
                         INSERT INTO topics (id, tenant_id, created_by, name, description, color, icon, sort_order, is_active, created_at, updated_at)
                         VALUES (:id, :tenant_id, :created_by, :name, :description, :color, :icon, :sort_order, :is_active, NOW(), NOW())
                         ON CONFLICT DO NOTHING
-                    """),
+                    """
+                        ),
                         {
                             "id": topic_id,
                             "tenant_id": tenant_id,
@@ -149,11 +151,13 @@ def create_sample_taxonomies():
                 for industry in sample_industries:
                     industry_id = str(uuid4())
                     conn.execute(
-                        text("""
+                        text(
+                            """
                         INSERT INTO industries (id, tenant_id, created_by, name, description, color, icon, sort_order, is_active, created_at, updated_at)
                         VALUES (:id, :tenant_id, :created_by, :name, :description, :color, :icon, :sort_order, :is_active, NOW(), NOW())
                         ON CONFLICT DO NOTHING
-                    """),
+                    """
+                        ),
                         {
                             "id": industry_id,
                             "tenant_id": tenant_id,

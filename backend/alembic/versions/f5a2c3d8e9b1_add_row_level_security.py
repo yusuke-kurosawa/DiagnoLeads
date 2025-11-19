@@ -24,45 +24,53 @@ def upgrade() -> None:
     op.execute("ALTER TABLE assessments ENABLE ROW LEVEL SECURITY;")
 
     # Create policy for assessments: users can only see assessments from their tenant
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY assessment_tenant_isolation ON assessments
         FOR ALL
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
         WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid);
-    """)
+    """
+    )
 
     # Enable RLS on leads table
     op.execute("ALTER TABLE leads ENABLE ROW LEVEL SECURITY;")
 
     # Create policy for leads: users can only see leads from their tenant
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY lead_tenant_isolation ON leads
         FOR ALL
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
         WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid);
-    """)
+    """
+    )
 
     # Enable RLS on qr_codes table
     op.execute("ALTER TABLE qr_codes ENABLE ROW LEVEL SECURITY;")
 
     # Create policy for qr_codes: users can only see QR codes from their tenant
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY qr_code_tenant_isolation ON qr_codes
         FOR ALL
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
         WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid);
-    """)
+    """
+    )
 
     # Enable RLS on qr_code_scans table
     op.execute("ALTER TABLE qr_code_scans ENABLE ROW LEVEL SECURITY;")
 
     # Create policy for qr_code_scans: users can only see scans from their tenant
-    op.execute("""
+    op.execute(
+        """
         CREATE POLICY qr_code_scan_tenant_isolation ON qr_code_scans
         FOR ALL
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
         WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid);
-    """)
+    """
+    )
 
     # Grant necessary permissions to authenticated users
     op.execute("GRANT SELECT ON assessments TO postgres;")
