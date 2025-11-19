@@ -51,19 +51,12 @@ jobs:
       - name: Install dependencies
         working-directory: ./backend
         run: |
+          set -e
           python -m pip install --upgrade pip
-          echo "Installing requirements.txt..."
           pip install --no-cache-dir -r requirements.txt
-          echo "Installing requirements-dev.txt..."
           pip install --no-cache-dir -r requirements-dev.txt
-          echo "Verifying installations..."
-          pip list | grep -E "(pytest|ruff|mypy)"
-
-      - name: Verify pytest installation
-        working-directory: ./backend
-        run: |
-          python -m pytest --version
-          python -c "import pytest; print(f'pytest {pytest.__version__} installed')"
+          echo "--- Installed packages ---"
+          pip show pytest ruff mypy || true
 
       - name: Run tests
         working-directory: ./backend
@@ -105,26 +98,22 @@ jobs:
       - name: Install dependencies
         working-directory: ./backend
         run: |
+          set -e
           python -m pip install --upgrade pip
-          echo "Installing requirements.txt..."
           pip install --no-cache-dir -r requirements.txt
-          echo "Installing requirements-dev.txt..."
           pip install --no-cache-dir -r requirements-dev.txt
-          echo "Verifying installations..."
-          pip list | grep -E "(pytest|ruff|mypy)"
-
-      - name: Verify linter installations
-        working-directory: ./backend
-        run: |
-          python -m ruff --version
-          python -m mypy --version
-          python -c "import ruff; print('ruff installed')" || echo "ruff module check"
-          python -c "import mypy; print('mypy installed')" || echo "mypy module check"
+          echo "--- Installed packages ---"
+          pip show pytest ruff mypy || true
+          echo "--- Checking ruff executable ---"
+          which ruff || echo "ruff not in PATH"
+          python -c "import ruff; print(f'ruff module found at: {ruff.__file__}')" || echo "ruff module import failed"
 
       - name: Run Ruff
         working-directory: ./backend
-        run: python -m ruff check .
+        run: |
+          python -m ruff check . || ruff check .
 
       - name: Run MyPy
         working-directory: ./backend
-        run: python -m mypy app/
+        run: |
+          python -m mypy app/ || mypy app/
