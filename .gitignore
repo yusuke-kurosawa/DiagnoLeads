@@ -48,6 +48,9 @@ htmlcov/
 .tox/
 .nox/
 
+# CI/CD Error Analysis
+cicd-errors/
+
 # mypy
 .mypy_cache/
 .dmypy.json
