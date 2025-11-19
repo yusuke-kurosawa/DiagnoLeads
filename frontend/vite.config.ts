@@ -39,12 +39,6 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 10000,
     teardownTimeout: 10000,
-    // Prevent Vitest from watching node_modules
-    server: {
-      watch: {
-        ignored: ['**/node_modules/**', '**/dist/**'],
-      },
-    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
