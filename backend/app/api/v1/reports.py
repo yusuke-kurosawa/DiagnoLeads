@@ -307,9 +307,7 @@ async def export_report(
                 results["summary"],
                 report.config,
             )
-            media_type = (
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             filename = f"{report.name.replace(' ', '_')}.xlsx"
 
         elif format == "pdf":

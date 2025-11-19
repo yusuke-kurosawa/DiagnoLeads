@@ -54,10 +54,4 @@ class UserService:
     @staticmethod
     def get_tenant_users(db: Session, tenant_id: UUID, skip: int = 0, limit: int = 100):
         """Get all users for a tenant"""
-        return (
-            db.query(User)
-            .filter(User.tenant_id == tenant_id)
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        return db.query(User).filter(User.tenant_id == tenant_id).offset(skip).limit(limit).all()

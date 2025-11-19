@@ -191,9 +191,7 @@ class AssessmentService:
             .filter(
                 and_(
                     Assessment.tenant_id == tenant_id,  # REQUIRED: Tenant filtering
-                    Assessment.title.ilike(
-                        f"%{title_query}%"
-                    ),  # Case-insensitive search
+                    Assessment.title.ilike(f"%{title_query}%"),  # Case-insensitive search
                 )
             )
             .limit(limit)

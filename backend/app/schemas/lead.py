@@ -49,9 +49,7 @@ class LeadUpdate(BaseModel):
 class LeadStatusUpdate(BaseModel):
     """Schema for updating lead status"""
 
-    status: str = Field(
-        ..., pattern="^(new|contacted|qualified|converted|disqualified)$"
-    )
+    status: str = Field(..., pattern="^(new|contacted|qualified|converted|disqualified)$")
 
 
 class LeadScoreUpdate(BaseModel):
