@@ -2,42 +2,120 @@
 Pytest configuration and fixtures for DiagnoLeads tests
 """
 
+import asyncio
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.main import app
 from app.core.database import Base, get_db
 
-
 # Use PostgreSQL for testing
 import os
 
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
+# Get base database URL from environment
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/diagnoleads_test"
 )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Async database URL (for async tests)
+if DATABASE_URL.startswith("postgresql://"):
+    ASYNC_DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://", "postgresql+asyncpg://", 1
+    )
+elif DATABASE_URL.startswith("postgresql+asyncpg://"):
+    ASYNC_DATABASE_URL = DATABASE_URL
+else:
+    ASYNC_DATABASE_URL = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/diagnoleads_test"
+    )
+
+# Sync database URL (for sync tests)
+if DATABASE_URL.startswith("postgresql+asyncpg://"):
+    SYNC_DATABASE_URL = DATABASE_URL.replace(
+        "postgresql+asyncpg://", "postgresql://", 1
+    )
+elif DATABASE_URL.startswith("postgresql://"):
+    SYNC_DATABASE_URL = DATABASE_URL
+else:
+    SYNC_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/diagnoleads_test"
+
+# Create async engine
+async_engine = create_async_engine(
+    ASYNC_DATABASE_URL,
+    poolclass=NullPool,  # Disable pooling for tests
+)
+
+# Create sync engine
+sync_engine = create_engine(
+    SYNC_DATABASE_URL,
+    poolclass=NullPool,  # Disable pooling for tests
+)
+
+TestingSessionLocal = async_sessionmaker(
+    async_engine, class_=AsyncSession, expire_on_commit=False
+)
+
+SyncTestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=sync_engine
+)
 
 
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an event loop for the test session"""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def db():
+    """Create a fresh async database session for each test"""
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with TestingSessionLocal() as session:
+        yield session
+
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest.fixture(scope="function")
 def db_session():
-    """Create a fresh database session for each test"""
-    Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
+    """Create a fresh sync database session for each test"""
+    Base.metadata.create_all(bind=sync_engine)
+    session = SyncTestingSessionLocal()
     try:
         yield session
     finally:
         session.close()
-        Base.metadata.drop_all(bind=engine)
+        Base.metadata.drop_all(bind=sync_engine)
 
 
-@pytest.fixture(scope="function")
-def test_tenant(db_session):
+@pytest_asyncio.fixture(scope="function")
+async def client(db: AsyncSession):
+    """Create a test client with overridden database session"""
+
+    async def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def test_tenant(db: AsyncSession):
     """Create a test tenant"""
     from app.models.tenant import Tenant
 
@@ -47,14 +125,14 @@ def test_tenant(db_session):
         plan="free",
         settings={},
     )
-    db_session.add(tenant)
-    db_session.commit()
-    db_session.refresh(tenant)
+    db.add(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return tenant
 
 
-@pytest.fixture(scope="function")
-def test_tenant_2(db_session):
+@pytest_asyncio.fixture
+async def test_tenant_2(db: AsyncSession):
     """Create a second test tenant for cross-tenant tests"""
     from app.models.tenant import Tenant
 
@@ -64,14 +142,14 @@ def test_tenant_2(db_session):
         plan="free",
         settings={},
     )
-    db_session.add(tenant)
-    db_session.commit()
-    db_session.refresh(tenant)
+    db.add(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return tenant
 
 
-@pytest.fixture(scope="function")
-def test_user(db_session, test_tenant):
+@pytest_asyncio.fixture
+async def test_user(db: AsyncSession, test_tenant):
     """Create a test user"""
     from app.models.user import User
     from app.services.auth import AuthService
@@ -83,23 +161,7 @@ def test_user(db_session, test_tenant):
         tenant_id=test_tenant.id,
         role="tenant_admin",
     )
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
     return user
-
-
-@pytest.fixture(scope="function")
-def client(db_session):
-    """Create a test client with overridden database session"""
-
-    def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
-
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()

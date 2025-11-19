@@ -28,8 +28,8 @@ async def test_user(db: AsyncSession, test_tenant: Tenant) -> User:
         id=uuid4(),
         tenant_id=test_tenant.id,
         email="test@example.com",
-        hashed_password="hashed_password",
-        full_name="Test User",
+        password_hash="hashed_password",
+        name="Test User",
         role="admin",
     )
     db.add(user)
