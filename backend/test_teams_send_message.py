@@ -6,6 +6,7 @@ ChannelMessage.Send権限が必要
 import asyncio
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Import the TeamsClient
@@ -30,9 +31,7 @@ async def main():
         return
 
     # Teams Client初期化
-    client = TeamsClient(
-        tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
-    )
+    client = TeamsClient(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
 
     # 認証
     print("\n1. Authenticating...")
@@ -135,9 +134,7 @@ async def main():
             print("\nTo fix this:")
             print("1. Go to Azure Portal → App registrations")
             print("2. Select your app → API permissions")
-            print(
-                "3. Add 'ChannelMessage.Send' under Microsoft Graph → Application permissions"
-            )
+            print("3. Add 'ChannelMessage.Send' under Microsoft Graph → Application permissions")
             print("4. Click 'Grant admin consent for [Your Organization]'")
             print("5. Wait 5-10 minutes and try again")
             print("\n" + "=" * 60)

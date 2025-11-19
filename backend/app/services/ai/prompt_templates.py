@@ -4,8 +4,8 @@ AI Prompt Templates
 Centralized prompt templates for consistency and version control.
 """
 
-from typing import Dict, Any, List
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
 
 @dataclass

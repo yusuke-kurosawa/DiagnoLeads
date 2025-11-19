@@ -5,10 +5,11 @@ Provides AI-powered features including assessment generation, lead analysis, and
 """
 
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user, get_ai_service
+from app.core.deps import get_ai_service, get_current_user, get_db
 from app.models.user import User
 from app.schemas.ai import (
     AssessmentGenerationRequest,
@@ -18,8 +19,8 @@ from app.schemas.ai import (
     RephraseRequest,
     RephraseResponse,
 )
-from app.services.ai_service import AIService
 from app.services.ai.industry_templates import list_available_industries
+from app.services.ai_service import AIService
 
 router = APIRouter()
 
@@ -75,6 +76,8 @@ async def generate_assessment(
             industry=request.industry,
             num_questions=request.num_questions,
             tenant_id=tenant_id,
+            user_id=current_user.id,
+            db=db,
         )
 
         if not result["success"]:
@@ -126,9 +129,11 @@ async def analyze_lead_responses(
         # Call AI service to analyze responses with tenant context
         result = await ai_service.analyze_lead_insights(
             assessment_responses=request.assessment_responses,
-            assessment_title=request.assessment_title,
-            industry=request.industry,
+            assessment_title=request.assessment_title or "Assessment",
+            industry=request.industry or "general",
             tenant_id=tenant_id,
+            user_id=current_user.id,
+            db=db,
         )
 
         if not result["success"]:
@@ -183,6 +188,8 @@ async def rephrase_content(
             style=request.style,
             target_audience=request.target_audience,
             tenant_id=tenant_id,
+            user_id=current_user.id,
+            db=db,
         )
 
         if not result["success"]:

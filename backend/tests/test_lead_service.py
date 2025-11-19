@@ -5,13 +5,14 @@ Comprehensive test coverage for lead_service.py
 Target: 80%+ coverage
 """
 
-import pytest
 from uuid import uuid4
+
+import pytest
 from fastapi import HTTPException
 
-from app.services.lead_service import LeadService
-from app.schemas.lead import LeadCreate, LeadUpdate, LeadStatusUpdate, LeadScoreUpdate
 from app.models.lead import Lead
+from app.schemas.lead import LeadCreate, LeadScoreUpdate, LeadStatusUpdate, LeadUpdate
+from app.services.lead_service import LeadService
 
 
 class TestLeadServiceList:
@@ -77,9 +78,7 @@ class TestLeadServiceList:
         assert new_leads[0].email == "high@example.com"
 
         # Test score filter
-        high_score_leads = service.list_by_tenant(
-            tenant_id=test_tenant.id, min_score=50
-        )
+        high_score_leads = service.list_by_tenant(tenant_id=test_tenant.id, min_score=50)
         assert len(high_score_leads) == 1
         assert high_score_leads[0].score == 90
 
@@ -108,9 +107,7 @@ class TestLeadServiceList:
         assert len(page2) == 2
         assert page1[0].id != page2[0].id
 
-    def test_list_by_tenant_isolation(
-        self, db_session, test_tenant, test_tenant_2, test_user
-    ):
+    def test_list_by_tenant_isolation(self, db_session, test_tenant, test_tenant_2, test_user):
         """Test tenant isolation - should not see other tenant's leads"""
         service = LeadService(db_session)
 
@@ -201,9 +198,7 @@ class TestLeadServiceGet:
         db_session.add(lead)
         db_session.commit()
 
-        retrieved = service.get_by_email(
-            email="unique@example.com", tenant_id=test_tenant.id
-        )
+        retrieved = service.get_by_email(email="unique@example.com", tenant_id=test_tenant.id)
 
         assert retrieved is not None
         assert retrieved.email == "unique@example.com"
@@ -224,9 +219,7 @@ class TestLeadServiceCreate:
             status="new",
         )
 
-        lead = service.create(
-            data=lead_data, tenant_id=test_tenant.id, created_by=test_user.id
-        )
+        lead = service.create(data=lead_data, tenant_id=test_tenant.id, created_by=test_user.id)
 
         assert lead.id is not None
         assert lead.name == "New Lead"
@@ -239,22 +232,14 @@ class TestLeadServiceCreate:
         service = LeadService(db_session)
 
         # Create first lead
-        lead_data = LeadCreate(
-            name="First Lead", email="duplicate@example.com", status="new"
-        )
-        service.create(
-            data=lead_data, tenant_id=test_tenant.id, created_by=test_user.id
-        )
+        lead_data = LeadCreate(name="First Lead", email="duplicate@example.com", status="new")
+        service.create(data=lead_data, tenant_id=test_tenant.id, created_by=test_user.id)
 
         # Try to create second lead with same email
-        lead_data2 = LeadCreate(
-            name="Second Lead", email="duplicate@example.com", status="new"
-        )
+        lead_data2 = LeadCreate(name="Second Lead", email="duplicate@example.com", status="new")
 
         with pytest.raises(HTTPException) as exc_info:
-            service.create(
-                data=lead_data2, tenant_id=test_tenant.id, created_by=test_user.id
-            )
+            service.create(data=lead_data2, tenant_id=test_tenant.id, created_by=test_user.id)
 
         assert exc_info.value.status_code == 400
         assert "already exists" in str(exc_info.value.detail)
@@ -319,9 +304,7 @@ class TestLeadServiceUpdate:
         assert updated.status == "contacted"
         assert updated.last_contacted_at is not None
 
-    def test_update_status_from_converted_fails(
-        self, db_session, test_tenant, test_user
-    ):
+    def test_update_status_from_converted_fails(self, db_session, test_tenant, test_user):
         """Test that converted status cannot be changed"""
         service = LeadService(db_session)
 
@@ -367,9 +350,7 @@ class TestLeadServiceUpdate:
 
         # Update score
         score_update = LeadScoreUpdate(score=85)
-        updated = service.update_score(
-            lead_id=lead.id, data=score_update, tenant_id=test_tenant.id
-        )
+        updated = service.update_score(lead_id=lead.id, data=score_update, tenant_id=test_tenant.id)
 
         assert updated.score == 85
 

@@ -103,7 +103,9 @@ def test_webhook_import():
     """Webhook Clientをインポート可能か確認"""
     try:
         sys.path.insert(0, os.path.dirname(__file__))
-        from app.integrations.microsoft.teams_webhook_client import TeamsWebhookClient  # noqa: F401
+        from app.integrations.microsoft.teams_webhook_client import (  # noqa: F401
+            TeamsWebhookClient as _,
+        )
 
         return True
     except ImportError as e:

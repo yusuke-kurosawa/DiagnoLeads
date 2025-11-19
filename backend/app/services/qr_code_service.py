@@ -11,12 +11,12 @@ from uuid import UUID
 
 import qrcode
 from PIL import Image
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.assessment import Assessment
 from app.models.qr_code import QRCode
 from app.models.tenant import Tenant
-from app.models.assessment import Assessment
 from app.schemas.qr_code import QRCodeCreate
 
 
@@ -53,9 +53,7 @@ class QRCodeService:
         Returns:
             True if unique, False if already exists
         """
-        result = await self.db.execute(
-            select(QRCode).where(QRCode.short_code == short_code)
-        )
+        result = await self.db.execute(select(QRCode).where(QRCode.short_code == short_code))
         existing = result.scalar_one_or_none()
         return existing is None
 
@@ -76,9 +74,7 @@ class QRCodeService:
             if await self.is_short_code_unique(short_code):
                 return short_code
 
-        raise RuntimeError(
-            f"Failed to generate unique short code after {max_attempts} attempts"
-        )
+        raise RuntimeError(f"Failed to generate unique short code after {max_attempts} attempts")
 
     # ========================================================================
     # QR Code Image Generation
@@ -110,9 +106,7 @@ class QRCodeService:
             "H": qrcode.constants.ERROR_CORRECT_H,  # ~30% correction
         }
 
-        error_level = error_correction_map.get(
-            error_correction.upper(), qrcode.constants.ERROR_CORRECT_H
-        )
+        error_level = error_correction_map.get(error_correction.upper(), qrcode.constants.ERROR_CORRECT_H)
 
         # Create QR code
         qr = qrcode.QRCode(
@@ -192,9 +186,7 @@ class QRCodeService:
                     logo,
                 )
             else:
-                qr_img.paste(
-                    logo, (logo_pos[0] + logo_offset[0], logo_pos[1] + logo_offset[1])
-                )
+                qr_img.paste(logo, (logo_pos[0] + logo_offset[0], logo_pos[1] + logo_offset[1]))
 
             return qr_img
 
@@ -222,9 +214,7 @@ class QRCodeService:
     # Cloud Storage Upload (Placeholder)
     # ========================================================================
 
-    async def upload_to_storage(
-        self, file_data: bytes, filename: str, content_type: str = "image/png"
-    ) -> str:
+    async def upload_to_storage(self, file_data: bytes, filename: str, content_type: str = "image/png") -> str:
         """Upload file to cloud storage (S3, R2, etc.).
 
         NOTE: This is a placeholder implementation. In production, integrate with:
@@ -291,24 +281,16 @@ class QRCodeService:
             ValueError: If tenant or assessment not found
         """
         # 1. Validate tenant
-        tenant_result = await self.db.execute(
-            select(Tenant).where(Tenant.id == tenant_id)
-        )
+        tenant_result = await self.db.execute(select(Tenant).where(Tenant.id == tenant_id))
         tenant = tenant_result.scalar_one_or_none()
         if not tenant:
             raise ValueError(f"Tenant {tenant_id} not found")
 
         # 2. Validate assessment (and check tenant ownership)
-        assessment_result = await self.db.execute(
-            select(Assessment).where(
-                Assessment.id == assessment_id, Assessment.tenant_id == tenant_id
-            )
-        )
+        assessment_result = await self.db.execute(select(Assessment).where(Assessment.id == assessment_id, Assessment.tenant_id == tenant_id))
         assessment = assessment_result.scalar_one_or_none()
         if not assessment:
-            raise ValueError(
-                f"Assessment {assessment_id} not found for tenant {tenant_id}"
-            )
+            raise ValueError(f"Assessment {assessment_id} not found for tenant {tenant_id}")
 
         # 3. Generate unique short code
         short_code = await self.generate_unique_short_code()
@@ -340,18 +322,14 @@ class QRCodeService:
         qr_color = qr_data.style.color if qr_data.style else "#1E40AF"
         qr_size = qr_data.style.size if qr_data.style else 512
 
-        qr_img = self.generate_qr_image(
-            url=full_url, color=qr_color, size=qr_size, error_correction="H"
-        )
+        qr_img = self.generate_qr_image(url=full_url, color=qr_color, size=qr_size, error_correction="H")
 
         # 7. Convert to bytes
         png_bytes = self.qr_image_to_bytes(qr_img, format="PNG")
 
         # 8. Upload to storage
         filename_png = f"qr_{short_code}.png"
-        image_url = await self.upload_to_storage(
-            file_data=png_bytes, filename=filename_png, content_type="image/png"
-        )
+        image_url = await self.upload_to_storage(file_data=png_bytes, filename=filename_png, content_type="image/png")
 
         # 9. Create database record
         qr_code = QRCode(
@@ -392,9 +370,7 @@ class QRCodeService:
             ValueError: If QR code not found
         """
         # Fetch existing QR code
-        result = await self.db.execute(
-            select(QRCode).where(QRCode.id == qr_code_id, QRCode.tenant_id == tenant_id)
-        )
+        result = await self.db.execute(select(QRCode).where(QRCode.id == qr_code_id, QRCode.tenant_id == tenant_id))
         qr_code = result.scalar_one_or_none()
 
         if not qr_code:
@@ -422,16 +398,12 @@ class QRCodeService:
         qr_color = qr_code.style.get("color", "#1E40AF")
         qr_size = qr_code.style.get("size", 512)
 
-        qr_img = self.generate_qr_image(
-            url=full_url, color=qr_color, size=qr_size, error_correction="H"
-        )
+        qr_img = self.generate_qr_image(url=full_url, color=qr_color, size=qr_size, error_correction="H")
 
         # Upload
         png_bytes = self.qr_image_to_bytes(qr_img, format="PNG")
         filename_png = f"qr_{qr_code.short_code}_v2.png"
-        image_url = await self.upload_to_storage(
-            file_data=png_bytes, filename=filename_png, content_type="image/png"
-        )
+        image_url = await self.upload_to_storage(file_data=png_bytes, filename=filename_png, content_type="image/png")
 
         # Update database
         qr_code.qr_code_image_url = image_url

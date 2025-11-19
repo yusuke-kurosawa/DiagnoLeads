@@ -4,11 +4,12 @@ Audit Service
 Handles audit log creation and retrieval.
 """
 
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from uuid import UUID
-from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
 

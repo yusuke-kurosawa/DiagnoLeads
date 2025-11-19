@@ -4,11 +4,12 @@ Answer Model
 Represents individual question answers within a response session.
 """
 
-from sqlalchemy import Column, DateTime, ForeignKey, Text, Integer, Index
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -32,14 +33,10 @@ class Answer(Base):
 
     # Answer content
     answer_text = Column(Text, nullable=True)  # Answer text or selected option value
-    points_awarded = Column(
-        Integer, default=0, nullable=False
-    )  # Points awarded for this answer
+    points_awarded = Column(Integer, default=0, nullable=False)  # Points awarded for this answer
 
     # Timestamp
-    answered_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    answered_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
     response = relationship("Response", back_populates="answers")

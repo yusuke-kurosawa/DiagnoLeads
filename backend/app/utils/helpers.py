@@ -4,8 +4,9 @@ Utility Helper Functions
 Common helper functions used across services.
 """
 
-from typing import TypeVar, List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, TypeVar
+
 from sqlalchemy.orm import Query
 
 from app.core.constants import LeadScoreThreshold, TimeInterval
@@ -132,9 +133,7 @@ def get_date_range_from_period(period: str) -> tuple[datetime, datetime]:
     return start_date, end_date
 
 
-def group_by_date(
-    items: List[T], date_field: str, start_date: datetime, end_date: datetime
-) -> List[Dict[str, Any]]:
+def group_by_date(items: List[T], date_field: str, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
     """
     Group items by date and fill in missing dates with 0.
 
@@ -190,9 +189,7 @@ def calculate_conversion_rate(converted: int, total: int) -> float:
     return round((converted / total) * 100, 2)
 
 
-def paginate_query(
-    query: Query, page: int = 1, page_size: int = 20, max_page_size: int = 100
-) -> tuple[List[T], int]:
+def paginate_query(query: Query, page: int = 1, page_size: int = 20, max_page_size: int = 100) -> tuple[List[T], int]:
     """
     Paginate a SQLAlchemy query.
 

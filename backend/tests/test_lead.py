@@ -6,6 +6,7 @@ Following OpenSpec test strategy from openspec/specs/features/lead-management.md
 """
 
 from uuid import uuid4
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -56,9 +57,7 @@ def test_create_lead(client: TestClient, db_session: Session, test_user: User):
     assert data["created_by"] == str(test_user.id)
 
 
-def test_create_lead_duplicate_email(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_create_lead_duplicate_email(client: TestClient, db_session: Session, test_user: User):
     """Test creating a lead with duplicate email in same tenant"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -132,9 +131,7 @@ def test_list_leads(client: TestClient, db_session: Session, test_user: User):
     assert data[0]["score"] >= data[1]["score"] >= data[2]["score"]
 
 
-def test_list_leads_with_filters(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_list_leads_with_filters(client: TestClient, db_session: Session, test_user: User):
     """Test listing leads with status and score filters"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -494,9 +491,7 @@ def test_get_hot_leads(client: TestClient, db_session: Session, test_user: User)
     assert data[0]["score"] >= data[1]["score"]
 
 
-def test_cross_tenant_access_denied(
-    client: TestClient, db_session: Session, test_user: User, test_tenant_2
-):
+def test_cross_tenant_access_denied(client: TestClient, db_session: Session, test_user: User, test_tenant_2):
     """Test that users cannot access leads from other tenants (CRITICAL SECURITY TEST)"""
     auth_service = AuthService()
     token = auth_service.create_access_token(
@@ -530,9 +525,7 @@ def test_cross_tenant_access_denied(
     assert response.status_code == 403  # Forbidden
 
 
-def test_lead_email_unique_per_tenant(
-    client: TestClient, db_session: Session, test_user: User, test_tenant_2
-):
+def test_lead_email_unique_per_tenant(client: TestClient, db_session: Session, test_user: User, test_tenant_2):
     """Test that email uniqueness is enforced per tenant, not globally"""
     auth_service = AuthService()
     token_user1 = auth_service.create_access_token(
@@ -570,9 +563,7 @@ def test_lead_email_unique_per_tenant(
     db_session.commit()
     db_session.refresh(user2)
 
-    token_user2 = auth_service.create_access_token(
-        {"sub": str(user2.id), "tenant_id": str(user2.tenant_id), "email": user2.email}
-    )
+    token_user2 = auth_service.create_access_token({"sub": str(user2.id), "tenant_id": str(user2.tenant_id), "email": user2.email})
 
     # Should be able to create lead with same email in tenant 2
     response2 = client.post(
@@ -583,9 +574,7 @@ def test_lead_email_unique_per_tenant(
     assert response2.status_code == 201  # Should succeed
 
 
-def test_invalid_status_transition(
-    client: TestClient, db_session: Session, test_user: User
-):
+def test_invalid_status_transition(client: TestClient, db_session: Session, test_user: User):
     """Test that invalid status transitions are prevented"""
     auth_service = AuthService()
     token = auth_service.create_access_token(

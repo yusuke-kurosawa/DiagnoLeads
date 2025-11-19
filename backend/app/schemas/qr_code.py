@@ -3,8 +3,8 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, HttpUrl
 
+from pydantic import BaseModel, Field, HttpUrl
 
 # QR Code Schemas
 
@@ -17,17 +17,13 @@ class QRCodeStyleBase(BaseModel):
         description="QR code color in hex format",
         pattern="^#[0-9A-Fa-f]{6}$",
     )
-    logo_url: Optional[HttpUrl] = Field(
-        None, description="URL of logo to embed in QR code center"
-    )
+    logo_url: Optional[HttpUrl] = Field(None, description="URL of logo to embed in QR code center")
     frame: str = Field(
         default="none",
         description="Frame style: none, rounded, square",
         pattern="^(none|rounded|square)$",
     )
-    size: int = Field(
-        default=512, description="QR code size in pixels", ge=256, le=2048
-    )
+    size: int = Field(default=512, description="QR code size in pixels", ge=256, le=2048)
 
 
 class QRCodeCreate(BaseModel):
@@ -58,12 +54,8 @@ class QRCodeCreate(BaseModel):
         max_length=100,
         examples=["tech_expo_2025", "winter_campaign"],
     )
-    utm_term: Optional[str] = Field(
-        None, description="UTM term parameter", max_length=100
-    )
-    utm_content: Optional[str] = Field(
-        None, description="UTM content parameter", max_length=100
-    )
+    utm_term: Optional[str] = Field(None, description="UTM term parameter", max_length=100)
+    utm_content: Optional[str] = Field(None, description="UTM content parameter", max_length=100)
     style: QRCodeStyleBase = Field(
         default_factory=QRCodeStyleBase,
         description="QR code visual style configuration",
@@ -73,9 +65,7 @@ class QRCodeCreate(BaseModel):
 class QRCodeUpdate(BaseModel):
     """Schema for updating an existing QR code."""
 
-    name: Optional[str] = Field(
-        None, description="Human-readable name", min_length=1, max_length=255
-    )
+    name: Optional[str] = Field(None, description="Human-readable name", min_length=1, max_length=255)
     enabled: Optional[bool] = Field(None, description="Whether QR code is active")
 
 

@@ -5,17 +5,17 @@ Provides access to audit logs for compliance and audit trail tracking.
 Only accessible to system admins and tenant admins (within their tenant).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.services.audit_service import AuditService
 from app.schemas.audit_log import AuditLogResponse, AuditLogsListResponse
-
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 

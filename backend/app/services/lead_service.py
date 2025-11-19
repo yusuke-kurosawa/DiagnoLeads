@@ -4,24 +4,24 @@ Lead Service
 Business logic for lead management with multi-tenant support.
 """
 
-from uuid import UUID
-from typing import List, Optional
-from datetime import datetime
-import os
 import asyncio
+import os
 import uuid as uuid_lib
+from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
 
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc, or_
 from fastapi import HTTPException, status
+from sqlalchemy import and_, desc, or_
+from sqlalchemy.orm import Session
 
-from app.models.lead import Lead
-from app.models.tenant import Tenant
-from app.models.google_analytics_integration import GoogleAnalyticsIntegration
-from app.schemas.lead import LeadCreate, LeadUpdate, LeadStatusUpdate, LeadScoreUpdate
 from app.integrations.google_analytics.measurement_protocol import (
     GA4MeasurementProtocol,
 )
+from app.models.google_analytics_integration import GoogleAnalyticsIntegration
+from app.models.lead import Lead
+from app.models.tenant import Tenant
+from app.schemas.lead import LeadCreate, LeadScoreUpdate, LeadStatusUpdate, LeadUpdate
 
 # Teams integration
 try:
@@ -62,11 +62,7 @@ class LeadService:
         """
         try:
             # Get GA4 integration config for tenant
-            ga_integration = (
-                self.db.query(GoogleAnalyticsIntegration)
-                .filter(GoogleAnalyticsIntegration.tenant_id == tenant_id)
-                .first()
-            )
+            ga_integration = self.db.query(GoogleAnalyticsIntegration).filter(GoogleAnalyticsIntegration.tenant_id == tenant_id).first()
 
             # Check if GA4 is enabled and configured for server-side tracking
             if not ga_integration or not ga_integration.enabled:
@@ -76,9 +72,7 @@ class LeadService:
                 return
 
             if not ga_integration.measurement_protocol_api_secret:
-                print(
-                    f"⚠️  GA4 Measurement Protocol API Secret not configured for tenant {tenant_id}"
-                )
+                print(f"⚠️  GA4 Measurement Protocol API Secret not configured for tenant {tenant_id}")
                 return
 
             # Create GA4 client
@@ -96,9 +90,7 @@ class LeadService:
             event_params["tenant_id"] = str(tenant_id)
 
             # Send event
-            success = await client.send_event(
-                client_id=client_id, event_name=event_name, event_params=event_params
-            )
+            success = await client.send_event(client_id=client_id, event_name=event_name, event_params=event_params)
 
             if success:
                 print(f"✅ GA4 event sent: {event_name} for tenant {tenant_id}")
@@ -121,9 +113,7 @@ class LeadService:
             return
 
         # Get webhook URL from tenant settings or environment
-        webhook_url = tenant.settings.get("teams_webhook_url") or os.getenv(
-            "TEAMS_WEBHOOK_URL"
-        )
+        webhook_url = tenant.settings.get("teams_webhook_url") or os.getenv("TEAMS_WEBHOOK_URL")
 
         if not webhook_url:
             print(f"⚠️  No Teams webhook URL configured for tenant {tenant.name}")
@@ -151,13 +141,9 @@ class LeadService:
             # TODO: Construct actual dashboard URL
             dashboard_url = f"https://app.diagnoleads.com/leads/{lead.id}"
 
-            await teams_client.send_hot_lead_notification(
-                lead_data=lead_data, dashboard_url=dashboard_url
-            )
+            await teams_client.send_hot_lead_notification(lead_data=lead_data, dashboard_url=dashboard_url)
 
-            print(
-                f"✅ Teams notification sent for lead {lead.id} (score: {lead.score})"
-            )
+            print(f"✅ Teams notification sent for lead {lead.id} (score: {lead.score})")
 
         except Exception as e:
             # Log error but don't fail lead creation
@@ -194,12 +180,7 @@ class LeadService:
             query = query.filter(Lead.assigned_to == assigned_to)
 
         # Sort by score (highest first), then creation date
-        leads = (
-            query.order_by(desc(Lead.score), desc(Lead.created_at))
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        leads = query.order_by(desc(Lead.score), desc(Lead.created_at)).offset(skip).limit(limit).all()
 
         return leads
 
@@ -313,9 +294,7 @@ class LeadService:
 
         return lead
 
-    def update(
-        self, lead_id: UUID, data: LeadUpdate, tenant_id: UUID, updated_by: UUID
-    ) -> Optional[Lead]:
+    def update(self, lead_id: UUID, data: LeadUpdate, tenant_id: UUID, updated_by: UUID) -> Optional[Lead]:
         """
         Update an existing lead
         """
@@ -328,9 +307,7 @@ class LeadService:
         # Check email uniqueness if email is being updated
         update_data = data.model_dump(exclude_unset=True)
         if "email" in update_data and update_data["email"] != lead.email:
-            existing_lead = self.get_by_email(
-                email=update_data["email"], tenant_id=tenant_id
-            )
+            existing_lead = self.get_by_email(email=update_data["email"], tenant_id=tenant_id)
             if existing_lead:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -349,9 +326,7 @@ class LeadService:
 
         return lead
 
-    def update_status(
-        self, lead_id: UUID, data: LeadStatusUpdate, tenant_id: UUID, updated_by: UUID
-    ) -> Optional[Lead]:
+    def update_status(self, lead_id: UUID, data: LeadStatusUpdate, tenant_id: UUID, updated_by: UUID) -> Optional[Lead]:
         """
         Update lead status with validation
         """
@@ -418,9 +393,7 @@ class LeadService:
 
         return lead
 
-    def update_score(
-        self, lead_id: UUID, data: LeadScoreUpdate, tenant_id: UUID
-    ) -> Optional[Lead]:
+    def update_score(self, lead_id: UUID, data: LeadScoreUpdate, tenant_id: UUID) -> Optional[Lead]:
         """
         Update lead score and send Teams notification if hot lead
         """

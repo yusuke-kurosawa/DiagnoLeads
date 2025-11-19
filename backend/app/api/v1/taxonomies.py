@@ -9,16 +9,16 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.models.topic import Topic
 from app.models.industry import Industry
+from app.models.topic import Topic
 from app.models.user import User
 from app.schemas.taxonomy import (
-    TopicResponse,
-    TopicCreate,
-    TopicUpdate,
-    IndustryResponse,
     IndustryCreate,
+    IndustryResponse,
     IndustryUpdate,
+    TopicCreate,
+    TopicResponse,
+    TopicUpdate,
 )
 
 router = APIRouter()
@@ -46,11 +46,7 @@ async def get_topic(
     current_user: User = Depends(get_current_user),
 ):
     """Get a specific topic."""
-    topic = (
-        db.query(Topic)
-        .filter(Topic.id == topic_id, Topic.tenant_id == tenant_id)
-        .first()
-    )
+    topic = db.query(Topic).filter(Topic.id == topic_id, Topic.tenant_id == tenant_id).first()
 
     if not topic:
         raise HTTPException(
@@ -98,11 +94,7 @@ async def update_topic(
     current_user: User = Depends(get_current_user),
 ):
     """Update a topic."""
-    topic = (
-        db.query(Topic)
-        .filter(Topic.id == topic_id, Topic.tenant_id == tenant_id)
-        .first()
-    )
+    topic = db.query(Topic).filter(Topic.id == topic_id, Topic.tenant_id == tenant_id).first()
 
     if not topic:
         raise HTTPException(
@@ -128,9 +120,7 @@ async def update_topic(
     return topic
 
 
-@router.delete(
-    "/tenants/{tenant_id}/topics/{topic_id}", status_code=status.HTTP_204_NO_CONTENT
-)
+@router.delete("/tenants/{tenant_id}/topics/{topic_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_topic(
     tenant_id: str,
     topic_id: str,
@@ -138,11 +128,7 @@ async def delete_topic(
     current_user: User = Depends(get_current_user),
 ):
     """Delete a topic."""
-    topic = (
-        db.query(Topic)
-        .filter(Topic.id == topic_id, Topic.tenant_id == tenant_id)
-        .first()
-    )
+    topic = db.query(Topic).filter(Topic.id == topic_id, Topic.tenant_id == tenant_id).first()
 
     if not topic:
         raise HTTPException(
@@ -168,9 +154,7 @@ async def get_industries(
     return industries
 
 
-@router.get(
-    "/tenants/{tenant_id}/industries/{industry_id}", response_model=IndustryResponse
-)
+@router.get("/tenants/{tenant_id}/industries/{industry_id}", response_model=IndustryResponse)
 async def get_industry(
     tenant_id: str,
     industry_id: str,
@@ -178,11 +162,7 @@ async def get_industry(
     current_user: User = Depends(get_current_user),
 ):
     """Get a specific industry."""
-    industry = (
-        db.query(Industry)
-        .filter(Industry.id == industry_id, Industry.tenant_id == tenant_id)
-        .first()
-    )
+    industry = db.query(Industry).filter(Industry.id == industry_id, Industry.tenant_id == tenant_id).first()
 
     if not industry:
         raise HTTPException(
@@ -221,9 +201,7 @@ async def create_industry(
     return industry
 
 
-@router.put(
-    "/tenants/{tenant_id}/industries/{industry_id}", response_model=IndustryResponse
-)
+@router.put("/tenants/{tenant_id}/industries/{industry_id}", response_model=IndustryResponse)
 async def update_industry(
     tenant_id: str,
     industry_id: str,
@@ -232,11 +210,7 @@ async def update_industry(
     current_user: User = Depends(get_current_user),
 ):
     """Update an industry."""
-    industry = (
-        db.query(Industry)
-        .filter(Industry.id == industry_id, Industry.tenant_id == tenant_id)
-        .first()
-    )
+    industry = db.query(Industry).filter(Industry.id == industry_id, Industry.tenant_id == tenant_id).first()
 
     if not industry:
         raise HTTPException(
@@ -273,11 +247,7 @@ async def delete_industry(
     current_user: User = Depends(get_current_user),
 ):
     """Delete an industry."""
-    industry = (
-        db.query(Industry)
-        .filter(Industry.id == industry_id, Industry.tenant_id == tenant_id)
-        .first()
-    )
+    industry = db.query(Industry).filter(Industry.id == industry_id, Industry.tenant_id == tenant_id).first()
 
     if not industry:
         raise HTTPException(

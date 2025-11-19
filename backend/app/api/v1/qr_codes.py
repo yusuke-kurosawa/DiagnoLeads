@@ -1,23 +1,22 @@
 """QR Code API endpoints"""
 
-from typing import Optional
+from typing import Dict, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
 
-from app.core.deps import get_db, get_current_user
-from app.models.user import User
+from app.core.deps import get_current_user, get_db
 from app.models.qr_code import QRCode
-from app.services.qr_code_service import QRCodeService
+from app.models.user import User
 from app.schemas.qr_code import (
     QRCodeCreate,
-    QRCodeUpdate,
-    QRCodeResponse,
     QRCodeListResponse,
+    QRCodeResponse,
+    QRCodeUpdate,
 )
-
+from app.services.qr_code_service import QRCodeService
 
 router = APIRouter(prefix="/qr-codes", tags=["qr-codes"])
 
@@ -156,11 +155,7 @@ async def get_qr_code(
     Raises:
         404: QR code not found
     """
-    result = await db.execute(
-        select(QRCode).where(
-            and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)
-        )
-    )
+    result = await db.execute(select(QRCode).where(and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)))
     qr_code = result.scalar_one_or_none()
 
     if not qr_code:
@@ -200,11 +195,7 @@ async def update_qr_code(
         404: QR code not found
     """
     # Fetch QR code
-    result = await db.execute(
-        select(QRCode).where(
-            and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)
-        )
-    )
+    result = await db.execute(select(QRCode).where(and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)))
     qr_code = result.scalar_one_or_none()
 
     if not qr_code:
@@ -247,11 +238,7 @@ async def delete_qr_code(
         404: QR code not found
     """
     # Fetch QR code
-    result = await db.execute(
-        select(QRCode).where(
-            and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)
-        )
-    )
+    result = await db.execute(select(QRCode).where(and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)))
     qr_code = result.scalar_one_or_none()
 
     if not qr_code:
@@ -294,9 +281,7 @@ async def regenerate_qr_image(
     service = QRCodeService(db)
 
     try:
-        qr_code = await service.regenerate_qr_image(
-            qr_code_id=qr_code_id, tenant_id=current_user.tenant_id
-        )
+        qr_code = await service.regenerate_qr_image(qr_code_id=qr_code_id, tenant_id=current_user.tenant_id)
         return QRCodeResponse.from_orm(qr_code)
 
     except ValueError as e:
@@ -342,14 +327,11 @@ async def get_qr_analytics(
         404: QR code not found
     """
     from datetime import datetime, timedelta
+
     from app.models.qr_code_scan import QRCodeScan
 
     # Verify QR code exists and belongs to tenant
-    qr_result = await db.execute(
-        select(QRCode).where(
-            and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)
-        )
-    )
+    qr_result = await db.execute(select(QRCode).where(and_(QRCode.id == qr_code_id, QRCode.tenant_id == current_user.tenant_id)))
     qr_code = qr_result.scalar_one_or_none()
 
     if not qr_code:
@@ -363,13 +345,7 @@ async def get_qr_analytics(
     start_date = end_date - timedelta(days=days)
 
     # Get all scans in date range
-    scans_result = await db.execute(
-        select(QRCodeScan).where(
-            and_(
-                QRCodeScan.qr_code_id == qr_code_id, QRCodeScan.scanned_at >= start_date
-            )
-        )
-    )
+    scans_result = await db.execute(select(QRCodeScan).where(and_(QRCodeScan.qr_code_id == qr_code_id, QRCodeScan.scanned_at >= start_date)))
     scans = scans_result.scalars().all()
 
     # Summary statistics
@@ -390,15 +366,12 @@ async def get_qr_analytics(
     }
 
     # Scans by date
-    scans_by_date_dict = {}
+    scans_by_date_dict: Dict[str, int] = {}
     for scan in scans:
         date_str = scan.scanned_at.strftime("%Y-%m-%d")
         scans_by_date_dict[date_str] = scans_by_date_dict.get(date_str, 0) + 1
 
-    scans_by_date = [
-        {"date": date, "scans": count}
-        for date, count in sorted(scans_by_date_dict.items())
-    ]
+    scans_by_date = [{"date": date, "scans": count} for date, count in sorted(scans_by_date_dict.items())]
 
     # Scans by device
     device_counts = {"mobile": 0, "tablet": 0, "desktop": 0, "unknown": 0}
@@ -412,15 +385,13 @@ async def get_qr_analytics(
     scans_by_device = device_counts
 
     # Scans by country
-    country_counts = {}
+    country_counts: Dict[str, int] = {}
     for scan in scans:
         if scan.country:
             country_counts[scan.country] = country_counts.get(scan.country, 0) + 1
 
     scans_by_country = {
-        "country_scans": dict(
-            sorted(country_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-        )  # Top 10 countries
+        "country_scans": dict(sorted(country_counts.items(), key=lambda x: x[1], reverse=True)[:10])  # Top 10 countries
     }
 
     # Conversion funnel

@@ -4,14 +4,13 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from user_agents import parse as parse_user_agent
 
 from app.core.deps import get_db
 from app.models.qr_code import QRCode
 from app.models.qr_code_scan import QRCodeScan
-
 
 router = APIRouter(tags=["redirect"])
 
@@ -143,9 +142,7 @@ async def redirect_qr_code(
 
     # Check if QR code is enabled
     if not qr_code.enabled:
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE, detail="This QR code has been disabled"
-        )
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="This QR code has been disabled")
 
     # 2. Extract tracking data
     user_agent_string = request.headers.get("User-Agent", "")

@@ -4,11 +4,12 @@ Question Model
 Represents individual questions within assessments.
 """
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Integer, Index
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -27,16 +28,12 @@ class Question(Base):
 
     # Question content
     text = Column(Text, nullable=False)
-    type = Column(
-        String(50), nullable=False
-    )  # single_choice, multiple_choice, text, slider
+    type = Column(String(50), nullable=False)  # single_choice, multiple_choice, text, slider
     order = Column(Integer, nullable=False)  # Display order within assessment
     points = Column(Integer, default=0, nullable=False)  # Max points for this question
     explanation = Column(Text, nullable=True)  # Optional explanation shown after answer
 
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
     assessment = relationship("Assessment", back_populates="questions")
@@ -46,9 +43,7 @@ class Question(Base):
         cascade="all, delete-orphan",
         order_by="QuestionOption.order",
     )
-    answers = relationship(
-        "Answer", back_populates="question", cascade="all, delete-orphan"
-    )
+    answers = relationship("Answer", back_populates="question", cascade="all, delete-orphan")
 
     # Indexes for performance
     __table_args__ = (

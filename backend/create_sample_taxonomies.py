@@ -5,13 +5,15 @@ Sample Taxonomies Creation Script - Topics and Industries
 Creates sample topics and industries for demo tenants.
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(__file__))
 
-from sqlalchemy import create_engine, text
 from uuid import uuid4
+
+from sqlalchemy import create_engine, text
+
 from app.core.config import settings
 
 # Database setup
@@ -98,11 +100,7 @@ def create_sample_taxonomies():
     try:
         with engine.connect() as conn:
             # Get demo tenants
-            tenants_result = conn.execute(
-                text(
-                    "SELECT id FROM tenants WHERE slug IN ('demo-admin', 'demo-user', 'demo-system')"
-                )
-            )
+            tenants_result = conn.execute(text("SELECT id FROM tenants WHERE slug IN ('demo-admin', 'demo-user', 'demo-system')"))
             tenant_ids = [row[0] for row in tenants_result]
 
             if not tenant_ids:
@@ -110,9 +108,7 @@ def create_sample_taxonomies():
                 return
 
             # Get a system admin user for created_by
-            users_result = conn.execute(
-                text("SELECT id FROM users WHERE role = 'system_admin' LIMIT 1")
-            )
+            users_result = conn.execute(text("SELECT id FROM users WHERE role = 'system_admin' LIMIT 1"))
             user_row = users_result.first()
 
             if not user_row:
@@ -130,11 +126,13 @@ def create_sample_taxonomies():
                 for topic in sample_topics:
                     topic_id = str(uuid4())
                     conn.execute(
-                        text("""
+                        text(
+                            """
                         INSERT INTO topics (id, tenant_id, created_by, name, description, color, icon, sort_order, is_active, created_at, updated_at)
                         VALUES (:id, :tenant_id, :created_by, :name, :description, :color, :icon, :sort_order, :is_active, NOW(), NOW())
                         ON CONFLICT DO NOTHING
-                    """),
+                    """
+                        ),
                         {
                             "id": topic_id,
                             "tenant_id": tenant_id,
@@ -153,11 +151,13 @@ def create_sample_taxonomies():
                 for industry in sample_industries:
                     industry_id = str(uuid4())
                     conn.execute(
-                        text("""
+                        text(
+                            """
                         INSERT INTO industries (id, tenant_id, created_by, name, description, color, icon, sort_order, is_active, created_at, updated_at)
                         VALUES (:id, :tenant_id, :created_by, :name, :description, :color, :icon, :sort_order, :is_active, NOW(), NOW())
                         ON CONFLICT DO NOTHING
-                    """),
+                    """
+                        ),
                         {
                             "id": industry_id,
                             "tenant_id": tenant_id,
@@ -177,12 +177,8 @@ def create_sample_taxonomies():
             print("\n✅ Sample taxonomies created successfully!")
             print("\n📋 Summary:")
             print(f"   - {len(tenant_ids)} tenants")
-            print(
-                f"   - {len(sample_topics)} topics per tenant = {len(tenant_ids) * len(sample_topics)} total topics"
-            )
-            print(
-                f"   - {len(sample_industries)} industries per tenant = {len(tenant_ids) * len(sample_industries)} total industries"
-            )
+            print(f"   - {len(sample_topics)} topics per tenant = {len(tenant_ids) * len(sample_topics)} total topics")
+            print(f"   - {len(sample_industries)} industries per tenant = {len(tenant_ids) * len(sample_industries)} total industries")
 
     except Exception as e:
         print(f"❌ Error creating sample taxonomies: {e}")

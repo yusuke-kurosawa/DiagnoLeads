@@ -4,7 +4,9 @@ ChannelMessage.Send 権限の確認スクリプト
 
 import asyncio
 import os
+
 from dotenv import load_dotenv
+
 from app.integrations.microsoft.teams_client import TeamsClient
 
 load_dotenv()
@@ -25,9 +27,7 @@ async def main():
         return
 
     # Teams Client初期化
-    client = TeamsClient(
-        tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
-    )
+    client = TeamsClient(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
 
     # 認証
     print("\n1. Authenticating...")
@@ -92,9 +92,7 @@ async def main():
     }
 
     try:
-        result = await client.send_adaptive_card(
-            team_id=first_team["id"], channel_id=channels[0]["id"], card=test_card
-        )
+        result = await client.send_adaptive_card(team_id=first_team["id"], channel_id=channels[0]["id"], card=test_card)
 
         print("\n" + "=" * 60)
         print("✅ ChannelMessage.Send: OK")
@@ -112,11 +110,7 @@ async def main():
     except Exception as e:
         error_msg = str(e)
 
-        if (
-            "ChannelMessage.Send" in error_msg
-            or "Insufficient privileges" in error_msg
-            or "403" in error_msg
-        ):
+        if "ChannelMessage.Send" in error_msg or "Insufficient privileges" in error_msg or "403" in error_msg:
             print("\n" + "=" * 60)
             print("❌ ChannelMessage.Send: NOT GRANTED")
             print("=" * 60)

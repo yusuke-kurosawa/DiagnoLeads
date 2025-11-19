@@ -4,26 +4,26 @@ Authentication API Endpoints
 Handles user registration, login, and token management.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from jose import jwt, JWTError
 from uuid import UUID
 
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
+from app.core.database import get_db
 from app.schemas.auth import (
+    PasswordResetConfirm,
+    PasswordResetRequest,
     Token,
+    TokenRefresh,
+    TokenResponse,
     UserCreate,
     UserLogin,
     UserResponse,
-    PasswordResetRequest,
-    PasswordResetConfirm,
-    TokenRefresh,
-    TokenResponse,
 )
 from app.services.auth import AuthService
-
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")

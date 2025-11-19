@@ -3,19 +3,20 @@
 REST API for managing GA4 integrations with multi-tenant support.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.core.deps import get_db, get_current_user
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
-from app.services.google_analytics_service import GoogleAnalyticsService
 from app.schemas.google_analytics import (
     GoogleAnalyticsIntegrationCreate,
-    GoogleAnalyticsIntegrationResponse,
     GoogleAnalyticsIntegrationPublic,
+    GoogleAnalyticsIntegrationResponse,
     GoogleAnalyticsTestResponse,
 )
+from app.services.google_analytics_service import GoogleAnalyticsService
 
 router = APIRouter()
 
