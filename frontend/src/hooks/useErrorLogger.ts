@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
 import type { SystemError } from '../lib/errorHandler';
+import { reportError } from '../services/errorReportService';
 
 export const useErrorLogger = () => {
-  const logError = useCallback((error: unknown, context?: string) => {
+  const logError = useCallback(async (error: unknown, context?: string) => {
     console.group(`❌ エラーが発生しました${context ? ` - ${context}` : ''}`);
-    
+
     // Error のタイプに応じた処理
     if (error instanceof Error) {
       console.error('エラー名:', error.name);
@@ -12,7 +13,7 @@ export const useErrorLogger = () => {
       console.error('スタックトレース:', error.stack);
     } else if (typeof error === 'object' && error !== null) {
       console.error('エラーオブジェクト:', error);
-      
+
       // SystemError の場合
       if ('code' in error && 'status' in error) {
         const systemError = error as SystemError;
@@ -24,7 +25,7 @@ export const useErrorLogger = () => {
         console.error('タイムスタンプ:', systemError.timestamp);
         console.groupEnd();
       }
-      
+
       // AxiosError の場合
       if ('response' in error || 'config' in error) {
         console.group('🌐 APIエラー詳細');
@@ -44,8 +45,21 @@ export const useErrorLogger = () => {
     } else {
       console.error('エラー:', error);
     }
-    
+
     console.groupEnd();
+
+    // Send error to backend
+    try {
+      await reportError(error, {
+        action: context,
+        additionalInfo: {
+          context,
+        },
+      });
+    } catch (reportingError) {
+      // Silently fail if error reporting fails
+      console.warn('Failed to send error to backend:', reportingError);
+    }
   }, []);
 
   const logApiCall = useCallback((method: string, url: string, data?: unknown) => {
