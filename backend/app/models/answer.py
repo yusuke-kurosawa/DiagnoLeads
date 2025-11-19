@@ -31,9 +31,7 @@ class Answer(Base):
     )
 
     # Answer content
-    answer_text = Column(
-        Text, nullable=True
-    )  # Answer text or selected option value
+    answer_text = Column(Text, nullable=True)  # Answer text or selected option value
     points_awarded = Column(
         Integer, default=0, nullable=False
     )  # Points awarded for this answer

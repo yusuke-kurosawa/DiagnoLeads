@@ -5,7 +5,15 @@ Represents an industry/sector for organizing assessments.
 Each industry belongs to a specific tenant for multi-tenancy support.
 """
 
-from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, UniqueConstraint, Column
+from sqlalchemy import (
+    String,
+    Integer,
+    Boolean,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+    Column,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
@@ -21,7 +29,9 @@ class Industry(Base):
 
     # Primary key and foreign keys
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
+    tenant_id = Column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
     # Core attributes
@@ -36,7 +46,9 @@ class Industry(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     # Relationships
     tenant = relationship("Tenant", back_populates="industries")

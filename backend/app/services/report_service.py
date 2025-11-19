@@ -74,9 +74,7 @@ class ReportService:
 
         if include_private:
             # Show public reports or reports created by this user
-            query = query.filter(
-                or_(Report.is_public, Report.created_by == user_id)
-            )
+            query = query.filter(or_(Report.is_public, Report.created_by == user_id))
         else:
             # Show only public reports
             query = query.filter(Report.is_public)

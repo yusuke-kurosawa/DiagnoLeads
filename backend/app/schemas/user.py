@@ -12,6 +12,7 @@ from typing import Optional
 
 class UserCreate(BaseModel):
     """Schema for creating a new user"""
+
     tenant_id: UUID
     email: EmailStr
     password: str = Field(..., min_length=8)
@@ -21,6 +22,7 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     """Schema for updating a user"""
+
     email: Optional[EmailStr] = None
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     role: Optional[str] = None
@@ -28,6 +30,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(BaseModel):
     """Schema for user response"""
+
     id: UUID
     tenant_id: UUID
     email: str
@@ -43,6 +46,7 @@ class UserResponse(BaseModel):
 
 class UserAdmin(BaseModel):
     """Schema for admin user view"""
+
     id: UUID
     tenant_id: UUID
     email: str

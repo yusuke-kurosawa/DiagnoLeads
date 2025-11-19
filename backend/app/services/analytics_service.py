@@ -54,15 +54,13 @@ class AnalyticsService:
         Get detailed lead analytics
         """
         # Get all leads for tenant
-        leads = self.db.query(Lead).filter(
-            Lead.tenant_id == tenant_id
-        ).all()
+        leads = self.db.query(Lead).filter(Lead.tenant_id == tenant_id).all()
 
         if not leads:
             return self._empty_lead_analytics()
 
         # Status counts using helper
-        status_counts = count_by_attribute(leads, 'status')
+        status_counts = count_by_attribute(leads, "status")
 
         # Score distribution
         score_distribution = self._count_by_score_range(leads)
@@ -94,18 +92,18 @@ class AnalyticsService:
         Get detailed assessment analytics
         """
         # Get all assessments for tenant
-        assessments = self.db.query(Assessment).filter(
-            Assessment.tenant_id == tenant_id
-        ).all()
+        assessments = (
+            self.db.query(Assessment).filter(Assessment.tenant_id == tenant_id).all()
+        )
 
         if not assessments:
             return self._empty_assessment_analytics()
 
         # Status counts using helper
-        status_counts = count_by_attribute(assessments, 'status')
+        status_counts = count_by_attribute(assessments, "status")
 
         # AI generation counts using helper
-        ai_counts = count_by_attribute(assessments, 'ai_generated')
+        ai_counts = count_by_attribute(assessments, "ai_generated")
 
         return {
             "total": len(assessments),
@@ -142,16 +140,20 @@ class AnalyticsService:
     ) -> Dict[str, Any]:
         """Get lead creation trends"""
         # Query leads within date range
-        leads = self.db.query(Lead).filter(
-            and_(
-                Lead.tenant_id == tenant_id,
-                Lead.created_at >= start_date,
-                Lead.created_at <= end_date,
+        leads = (
+            self.db.query(Lead)
+            .filter(
+                and_(
+                    Lead.tenant_id == tenant_id,
+                    Lead.created_at >= start_date,
+                    Lead.created_at <= end_date,
+                )
             )
-        ).all()
+            .all()
+        )
 
         # Group by date using helper
-        data_points = group_by_date(leads, 'created_at', start_date, end_date)
+        data_points = group_by_date(leads, "created_at", start_date, end_date)
 
         # Calculate summary
         total = len(leads)
@@ -172,16 +174,20 @@ class AnalyticsService:
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
     ) -> Dict[str, Any]:
         """Get assessment creation trends"""
-        assessments = self.db.query(Assessment).filter(
-            and_(
-                Assessment.tenant_id == tenant_id,
-                Assessment.created_at >= start_date,
-                Assessment.created_at <= end_date,
+        assessments = (
+            self.db.query(Assessment)
+            .filter(
+                and_(
+                    Assessment.tenant_id == tenant_id,
+                    Assessment.created_at >= start_date,
+                    Assessment.created_at <= end_date,
+                )
             )
-        ).all()
+            .all()
+        )
 
         # Group by date using helper
-        data_points = group_by_date(assessments, 'created_at', start_date, end_date)
+        data_points = group_by_date(assessments, "created_at", start_date, end_date)
 
         total = len(assessments)
         days_count = (end_date - start_date).days + 1
@@ -205,7 +211,8 @@ class AnalyticsService:
         """
         hot = sum(1 for lead in leads if lead.score >= LeadScoreThreshold.HOT_MIN)
         warm = sum(
-            1 for lead in leads
+            1
+            for lead in leads
             if LeadScoreThreshold.WARM_MIN <= lead.score < LeadScoreThreshold.HOT_MIN
         )
         cold = sum(1 for lead in leads if lead.score < LeadScoreThreshold.WARM_MIN)
