@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from app.models.google_analytics_integration import GoogleAnalyticsIntegration
@@ -72,8 +73,6 @@ class TestGoogleAnalyticsServiceCreate:
     @pytest.mark.asyncio
     async def test_create_invalid_measurement_id(self, db_session, test_tenant):
         """Test creating integration with invalid measurement ID"""
-        from pydantic import ValidationError
-
         # Pydantic validates before service method is called
         with pytest.raises(ValidationError):
             GoogleAnalyticsIntegrationCreate(

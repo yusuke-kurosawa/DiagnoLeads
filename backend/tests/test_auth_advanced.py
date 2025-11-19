@@ -5,6 +5,7 @@ Test coverage for password reset, login attempts, and refresh tokens
 """
 
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from jose import jwt
 
@@ -223,8 +224,6 @@ class TestAuthUserRetrieval:
 
     def test_get_user_by_id_not_found(self, db_session):
         """Test getting non-existent user by ID"""
-        from uuid import uuid4
-
         user = AuthService.get_user_by_id(db_session, uuid4())
 
         assert user is None
@@ -249,8 +248,6 @@ class TestAuthTokenDecoding:
 
     def test_decode_access_token_with_custom_expiry(self):
         """Test creating and decoding token with custom expiry"""
-        from uuid import uuid4
-
         user_id = str(uuid4())
         tenant_id = str(uuid4())
         data = {"sub": user_id, "tenant_id": tenant_id, "email": "test@example.com"}
@@ -266,8 +263,6 @@ class TestAuthTokenDecoding:
 
     def test_decode_access_token_without_email(self):
         """Test decoding token without email field"""
-        from uuid import uuid4
-
         user_id = str(uuid4())
         tenant_id = str(uuid4())
         data = {"sub": user_id, "tenant_id": tenant_id}
