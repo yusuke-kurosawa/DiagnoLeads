@@ -84,7 +84,7 @@ class ReportExportService:
         """
         try:
             from openpyxl import Workbook
-            from openpyxl.styles import Font, PatternFill, Alignment
+            from openpyxl.styles import Font, PatternFill
             from openpyxl.utils import get_column_letter
         except ImportError:
             raise ImportError(
@@ -214,7 +214,7 @@ class ReportExportService:
             PDF file as bytes
         """
         try:
-            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.lib.pagesizes import A4
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
             from reportlab.platypus import (
@@ -312,7 +312,12 @@ class ReportExportService:
                         ("FONTSIZE", (0, 0), (-1, 0), 10),
                         ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                         ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                        (
+                            "ROWBACKGROUNDS",
+                            (0, 1),
+                            (-1, -1),
+                            [colors.white, colors.lightgrey],
+                        ),
                     ]
                 )
             )
@@ -323,9 +328,9 @@ class ReportExportService:
         story.append(Paragraph("Report Configuration", styles["Heading2"]))
 
         config_text = f"""
-        <b>Metrics:</b> {', '.join(config.get('metrics', []))}<br/>
-        <b>Group By:</b> {config.get('group_by', 'None')}<br/>
-        <b>Visualization:</b> {config.get('visualization', 'table')}<br/>
+        <b>Metrics:</b> {", ".join(config.get("metrics", []))}<br/>
+        <b>Group By:</b> {config.get("group_by", "None")}<br/>
+        <b>Visualization:</b> {config.get("visualization", "table")}<br/>
         """
 
         if "filters" in config and config["filters"]:

@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Optional
-from datetime import datetime
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -26,11 +25,11 @@ def check_audit_access(current_user: User, requested_tenant_id: UUID):
     # System admin can view any tenant's logs
     if current_user.role == "system_admin":
         return current_user
-    
+
     # Tenant admin or user can only view their own tenant's logs
     if current_user.tenant_id == requested_tenant_id:
         return current_user
-    
+
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Can only view audit logs for your own tenant",
@@ -50,7 +49,7 @@ async def list_audit_logs(
 ):
     """List audit logs"""
     check_audit_access(current_user, tenant_id)
-    
+
     logs, total = AuditService.get_audit_logs(
         db,
         tenant_id=tenant_id,
@@ -60,7 +59,7 @@ async def list_audit_logs(
         skip=skip,
         limit=limit,
     )
-    
+
     return AuditLogsListResponse(
         total=total,
         skip=skip,
@@ -79,14 +78,14 @@ async def get_entity_history(
 ):
     """Get change history for a specific entity"""
     check_audit_access(current_user, tenant_id)
-    
+
     logs = AuditService.get_entity_history(
         db,
         tenant_id=tenant_id,
         entity_type=entity_type,
         entity_id=entity_id,
     )
-    
+
     return [AuditLogResponse.from_orm(log) for log in logs]
 
 
@@ -100,12 +99,12 @@ async def get_user_activity(
 ):
     """Get recent activity for a specific user"""
     check_audit_access(current_user, tenant_id)
-    
+
     logs = AuditService.get_user_activity(
         db,
         tenant_id=tenant_id,
         user_id=user_id,
         days=days,
     )
-    
+
     return [AuditLogResponse.from_orm(log) for log in logs]

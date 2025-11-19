@@ -4,7 +4,7 @@ Multi-Tenant Middleware
 Automatically applies tenant context to all requests.
 """
 
-from fastapi import Request, HTTPException
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from jose import jwt, JWTError
@@ -24,7 +24,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Handle CORS preflight requests (OPTIONS)
         if request.method == "OPTIONS":
             return await call_next(request)
-        
+
         # Skip authentication for public endpoints
         public_paths = [
             "/health",
@@ -72,7 +72,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # Attach tenant_id and user_id to request state
             request.state.tenant_id = tenant_id
             request.state.user_id = user_id
-            
+
             # Set context variable for RLS (database-level tenant isolation)
             current_tenant_id.set(str(tenant_id))
 

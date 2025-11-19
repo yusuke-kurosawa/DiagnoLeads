@@ -13,11 +13,10 @@ from uuid import UUID
 from app.core.database import get_db
 from app.core.config import settings
 from app.schemas.auth import (
-    Token, 
-    UserCreate, 
-    UserLogin, 
-    UserResponse, 
-    RegistrationResponse,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
     PasswordResetRequest,
     PasswordResetConfirm,
     TokenRefresh,
@@ -38,12 +37,12 @@ def build_user_response(user) -> UserResponse:
     tenant_name = None
     tenant_slug = None
     tenant_plan = None
-    
-    if hasattr(user, 'tenant') and user.tenant:
+
+    if hasattr(user, "tenant") and user.tenant:
         tenant_name = user.tenant.name
         tenant_slug = user.tenant.slug
         tenant_plan = user.tenant.plan
-    
+
     return UserResponse(
         id=user.id,
         tenant_id=user.tenant_id,
@@ -215,18 +214,26 @@ async def request_password_reset(
     Sends a password reset link to the user's email.
     """
     result = AuthService.create_password_reset_request(db, request.email)
-    
+
     if not result:
         # Don't reveal if email exists (security best practice)
         return {"message": "パスワードリセットメールを送信しました"}
 
     user, reset_token = result
 
-    # TODO: Send email with reset link
-    # In production, use a service like SendGrid or Mailgun
-    # For now, log the token (UNSAFE - for dev only)
-    print(f"🔐 Password reset token for {user.email}: {reset_token}")
-    print(f"Reset link: http://localhost:3000/reset-password?token={reset_token}")
+    # Send password reset email
+    from app.services.email_service import email_service
+
+    email_sent = email_service.send_password_reset_email(
+        to_email=user.email,
+        reset_token=reset_token,
+        user_name=user.name,
+    )
+
+    if not email_sent:
+        # Fallback: log the token for development
+        print(f"🔐 Password reset token for {user.email}: {reset_token}")
+        print(f"Reset link: http://localhost:5173/reset-password?token={reset_token}")
 
     return {"message": "パスワードリセットメールを送信しました"}
 
@@ -242,7 +249,7 @@ async def confirm_password_reset(
     Validates the reset token and updates the password.
     """
     user = AuthService.verify_password_reset_token(db, request.token)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -271,7 +278,7 @@ async def refresh_token(
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
-        
+
         token_type = payload.get("type")
         if token_type != "refresh":
             raise HTTPException(

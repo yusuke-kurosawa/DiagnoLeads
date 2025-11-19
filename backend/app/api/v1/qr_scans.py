@@ -4,7 +4,6 @@ Endpoints for updating scan tracking data (assessment progress, lead conversion)
 """
 
 from uuid import UUID
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +21,7 @@ router = APIRouter(prefix="/scans", tags=["qr-scans"])
     "/{scan_id}/started",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Mark Assessment Started",
-    description="Update scan to indicate user started the assessment"
+    description="Update scan to indicate user started the assessment",
 )
 async def mark_assessment_started(
     scan_id: UUID,
@@ -30,28 +29,25 @@ async def mark_assessment_started(
 ) -> None:
     """
     Mark that user started the assessment.
-    
+
     Called by frontend when assessment page loads.
-    
+
     Args:
         scan_id: Scan UUID (from URL parameter)
         db: Database session
-    
+
     Raises:
         404: Scan not found
     """
     # Fetch scan
-    result = await db.execute(
-        select(QRCodeScan).where(QRCodeScan.id == scan_id)
-    )
+    result = await db.execute(select(QRCodeScan).where(QRCodeScan.id == scan_id))
     scan = result.scalar_one_or_none()
-    
+
     if not scan:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Scan {scan_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
         )
-    
+
     # Update flag
     if not scan.assessment_started:
         scan.assessment_started = True
@@ -62,7 +58,7 @@ async def mark_assessment_started(
     "/{scan_id}/completed",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Mark Assessment Completed",
-    description="Update scan to indicate user completed the assessment"
+    description="Update scan to indicate user completed the assessment",
 )
 async def mark_assessment_completed(
     scan_id: UUID,
@@ -70,27 +66,24 @@ async def mark_assessment_completed(
 ) -> None:
     """
     Mark that user completed the assessment.
-    
+
     Called by frontend when assessment is submitted.
-    
+
     Args:
         scan_id: Scan UUID
         db: Database session
-    
+
     Raises:
         404: Scan not found
     """
-    result = await db.execute(
-        select(QRCodeScan).where(QRCodeScan.id == scan_id)
-    )
+    result = await db.execute(select(QRCodeScan).where(QRCodeScan.id == scan_id))
     scan = result.scalar_one_or_none()
-    
+
     if not scan:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Scan {scan_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
         )
-    
+
     # Update flags
     if not scan.assessment_completed:
         scan.assessment_completed = True
@@ -104,7 +97,7 @@ async def mark_assessment_completed(
     "/{scan_id}/lead",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Link Lead to Scan",
-    description="Update scan to link it with created lead"
+    description="Update scan to link it with created lead",
 )
 async def link_lead_to_scan(
     scan_id: UUID,
@@ -113,58 +106,52 @@ async def link_lead_to_scan(
 ) -> None:
     """
     Link a lead to a scan.
-    
+
     Called by backend when lead is created from assessment.
-    
+
     Args:
         scan_id: Scan UUID
         lead_id: Lead UUID
         db: Database session
-    
+
     Raises:
         404: Scan or lead not found
     """
     # Fetch scan
-    scan_result = await db.execute(
-        select(QRCodeScan).where(QRCodeScan.id == scan_id)
-    )
+    scan_result = await db.execute(select(QRCodeScan).where(QRCodeScan.id == scan_id))
     scan = scan_result.scalar_one_or_none()
-    
+
     if not scan:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Scan {scan_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
         )
-    
+
     # Verify lead exists
-    lead_result = await db.execute(
-        select(Lead).where(Lead.id == lead_id)
-    )
+    lead_result = await db.execute(select(Lead).where(Lead.id == lead_id))
     lead = lead_result.scalar_one_or_none()
-    
+
     if not lead:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Lead {lead_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Lead {lead_id} not found"
         )
-    
+
     # Update scan
     scan.lead_id = lead_id
     scan.lead_created = True
-    
+
     # Auto-mark as completed if not already
     if not scan.assessment_completed:
         scan.assessment_completed = True
     if not scan.assessment_started:
         scan.assessment_started = True
-    
+
     await db.commit()
 
 
 @router.get(
     "/{scan_id}",
     summary="Get Scan Details",
-    description="Get scan tracking information"
+    description="Get scan tracking information",
 )
 async def get_scan_details(
     scan_id: UUID,
@@ -172,28 +159,25 @@ async def get_scan_details(
 ) -> dict:
     """
     Get scan details.
-    
+
     Args:
         scan_id: Scan UUID
         db: Database session
-    
+
     Returns:
         Scan information
-    
+
     Raises:
         404: Scan not found
     """
-    result = await db.execute(
-        select(QRCodeScan).where(QRCodeScan.id == scan_id)
-    )
+    result = await db.execute(select(QRCodeScan).where(QRCodeScan.id == scan_id))
     scan = result.scalar_one_or_none()
-    
+
     if not scan:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Scan {scan_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
         )
-    
+
     return {
         "id": str(scan.id),
         "qr_code_id": str(scan.qr_code_id),

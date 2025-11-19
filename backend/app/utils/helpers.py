@@ -7,11 +7,10 @@ Common helper functions used across services.
 from typing import TypeVar, List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Query
-from sqlalchemy import and_
 
 from app.core.constants import LeadScoreThreshold, TimeInterval
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def classify_lead_by_score(score: int) -> str:
@@ -70,7 +69,7 @@ def apply_date_range_filter(
     model,
     date_field: str,
     start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    end_date: Optional[str] = None,
 ) -> Query:
     """
     Apply date range filter to a SQLAlchemy query.
@@ -134,10 +133,7 @@ def get_date_range_from_period(period: str) -> tuple[datetime, datetime]:
 
 
 def group_by_date(
-    items: List[T],
-    date_field: str,
-    start_date: datetime,
-    end_date: datetime
+    items: List[T], date_field: str, start_date: datetime, end_date: datetime
 ) -> List[Dict[str, Any]]:
     """
     Group items by date and fill in missing dates with 0.
@@ -167,10 +163,12 @@ def group_by_date(
 
     while current_date <= end:
         date_key = current_date.isoformat()
-        data_points.append({
-            "date": date_key,
-            "value": date_counts.get(date_key, 0),
-        })
+        data_points.append(
+            {
+                "date": date_key,
+                "value": date_counts.get(date_key, 0),
+            }
+        )
         current_date += timedelta(days=1)
 
     return data_points
@@ -193,10 +191,7 @@ def calculate_conversion_rate(converted: int, total: int) -> float:
 
 
 def paginate_query(
-    query: Query,
-    page: int = 1,
-    page_size: int = 20,
-    max_page_size: int = 100
+    query: Query, page: int = 1, page_size: int = 20, max_page_size: int = 100
 ) -> tuple[List[T], int]:
     """
     Paginate a SQLAlchemy query.
@@ -254,7 +249,7 @@ def truncate_string(text: str, max_length: int, suffix: str = "...") -> str:
     """
     if len(text) <= max_length:
         return text
-    return text[:max_length - len(suffix)] + suffix
+    return text[: max_length - len(suffix)] + suffix
 
 
 def validate_email(email: str) -> bool:
@@ -268,7 +263,8 @@ def validate_email(email: str) -> bool:
         True if valid, False otherwise
     """
     import re
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return bool(re.match(pattern, email))
 
 
@@ -283,9 +279,10 @@ def sanitize_filename(filename: str) -> str:
         Sanitized filename
     """
     import re
+
     # Remove path separators and other unsafe characters
-    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
+    filename = re.sub(r'[<>:"/\\|?*]', "", filename)
     # Replace spaces with underscores
-    filename = filename.replace(' ', '_')
+    filename = filename.replace(" ", "_")
     # Limit length
     return filename[:255]

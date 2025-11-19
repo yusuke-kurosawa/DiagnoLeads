@@ -6,14 +6,17 @@ Pydantic models for AI-related requests and responses.
 
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-from datetime import datetime
 
 
 class AssessmentGenerationRequest(BaseModel):
     """Request to generate an assessment using AI"""
 
-    topic: str = Field(..., min_length=1, max_length=255, description="Topic for the assessment")
-    industry: str = Field(..., min_length=1, max_length=255, description="Target industry")
+    topic: str = Field(
+        ..., min_length=1, max_length=255, description="Topic for the assessment"
+    )
+    industry: str = Field(
+        ..., min_length=1, max_length=255, description="Target industry"
+    )
     num_questions: int = Field(
         default=5, ge=3, le=20, description="Number of questions to generate"
     )
@@ -84,7 +87,9 @@ class LeadInsights(BaseModel):
 class LeadAnalysisRequest(BaseModel):
     """Request to analyze lead responses"""
 
-    assessment_responses: Dict[str, Any] = Field(..., description="Question ID to response mapping")
+    assessment_responses: Dict[str, Any] = Field(
+        ..., description="Question ID to response mapping"
+    )
     assessment_title: Optional[str] = Field(
         default="Assessment", description="Name of the assessment"
     )
@@ -105,7 +110,9 @@ class LeadAnalysisResponse(BaseModel):
 class RephraseRequest(BaseModel):
     """Request to rephrase content"""
 
-    text: str = Field(..., min_length=1, max_length=2000, description="Text to rephrase")
+    text: str = Field(
+        ..., min_length=1, max_length=2000, description="Text to rephrase"
+    )
     style: str = Field(
         default="professional",
         description="Style: professional|casual|technical|simple",

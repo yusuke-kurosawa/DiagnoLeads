@@ -104,7 +104,7 @@ export function Tooltip({
   const clonedChild = useMemo(
     () =>
       React.cloneElement(children, {
-        ref: triggerRef,
+        ref: triggerRef as React.Ref<HTMLElement>,
         onMouseEnter: handleMouseEnter,
         onMouseLeave: handleMouseLeave,
       } as React.HTMLAttributes<HTMLElement>),

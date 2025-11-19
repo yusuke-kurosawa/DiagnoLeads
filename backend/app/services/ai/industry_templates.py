@@ -4,7 +4,7 @@ Industry Templates for AI Assessment Generation
 Provides industry-specific templates and guidelines for generating high-quality assessments.
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List
 from dataclasses import dataclass
 
 

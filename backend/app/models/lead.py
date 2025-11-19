@@ -4,7 +4,17 @@ Lead Model
 Represents a lead (prospect) in the sales funnel.
 """
 
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text, JSON, Index, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    DateTime,
+    ForeignKey,
+    Text,
+    JSON,
+    Index,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -21,6 +31,11 @@ class Lead(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    response_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("responses.id", ondelete="SET NULL"),
+        nullable=True,
     )
 
     # Core Fields
@@ -61,6 +76,7 @@ class Lead(Base):
     )
 
     # Relationships
+    response = relationship("Response", back_populates="leads")
     qr_code_scans = relationship("QRCodeScan", back_populates="lead")
 
     # Indexes for performance

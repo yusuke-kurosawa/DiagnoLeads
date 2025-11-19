@@ -107,16 +107,12 @@ def test_query_users_by_tenant(
 ):
     """Test querying users filtered by tenant_id"""
     # Query users for tenant A
-    users_a = (
-        db_session.query(User).filter(User.tenant_id == tenant_a.id).all()
-    )
+    users_a = db_session.query(User).filter(User.tenant_id == tenant_a.id).all()
     assert len(users_a) == 1
     assert users_a[0].id == user_a.id
 
     # Query users for tenant B
-    users_b = (
-        db_session.query(User).filter(User.tenant_id == tenant_b.id).all()
-    )
+    users_b = db_session.query(User).filter(User.tenant_id == tenant_b.id).all()
     assert len(users_b) == 1
     assert users_b[0].id == user_b.id
 
@@ -126,7 +122,7 @@ def test_cross_tenant_data_access_prevented(
 ):
     """
     Test that cross-tenant data access is prevented
-    
+
     This is a critical security test to ensure tenant isolation.
     """
     # Try to query user B's data with tenant A's filter
@@ -152,13 +148,11 @@ def test_cross_tenant_data_access_prevented(
     assert cross_tenant_query_reverse is None
 
 
-def test_tenant_cascade_delete(
-    db_session: Session, tenant_a: Tenant, user_a: User
-):
+def test_tenant_cascade_delete(db_session: Session, tenant_a: Tenant, user_a: User):
     """Test that deleting a tenant cascades to users"""
     # Store user ID before deletion
     user_id = user_a.id
-    
+
     # Verify user exists
     user = db_session.query(User).filter(User.id == user_id).first()
     assert user is not None
@@ -166,7 +160,7 @@ def test_tenant_cascade_delete(
     # Delete tenant
     db_session.delete(tenant_a)
     db_session.commit()
-    
+
     # Expunge all to avoid stale object issues
     db_session.expunge_all()
 

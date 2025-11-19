@@ -25,11 +25,11 @@ def check_admin_access(current_user: User, tenant_id: UUID):
     # System admin can manage any tenant
     if current_user.role == "system_admin":
         return current_user
-    
+
     # Tenant admin can only manage their own tenant
     if current_user.role == "tenant_admin" and current_user.tenant_id == tenant_id:
         return current_user
-    
+
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Only administrators can manage users",
@@ -45,7 +45,7 @@ async def list_users(
     db: Session = Depends(get_db),
 ):
     """List users (admin only)
-    
+
     - System admin: Can see all users (tenant_id optional, shows all if not provided)
     - Tenant admin: Can only see users in their tenant
     """
@@ -53,7 +53,13 @@ async def list_users(
     if current_user.role == "system_admin":
         if tenant_id:
             # Filter by specific tenant
-            users = db.query(User).filter(User.tenant_id == tenant_id).offset(skip).limit(limit).all()
+            users = (
+                db.query(User)
+                .filter(User.tenant_id == tenant_id)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
         else:
             # Return all users from all tenants
             users = db.query(User).offset(skip).limit(limit).all()
@@ -64,13 +70,19 @@ async def list_users(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Tenant admins can only view users in their own tenant",
             )
-        users = db.query(User).filter(User.tenant_id == current_user.tenant_id).offset(skip).limit(limit).all()
+        users = (
+            db.query(User)
+            .filter(User.tenant_id == current_user.tenant_id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
     else:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administrators can manage users",
         )
-    
+
     # Build responses with tenant information
     responses = []
     for user in users:
@@ -89,25 +101,28 @@ async def get_user(
 ):
     """Get a specific user details (admin or self)"""
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Allow user to view themselves or allow admin to view their tenant's users
     if current_user.id != user_id:
         if current_user.role == "system_admin":
             pass  # System admin can view any user
-        elif current_user.role == "tenant_admin" and current_user.tenant_id == user.tenant_id:
+        elif (
+            current_user.role == "tenant_admin"
+            and current_user.tenant_id == user.tenant_id
+        ):
             pass  # Tenant admin can view users in their tenant
         else:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot view this user",
             )
-    
+
     return UserResponse.from_orm(user)
 
 
@@ -119,7 +134,7 @@ async def create_user(
 ):
     """Create a new user (admin only)"""
     check_admin_access(current_user, user_data.tenant_id)
-    
+
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
@@ -127,7 +142,7 @@ async def create_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists",
         )
-    
+
     # Create new user
     user = UserService.create_user(db, user_data)
     return UserResponse.from_orm(user)
@@ -142,34 +157,35 @@ async def update_user(
 ):
     """Update a user (admin or self)"""
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Check access permissions
     if current_user.id != user_id:
         check_admin_access(current_user, user.tenant_id)
-    
+
     # Update user fields
     if user_data.name is not None:
         user.name = user_data.name
-    
+
     if user_data.email is not None:
         # Check for duplicate email
-        duplicate = db.query(User).filter(
-            User.email == user_data.email,
-            User.id != user_id
-        ).first()
+        duplicate = (
+            db.query(User)
+            .filter(User.email == user_data.email, User.id != user_id)
+            .first()
+        )
         if duplicate:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already in use",
             )
         user.email = user_data.email
-    
+
     if user_data.role is not None:
         # Only admins can change roles
         if current_user.role != "system_admin":
@@ -178,11 +194,11 @@ async def update_user(
                 detail="Only system admins can change user roles",
             )
         user.role = user_data.role
-    
+
     user.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(user)
-    
+
     return UserResponse.from_orm(user)
 
 
@@ -194,21 +210,21 @@ async def delete_user(
 ):
     """Delete a user (admin only)"""
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Prevent self-deletion
     if current_user.id == user_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete your own account",
         )
-    
+
     check_admin_access(current_user, user.tenant_id)
-    
+
     db.delete(user)
     db.commit()

@@ -48,7 +48,7 @@ export default function UserManagement() {
       const data = await getUsers(tenantIdParam);
       setUsers(data);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'ユーザー情報の読み込みに失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'ユーザー情報の読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading users:', err);
     } finally {
@@ -101,7 +101,7 @@ export default function UserManagement() {
       resetForm();
       setShowForm(false);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message ||
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message ||
         (editingId ? 'ユーザーの更新に失敗しました' : 'ユーザーの作成に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
@@ -130,7 +130,7 @@ export default function UserManagement() {
       setSuccessMessage('ユーザーを削除しました');
       await loadUsers();
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'ユーザーの削除に失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'ユーザーの削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting user:', err);
     }

@@ -59,7 +59,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       }
       setItems(data || []);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'データの読み込みに失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'データの読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading items:', err);
     } finally {
@@ -100,7 +100,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       resetForm();
       setShowForm(false);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || '保存に失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || '保存に失敗しました';
       setError(errorMsg);
       console.error('Error submitting form:', err);
     } finally {
@@ -135,7 +135,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
       setSuccessMessage('削除しました');
       await loadItems();
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || '削除に失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || '削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting item:', err);
     }
@@ -195,7 +195,7 @@ export default function TaxonomyManagement({ type }: { type: TaxonomyType }) {
 
       setSuccessMessage('並び順を更新しました');
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || '並び順の更新に失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || '並び順の更新に失敗しました';
       setError(errorMsg);
       console.error('Error updating sort order:', err);
       // Reload to revert

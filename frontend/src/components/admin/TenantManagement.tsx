@@ -42,7 +42,7 @@ export default function TenantManagement() {
       const data = await getTenants();
       setTenants(data);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'テナント情報の読み込みに失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'テナント情報の読み込みに失敗しました';
       setError(errorMsg);
       console.error('Error loading tenants:', err);
     } finally {
@@ -75,7 +75,7 @@ export default function TenantManagement() {
       resetForm();
       setShowForm(false);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message ||
         (editingId ? 'テナントの更新に失敗しました' : 'テナントの作成に失敗しました');
       setError(errorMsg);
       console.error('Error submitting form:', err);
@@ -104,7 +104,7 @@ export default function TenantManagement() {
       setSuccessMessage('テナントを削除しました');
       await loadTenants();
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || err.message || 'テナントの削除に失敗しました';
+      const errorMsg = (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail || (err as { message?: string }).message || 'テナントの削除に失敗しました';
       setError(errorMsg);
       console.error('Error deleting tenant:', err);
     }

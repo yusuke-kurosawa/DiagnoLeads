@@ -561,5 +561,6 @@ CREATE TABLE line_bot_sessions (
 ## Related Specifications
 
 - [Microsoft Teams Integration](./microsoft-teams-integration.md)
-- [AI Optimization Engine](./ai-optimization.md)
-- [Innovative Features Proposal](../../changes/2025-11-10-innovative-features/innovative-features.md)
+- [AI Optimization Engine](./ai-optimization-engine.md)
+- [QR Code Distribution](./qr-code-distribution.md)
+- [Integrations](./integrations.md)

@@ -32,7 +32,9 @@ class Assessment(Base):
     # AI generation metadata
     topic_name = Column(String(255), nullable=True)  # Used for AI generation display
     industry_name = Column(String(100), nullable=True)  # Used for AI generation display
-    ai_generated = Column(String(50), default="manual", nullable=False)  # manual, ai, hybrid
+    ai_generated = Column(
+        String(50), default="manual", nullable=False
+    )  # manual, ai, hybrid
 
     # Scoring configuration
     scoring_logic = Column(JSON, default=dict, nullable=False)  # Scoring rules
@@ -52,7 +54,18 @@ class Assessment(Base):
     )
 
     # Relationships
-    qr_codes = relationship("QRCode", back_populates="assessment", cascade="all, delete-orphan")
+    questions = relationship(
+        "Question",
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        order_by="Question.order",
+    )
+    responses = relationship(
+        "Response", back_populates="assessment", cascade="all, delete-orphan"
+    )
+    qr_codes = relationship(
+        "QRCode", back_populates="assessment", cascade="all, delete-orphan"
+    )
 
     # Indexes for performance
     __table_args__ = (
