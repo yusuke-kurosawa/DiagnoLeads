@@ -76,7 +76,7 @@ export default function AssessmentForm({
   const createMutation = useMutation({
     mutationFn: (data: CreateAssessmentData) =>
       assessmentService.create(tenantId, data),
-    onSuccess: (_assessment, variables) => {
+    onSuccess: (assessment, variables) => {
       // Track assessment creation
       trackAssessmentCreated(
         assessment.id,

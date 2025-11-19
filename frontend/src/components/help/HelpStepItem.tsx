@@ -3,7 +3,6 @@
  * Displays a single step in help guide
  */
 
-import React from 'react';
 import type { HelpStep } from '../../types/help';
 
 interface HelpStepItemProps {
