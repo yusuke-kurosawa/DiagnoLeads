@@ -13,9 +13,9 @@ Improvements:
 - Standardized prompt templates
 """
 
+import time
 from typing import Any, Dict, Optional
 from uuid import UUID
-import time
 
 from anthropic import AsyncAnthropic
 from sqlalchemy.orm import Session
@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.constants import AIConfig, LeadScoreThreshold
 from app.core.logging_config import get_logger
+from app.models.ai_usage import AIUsageLog
 from app.services.ai import (
     AIJSONParseError,
     AIValidationError,
@@ -38,7 +39,6 @@ from app.services.ai.prompt_templates import (
     IndustryTemplateData,
     LeadAnalysisTemplateData,
 )
-from app.models.ai_usage import AIUsageLog
 
 logger = get_logger(__name__)
 

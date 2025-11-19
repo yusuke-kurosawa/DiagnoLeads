@@ -4,11 +4,12 @@ AI Usage Log Model
 Tracks AI API usage for billing, monitoring, and cost optimization.
 """
 
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, Float
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 

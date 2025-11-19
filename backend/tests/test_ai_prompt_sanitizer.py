@@ -5,8 +5,9 @@ Tests the prompt injection detection and input sanitization.
 """
 
 import pytest
-from app.services.ai.prompt_sanitizer import PromptSanitizer
+
 from app.services.ai.exceptions import AIPromptInjectionError
+from app.services.ai.prompt_sanitizer import PromptSanitizer
 
 
 class TestPromptSanitizer:

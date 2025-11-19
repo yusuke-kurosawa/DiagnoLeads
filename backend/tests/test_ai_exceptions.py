@@ -5,13 +5,14 @@ Tests the custom exception hierarchy.
 """
 
 import pytest
+
 from app.services.ai.exceptions import (
-    AIServiceError,
     AIAPIError,
-    AIRateLimitError,
-    AIValidationError,
     AIJSONParseError,
     AIPromptInjectionError,
+    AIRateLimitError,
+    AIServiceError,
+    AIValidationError,
 )
 
 
