@@ -15,10 +15,10 @@
 export GITHUB_TOKEN=your_github_token_here
 
 # 3. スクリプトを実行
-./cancel_workflows.sh
+./scripts/cancel_workflows.sh
 
 # または、確認をスキップして全てキャンセル
-./cancel_workflows.sh --all
+./scripts/cancel_workflows.sh --all
 ```
 
 ### 方法2: Pythonスクリプト
@@ -28,7 +28,7 @@ export GITHUB_TOKEN=your_github_token_here
 export GITHUB_TOKEN=your_github_token_here
 
 # 2. Pythonスクリプトを実行
-python3 cancel_workflows.py --all
+python3 scripts/cancel_workflows.py --all
 ```
 
 ### 方法3: GitHub Actions ワークフロー
