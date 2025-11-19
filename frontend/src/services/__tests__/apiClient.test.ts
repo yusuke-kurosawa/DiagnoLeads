@@ -5,12 +5,15 @@
  * TODO: 実装を追加してください
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
 // TODO: APIクライアントをインポート
 // import { apiClient, createApiClient } from '../apiClient';
+
+// NOTE: テストの実装時に以下のインポートのコメントを解除してください:
+// - expect, vi (from 'vitest')
 
 describe('APIClient', () => {
   let mock: MockAdapter;

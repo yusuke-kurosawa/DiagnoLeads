@@ -5,10 +5,13 @@
  * TODO: 実装を追加してください
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, vi, beforeEach } from 'vitest';
 
 // TODO: leadServiceをインポート
 // import { leadService } from '../leadService';
+
+// NOTE: テストの実装時に以下のインポートのコメントを解除してください:
+// - expect (from 'vitest')
 
 describe('LeadService', () => {
   beforeEach(() => {
