@@ -35,7 +35,9 @@ api_router.include_router(qr_scans.router, tags=["QR Scans"])
 api_router.include_router(ai.router, tags=["AI Services"])
 api_router.include_router(audit_logs.router, tags=["Audit Logs"])
 api_router.include_router(taxonomies.router, tags=["Taxonomies"])
-api_router.include_router(google_analytics.router, tags=["Google Analytics Integration"])
+api_router.include_router(
+    google_analytics.router, tags=["Google Analytics Integration"]
+)
 
 
 # Placeholder endpoint

@@ -122,7 +122,9 @@ class ExportFormat(BaseModel):
     format: str = Field(..., pattern="^(pdf|xlsx|csv)$", description="Export format")
     include_charts: bool = Field(default=True, description="Include visualizations")
     page_size: str = Field(default="A4", description="Page size for PDF")
-    orientation: str = Field(default="portrait", description="Orientation: portrait|landscape")
+    orientation: str = Field(
+        default="portrait", description="Orientation: portrait|landscape"
+    )
 
 
 class ReportExportRequest(BaseModel):
