@@ -47,14 +47,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
         working-directory: ./backend
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest==8.3.4 pytest-asyncio==0.24.0 pytest-cov==6.0.0 pytest-mock==3.14.0
-          pip install ruff==0.8.4 mypy==1.13.0
+          pip install -r requirements-dev.txt
 
       - name: Run tests
         working-directory: ./backend
@@ -63,9 +64,8 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
-        continue-on-error: true
         run: |
-          python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: Run multi-tenant isolation tests
         working-directory: ./backend
@@ -74,9 +74,8 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
-        continue-on-error: true
         run: |
-          python -m pytest tests/integration/test_multi_tenant_isolation.py -v
+          pytest tests/integration/test_multi_tenant_isolation.py -v
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -94,22 +93,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
         working-directory: ./backend
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff==0.8.4 mypy==1.13.0
+          pip install -r requirements-dev.txt
 
       - name: Run Ruff
         working-directory: ./backend
-        continue-on-error: true
         run: |
-          python -m ruff check .
+          ruff check .
 
       - name: Run MyPy
         working-directory: ./backend
-        continue-on-error: true
         run: |
-          python -m mypy app/
+          mypy app/
