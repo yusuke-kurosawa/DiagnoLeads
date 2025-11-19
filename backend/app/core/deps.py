@@ -4,22 +4,23 @@ Dependencies for FastAPI endpoints
 Provides database session, authentication, and authorization dependencies.
 """
 
-from typing import Generator, Optional
 from contextvars import ContextVar
+from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
-from app.models.user import User
 from app.models.tenant import Tenant
+from app.models.user import User
+from app.services.ai_service import AIService
 from app.services.auth import AuthService
 
 security = HTTPBearer()
 
 # Context variable to store current tenant_id (set by TenantMiddleware)
-current_tenant_id: ContextVar[Optional[str]] = ContextVar('current_tenant_id', default=None)
+current_tenant_id: ContextVar[Optional[str]] = ContextVar("current_tenant_id", default=None)
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -28,14 +29,17 @@ def get_db() -> Generator[Session, None, None]:
     try:
         # Get tenant_id from context variable (set by TenantMiddleware)
         tenant_id = current_tenant_id.get()
-        
+
         # Set tenant context for Row-Level Security (RLS)
         if tenant_id:
             from sqlalchemy import text
+
             # Use parameterized query to prevent SQL injection
-            db.execute(text("SELECT set_config('app.current_tenant_id', :tenant_id, false)"), 
-                      {"tenant_id": tenant_id})
-        
+            db.execute(
+                text("SELECT set_config('app.current_tenant_id', :tenant_id, false)"),
+                {"tenant_id": tenant_id},
+            )
+
         yield db
     finally:
         db.close()
@@ -47,7 +51,7 @@ def get_current_user(
 ) -> User:
     """
     Get current authenticated user from JWT token
-    
+
     Raises:
         HTTPException: If token is invalid or user not found
     """
@@ -56,7 +60,7 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing authorization credentials",
         )
-    
+
     token = credentials.credentials
 
     # Decode token
@@ -80,12 +84,10 @@ def get_current_user(
     return user
 
 
-def get_current_tenant(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> Tenant:
+def get_current_tenant(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Tenant:
     """
     Get current user's tenant
-    
+
     Raises:
         HTTPException: If tenant not found
     """
@@ -103,7 +105,7 @@ def get_current_tenant(
 def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """
     Get current active user (not disabled)
-    
+
     Note: User model doesn't have is_active field yet.
     This is a placeholder for future implementation.
     """
@@ -119,7 +121,7 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
 def verify_tenant_admin(current_user: User = Depends(get_current_user)) -> User:
     """
     Verify current user is a tenant admin
-    
+
     Raises:
         HTTPException: If user is not a tenant admin
     """
@@ -130,3 +132,13 @@ def verify_tenant_admin(current_user: User = Depends(get_current_user)) -> User:
         )
 
     return current_user
+
+
+def get_ai_service() -> AIService:
+    """
+    Get AI service instance for dependency injection.
+
+    Returns:
+        AIService instance
+    """
+    return AIService()

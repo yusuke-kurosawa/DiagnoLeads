@@ -4,20 +4,20 @@ Lead API Endpoints
 REST API for lead CRUD operations with multi-tenant support.
 """
 
-from uuid import UUID
 from typing import List, Optional
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.lead import (
     LeadCreate,
-    LeadUpdate,
-    LeadStatusUpdate,
-    LeadScoreUpdate,
     LeadResponse,
+    LeadScoreUpdate,
+    LeadStatusUpdate,
+    LeadUpdate,
 )
 from app.services.lead_service import LeadService
 
@@ -39,9 +39,7 @@ async def search_leads(
 ):
     """Search leads by name, email, or company"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
     leads = service.search(tenant_id=tenant_id, query=q, limit=limit)
@@ -63,9 +61,7 @@ async def get_hot_leads(
 ):
     """Get leads with high scores (hot leads)"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
     leads = service.get_hot_leads(tenant_id=tenant_id, threshold=threshold)
@@ -125,17 +121,13 @@ async def get_lead(
 ):
     """Get a specific lead by ID"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
     lead = service.get_by_id(lead_id=lead_id, tenant_id=tenant_id)
 
     if not lead:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
 
     return lead
 
@@ -155,14 +147,10 @@ async def create_lead(
 ):
     """Create a new lead"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
-    lead = service.create(
-        data=lead_data, tenant_id=tenant_id, created_by=current_user.id
-    )
+    lead = service.create(data=lead_data, tenant_id=tenant_id, created_by=current_user.id)
 
     return lead
 
@@ -182,18 +170,14 @@ async def update_lead(
 ):
     """Update an existing lead"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
 
     # Check if lead exists
     existing_lead = service.get_by_id(lead_id=lead_id, tenant_id=tenant_id)
     if not existing_lead:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
 
     # Update lead
     lead = service.update(
@@ -221,18 +205,14 @@ async def update_lead_status(
 ):
     """Update lead status with validation"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
 
     # Check if lead exists
     existing_lead = service.get_by_id(lead_id=lead_id, tenant_id=tenant_id)
     if not existing_lead:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
 
     # Update status
     lead = service.update_status(
@@ -260,23 +240,17 @@ async def update_lead_score(
 ):
     """Update lead score"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
 
     # Check if lead exists
     existing_lead = service.get_by_id(lead_id=lead_id, tenant_id=tenant_id)
     if not existing_lead:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
 
     # Update score
-    lead = service.update_score(
-        lead_id=lead_id, data=score_data, tenant_id=tenant_id
-    )
+    lead = service.update_score(lead_id=lead_id, data=score_data, tenant_id=tenant_id)
 
     return lead
 
@@ -295,18 +269,14 @@ async def delete_lead(
 ):
     """Delete a lead (physical delete for GDPR compliance)"""
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = LeadService(db)
 
     # Check if lead exists
     existing_lead = service.get_by_id(lead_id=lead_id, tenant_id=tenant_id)
     if not existing_lead:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
 
     # Delete lead
     service.delete(lead_id=lead_id, tenant_id=tenant_id)

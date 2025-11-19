@@ -4,18 +4,18 @@ Assessment API Endpoints
 REST API for assessment CRUD operations with multi-tenant support.
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.assessment import (
     AssessmentCreate,
-    AssessmentUpdate,
     AssessmentResponse,
+    AssessmentUpdate,
 )
 from app.services.assessment_service import AssessmentService
 
@@ -37,7 +37,7 @@ async def list_assessments(
 ):
     """
     List all assessments for a specific tenant
-    
+
     **Security**: Verifies user belongs to the requested tenant
     """
     # Verify user belongs to this tenant
@@ -48,9 +48,7 @@ async def list_assessments(
         )
 
     service = AssessmentService(db)
-    assessments = service.list_by_tenant(
-        tenant_id=tenant_id, skip=skip, limit=limit, status=status_filter
-    )
+    assessments = service.list_by_tenant(tenant_id=tenant_id, skip=skip, limit=limit, status=status_filter)
 
     return assessments
 
@@ -69,19 +67,15 @@ async def search_assessments(
 ):
     """
     Search assessments by title
-    
+
     **Security**: Only searches within the user's tenant
     """
     # Verify user belongs to this tenant
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = AssessmentService(db)
-    assessments = service.search_by_title(
-        tenant_id=tenant_id, title_query=q, limit=limit
-    )
+    assessments = service.search_by_title(tenant_id=tenant_id, title_query=q, limit=limit)
 
     return assessments
 
@@ -99,22 +93,18 @@ async def get_assessment(
 ):
     """
     Get a specific assessment by ID
-    
+
     **Security**: Verifies user belongs to the tenant and assessment exists
     """
     # Verify user belongs to this tenant
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = AssessmentService(db)
     assessment = service.get_by_id(assessment_id=assessment_id, tenant_id=tenant_id)
 
     if not assessment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
 
     return assessment
 
@@ -133,19 +123,15 @@ async def create_assessment(
 ):
     """
     Create a new assessment
-    
+
     **Security**: Automatically sets tenant_id and created_by
     """
     # Verify user belongs to this tenant
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = AssessmentService(db)
-    assessment = service.create(
-        data=assessment_data, tenant_id=tenant_id, created_by=current_user.id
-    )
+    assessment = service.create(data=assessment_data, tenant_id=tenant_id, created_by=current_user.id)
 
     return assessment
 
@@ -164,31 +150,23 @@ async def update_assessment(
 ):
     """
     Update an existing assessment
-    
+
     **Security**: Verifies tenant ownership before update
     """
     # Verify user belongs to this tenant
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = AssessmentService(db)
 
     # Check if assessment exists and belongs to tenant
-    existing_assessment = service.get_by_id(
-        assessment_id=assessment_id, tenant_id=tenant_id
-    )
+    existing_assessment = service.get_by_id(assessment_id=assessment_id, tenant_id=tenant_id)
 
     if not existing_assessment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
 
     # Update assessment
-    assessment = service.update(
-        assessment_id=assessment_id, data=assessment_data, tenant_id=tenant_id
-    )
+    assessment = service.update(assessment_id=assessment_id, data=assessment_data, tenant_id=tenant_id)
 
     return assessment
 
@@ -206,26 +184,20 @@ async def delete_assessment(
 ):
     """
     Delete an assessment
-    
+
     **Security**: Verifies tenant ownership before deletion
     """
     # Verify user belongs to this tenant
     if current_user.tenant_id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
 
     service = AssessmentService(db)
 
     # Check if assessment exists and belongs to tenant
-    existing_assessment = service.get_by_id(
-        assessment_id=assessment_id, tenant_id=tenant_id
-    )
+    existing_assessment = service.get_by_id(assessment_id=assessment_id, tenant_id=tenant_id)
 
     if not existing_assessment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
 
     # Delete assessment
     service.delete(assessment_id=assessment_id, tenant_id=tenant_id)

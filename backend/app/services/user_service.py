@@ -4,9 +4,10 @@ User Service
 Business logic for user management operations.
 """
 
-from sqlalchemy.orm import Session
 from uuid import UUID
+
 import bcrypt
+from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.schemas.user import UserCreate
@@ -18,12 +19,12 @@ class UserService:
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password using bcrypt"""
-        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     @staticmethod
     def verify_password(password: str, password_hash: str) -> bool:
         """Verify a password against a hash"""
-        return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
     @staticmethod
     def create_user(db: Session, user_data: UserCreate) -> User:

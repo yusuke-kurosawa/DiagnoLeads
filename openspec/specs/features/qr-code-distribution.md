@@ -492,9 +492,10 @@ geoip2==4.7.0
 
 ## Related Specs
 
-- [Multi-Channel Distribution](../../changes/2025-11-10-innovative-features/innovative-features.md#3-multi-channel-assessment-distribution)
+- [Multi-Channel Distribution](./multi-channel-distribution.md)
 - [Analytics Dashboard](./analytics-dashboard.md)
 - [Assessment CRUD](./assessment-crud.md)
+- [Google Analytics Integration](./google-analytics-integration.md)
 
 ## Success Metrics
 

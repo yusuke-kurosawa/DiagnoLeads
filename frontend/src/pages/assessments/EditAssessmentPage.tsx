@@ -2,7 +2,6 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AssessmentBuilder } from '../../components/assessments/AssessmentBuilder';
 import { assessmentService } from '../../services/assessmentService';
-import { Breadcrumbs } from '../../components/layout/Breadcrumbs';
 
 export function EditAssessmentPage() {
   const { tenantId, assessmentId } = useParams<{ tenantId: string; assessmentId: string }>();

@@ -5,11 +5,20 @@ Represents a topic/category for organizing assessments.
 Each topic belongs to a specific tenant for multi-tenancy support.
 """
 
-from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, UniqueConstraint, Column
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from uuid import uuid4
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -42,9 +51,7 @@ class Topic(Base):
     tenant = relationship("Tenant", back_populates="topics")
 
     # Constraints
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_topics_tenant_name"),
-    )
+    __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_topics_tenant_name"),)
 
     def __repr__(self):
         return f"<Topic(id={self.id}, tenant_id={self.tenant_id}, name={self.name})>"

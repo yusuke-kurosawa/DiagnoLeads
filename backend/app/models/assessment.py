@@ -4,11 +4,12 @@ Assessment Model
 Represents a diagnostic assessment created by a tenant.
 """
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Text, JSON, Index
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Index, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -19,19 +20,15 @@ class Assessment(Base):
     __tablename__ = "assessments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
-    )
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
 
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(
-        String(50), default="draft", nullable=False
-    )  # draft, published, archived
+    status = Column(String(50), default="draft", nullable=False)  # draft, published, archived
 
     # AI generation metadata
-    topic_name = Column(String(255), nullable=True)  # Used for AI generation display
-    industry_name = Column(String(100), nullable=True)  # Used for AI generation display
+    topic = Column(String(255), nullable=True)  # Used for AI generation display
+    industry = Column(String(100), nullable=True)  # Used for AI generation display
     ai_generated = Column(String(50), default="manual", nullable=False)  # manual, ai, hybrid
 
     # Scoring configuration
@@ -41,9 +38,7 @@ class Assessment(Base):
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -52,6 +47,13 @@ class Assessment(Base):
     )
 
     # Relationships
+    questions = relationship(
+        "Question",
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        order_by="Question.order",
+    )
+    responses = relationship("Response", back_populates="assessment", cascade="all, delete-orphan")
     qr_codes = relationship("QRCode", back_populates="assessment", cascade="all, delete-orphan")
 
     # Indexes for performance

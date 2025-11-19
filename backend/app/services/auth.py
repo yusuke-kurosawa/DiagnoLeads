@@ -4,21 +4,20 @@ Authentication Service
 Handles password hashing, JWT token generation, and user authentication.
 """
 
+import secrets
+import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
-import uuid
-import secrets
 
+from fastapi import HTTPException, status
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
 
 from app.core.config import settings
-from app.models import User, Tenant
-from app.schemas.auth import UserCreate, TokenData, RegistrationResponse
-
+from app.models import Tenant, User
+from app.schemas.auth import TokenData, UserCreate
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -38,31 +37,23 @@ class AuthService:
         return pwd_context.hash(password)
 
     @staticmethod
-    def create_access_token(
-        data: dict, expires_delta: Optional[timedelta] = None
-    ) -> str:
+    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
         """Create a new JWT access token"""
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(
-                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-            )
+            expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(
-            to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
-        )
+        encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
         return encoded_jwt
 
     @staticmethod
     def decode_access_token(token: str) -> TokenData:
         """Decode and validate a JWT token"""
         try:
-            payload = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-            )
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             user_id: Optional[str] = payload.get("sub")
             tenant_id: Optional[str] = payload.get("tenant_id")
             email: Optional[str] = payload.get("email")
@@ -106,9 +97,7 @@ class AuthService:
             )
 
         # Check if tenant slug already exists
-        existing_tenant = (
-            db.query(Tenant).filter(Tenant.slug == user_data.tenant_slug).first()
-        )
+        existing_tenant = db.query(Tenant).filter(Tenant.slug == user_data.tenant_slug).first()
         if existing_tenant:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -157,9 +146,7 @@ class AuthService:
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(days=7)
         to_encode.update({"exp": expire, "type": "refresh"})
-        encoded_jwt = jwt.encode(
-            to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
-        )
+        encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
         return encoded_jwt
 
     @staticmethod
@@ -168,9 +155,7 @@ class AuthService:
         return secrets.token_urlsafe(32)
 
     @staticmethod
-    def create_password_reset_request(
-        db: Session, email: str
-    ) -> Optional[tuple[User, str]]:
+    def create_password_reset_request(db: Session, email: str) -> Optional[tuple[User, str]]:
         """
         Create a password reset request and return user and token
         Returns (user, token) or None if user not found
@@ -191,12 +176,7 @@ class AuthService:
     @staticmethod
     def verify_password_reset_token(db: Session, token: str) -> Optional[User]:
         """Verify password reset token and return user if valid"""
-        user = (
-            db.query(User)
-            .filter(User.password_reset_token == token)
-            .filter(User.password_reset_expires_at > datetime.utcnow())
-            .first()
-        )
+        user = db.query(User).filter(User.password_reset_token == token).filter(User.password_reset_expires_at > datetime.utcnow()).first()
         return user
 
     @staticmethod
@@ -210,9 +190,7 @@ class AuthService:
         return user
 
     @staticmethod
-    def check_and_increment_login_attempts(
-        db: Session, email: str
-    ) -> tuple[bool, Optional[str]]:
+    def check_and_increment_login_attempts(db: Session, email: str) -> tuple[bool, Optional[str]]:
         """
         Check login attempts and increment counter.
         Returns (can_attempt, error_message)
@@ -223,9 +201,7 @@ class AuthService:
 
         # Check if account is locked
         if user.locked_until and user.locked_until > datetime.utcnow():
-            remaining_minutes = int(
-                (user.locked_until - datetime.utcnow()).total_seconds() / 60
-            )
+            remaining_minutes = int((user.locked_until - datetime.utcnow()).total_seconds() / 60)
             return (
                 False,
                 f"アカウントが一時的にロックされています。{remaining_minutes}分後に再試行してください",

@@ -4,25 +4,45 @@
  * Main dashboard for authenticated users with Framer Motion animations
  */
 
+import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart3, 
-  Users, 
-  ClipboardList, 
-  Sparkles, 
+import {
+  BarChart3,
+  Users,
+  ClipboardList,
+  Sparkles,
   TrendingUp,
   Target,
   Zap,
   ArrowRight
 } from 'lucide-react';
+import { useTrackDashboardEvents, useGoogleAnalytics } from '../hooks/useGoogleAnalytics';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { trackDashboardViewed } = useTrackDashboardEvents();
+  const { trackEvent } = useGoogleAnalytics();
+
+  // Track dashboard view on mount
+  useEffect(() => {
+    trackDashboardViewed('overview');
+  }, [trackDashboardViewed]);
+
+  const handleFeatureClick = (feature: { title: string; href: string }) => {
+    if (feature.href === '#') return;
+
+    // Track feature card click
+    trackEvent('dashboard_feature_clicked', {
+      feature_name: feature.title,
+      feature_href: feature.href,
+    });
+
+    navigate(feature.href);
+  };
 
   const features = [
     {
@@ -149,7 +169,7 @@ export default function Dashboard() {
                 >
                   <div
                     className="bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden h-full cursor-pointer"
-                    onClick={() => feature.href !== '#' && navigate(feature.href)}
+                    onClick={() => handleFeatureClick(feature)}
                   >
                     <div className={`h-2 bg-gradient-to-r ${feature.gradient}`} />
                     <div className="p-6">

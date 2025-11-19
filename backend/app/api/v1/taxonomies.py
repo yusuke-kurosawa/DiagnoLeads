@@ -6,26 +6,26 @@ Handles CRUD operations for taxonomy data (topics and industries).
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from uuid import UUID
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.models.topic import Topic
 from app.models.industry import Industry
+from app.models.topic import Topic
 from app.models.user import User
 from app.schemas.taxonomy import (
-    TopicResponse,
-    TopicCreate,
-    TopicUpdate,
-    IndustryResponse,
     IndustryCreate,
+    IndustryResponse,
     IndustryUpdate,
+    TopicCreate,
+    TopicResponse,
+    TopicUpdate,
 )
 
 router = APIRouter()
 
 
 # TOPICS ENDPOINTS
+
 
 @router.get("/tenants/{tenant_id}/topics", response_model=list[TopicResponse])
 async def get_topics(
@@ -46,21 +46,22 @@ async def get_topic(
     current_user: User = Depends(get_current_user),
 ):
     """Get a specific topic."""
-    topic = db.query(Topic).filter(
-        Topic.id == topic_id,
-        Topic.tenant_id == tenant_id
-    ).first()
-    
+    topic = db.query(Topic).filter(Topic.id == topic_id, Topic.tenant_id == tenant_id).first()
+
     if not topic:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Topic not found",
         )
-    
+
     return topic
 
 
-@router.post("/tenants/{tenant_id}/topics", response_model=TopicResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/tenants/{tenant_id}/topics",
+    response_model=TopicResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_topic(
     tenant_id: str,
     data: TopicCreate,
@@ -76,11 +77,11 @@ async def create_topic(
         color=data.color,
         icon=data.icon,
     )
-    
+
     db.add(topic)
     db.commit()
     db.refresh(topic)
-    
+
     return topic
 
 
@@ -93,17 +94,14 @@ async def update_topic(
     current_user: User = Depends(get_current_user),
 ):
     """Update a topic."""
-    topic = db.query(Topic).filter(
-        Topic.id == topic_id,
-        Topic.tenant_id == tenant_id
-    ).first()
-    
+    topic = db.query(Topic).filter(Topic.id == topic_id, Topic.tenant_id == tenant_id).first()
+
     if not topic:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Topic not found",
         )
-    
+
     # Partial update - only update provided fields
     if data.name is not None:
         topic.name = data.name
@@ -115,10 +113,10 @@ async def update_topic(
         topic.icon = data.icon
     if data.sort_order is not None:
         topic.sort_order = data.sort_order
-    
+
     db.commit()
     db.refresh(topic)
-    
+
     return topic
 
 
@@ -130,22 +128,20 @@ async def delete_topic(
     current_user: User = Depends(get_current_user),
 ):
     """Delete a topic."""
-    topic = db.query(Topic).filter(
-        Topic.id == topic_id,
-        Topic.tenant_id == tenant_id
-    ).first()
-    
+    topic = db.query(Topic).filter(Topic.id == topic_id, Topic.tenant_id == tenant_id).first()
+
     if not topic:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Topic not found",
         )
-    
+
     db.delete(topic)
     db.commit()
 
 
 # INDUSTRIES ENDPOINTS
+
 
 @router.get("/tenants/{tenant_id}/industries", response_model=list[IndustryResponse])
 async def get_industries(
@@ -166,21 +162,22 @@ async def get_industry(
     current_user: User = Depends(get_current_user),
 ):
     """Get a specific industry."""
-    industry = db.query(Industry).filter(
-        Industry.id == industry_id,
-        Industry.tenant_id == tenant_id
-    ).first()
-    
+    industry = db.query(Industry).filter(Industry.id == industry_id, Industry.tenant_id == tenant_id).first()
+
     if not industry:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Industry not found",
         )
-    
+
     return industry
 
 
-@router.post("/tenants/{tenant_id}/industries", response_model=IndustryResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/tenants/{tenant_id}/industries",
+    response_model=IndustryResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_industry(
     tenant_id: str,
     data: IndustryCreate,
@@ -196,11 +193,11 @@ async def create_industry(
         color=data.color,
         icon=data.icon,
     )
-    
+
     db.add(industry)
     db.commit()
     db.refresh(industry)
-    
+
     return industry
 
 
@@ -213,17 +210,14 @@ async def update_industry(
     current_user: User = Depends(get_current_user),
 ):
     """Update an industry."""
-    industry = db.query(Industry).filter(
-        Industry.id == industry_id,
-        Industry.tenant_id == tenant_id
-    ).first()
-    
+    industry = db.query(Industry).filter(Industry.id == industry_id, Industry.tenant_id == tenant_id).first()
+
     if not industry:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Industry not found",
         )
-    
+
     # Partial update - only update provided fields
     if data.name is not None:
         industry.name = data.name
@@ -235,14 +229,17 @@ async def update_industry(
         industry.icon = data.icon
     if data.sort_order is not None:
         industry.sort_order = data.sort_order
-    
+
     db.commit()
     db.refresh(industry)
-    
+
     return industry
 
 
-@router.delete("/tenants/{tenant_id}/industries/{industry_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/tenants/{tenant_id}/industries/{industry_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_industry(
     tenant_id: str,
     industry_id: str,
@@ -250,16 +247,13 @@ async def delete_industry(
     current_user: User = Depends(get_current_user),
 ):
     """Delete an industry."""
-    industry = db.query(Industry).filter(
-        Industry.id == industry_id,
-        Industry.tenant_id == tenant_id
-    ).first()
-    
+    industry = db.query(Industry).filter(Industry.id == industry_id, Industry.tenant_id == tenant_id).first()
+
     if not industry:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Industry not found",
         )
-    
+
     db.delete(industry)
     db.commit()

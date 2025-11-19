@@ -1,0 +1,51 @@
+name: Security Scan
+
+on:
+  # main/developへのpush時は常に実行
+  push:
+    branches: [main, develop]
+
+  # PRでは依存関係ファイルが変更された時のみ実行
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/requirements.txt'
+      - 'backend/requirements-dev.txt'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '**/Dockerfile'
+      - '.github/workflows/security-scan.yml'
+
+  # 毎週日曜日0時（UTC）に定期実行
+  schedule:
+    - cron: '0 0 * * 0'
+
+  # 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  trivy-scan:
+    name: Trivy Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          timeout: '5m'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+        if: always()

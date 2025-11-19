@@ -3,7 +3,7 @@
  * Displays a section of help content
  */
 
-import type { HelpSection as HelpSectionType } from '../../types/help';
+import { type HelpSection as HelpSectionType } from '../../types/help';
 
 interface HelpSectionProps {
   section: HelpSectionType;

@@ -1,0 +1,21 @@
+# Ruff configuration for DiagnoLeads backend
+
+# Line length limit (increase from default 88 to 150 for flexibility)
+line-length = 150
+
+[lint]
+# Enable Pyflakes (`F`) and pycodestyle (`E`)
+select = ["E", "F", "W", "I"]
+
+# Ignore E501 (line too long) - allow long lines for URLs, strings, etc.
+ignore = ["E501"]
+
+# Ignore specific rules for certain file patterns
+[lint.per-file-ignores]
+# E402: Module level import not at top of file
+# These files need to modify sys.path before importing modules
+"alembic/env.py" = ["E402"]
+"create_demo_users.py" = ["E402"]
+"create_sample_taxonomies.py" = ["E402"]
+"scripts/*.py" = ["E402"]
+"test_teams_*.py" = ["E402"]

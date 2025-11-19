@@ -4,11 +4,12 @@ Authentication Schemas
 Pydantic models for authentication requests and responses.
 """
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+import re
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
-import re
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserLogin(BaseModel):
