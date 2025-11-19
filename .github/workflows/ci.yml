@@ -221,11 +221,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Test frontend Docker build
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: false
-          tags: diagnoleads-frontend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # Frontend Docker build disabled - no Dockerfile present yet
+      # TODO: Create frontend/Dockerfile for production builds
+      # - name: Test frontend Docker build
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: ./frontend
+      #     push: false
+      #     tags: diagnoleads-frontend:test
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
