@@ -4,11 +4,11 @@ Assessment Service
 Business logic for assessment management with multi-tenant support.
 """
 
-from uuid import UUID
 from typing import List, Optional
+from uuid import UUID
 
-from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc
+from sqlalchemy.orm import Session
 
 from app.models.assessment import Assessment
 from app.schemas.assessment import AssessmentCreate, AssessmentUpdate
@@ -52,9 +52,7 @@ class AssessmentService:
             query = query.filter(Assessment.status == status)
 
         # Sort by creation date (newest first) and paginate
-        assessments = (
-            query.order_by(desc(Assessment.created_at)).offset(skip).limit(limit).all()
-        )
+        assessments = query.order_by(desc(Assessment.created_at)).offset(skip).limit(limit).all()
 
         return assessments
 
@@ -82,9 +80,7 @@ class AssessmentService:
 
         return assessment
 
-    def create(
-        self, data: AssessmentCreate, tenant_id: UUID, created_by: UUID
-    ) -> Assessment:
+    def create(self, data: AssessmentCreate, tenant_id: UUID, created_by: UUID) -> Assessment:
         """
         Create a new assessment
 
@@ -108,9 +104,7 @@ class AssessmentService:
 
         return assessment
 
-    def update(
-        self, assessment_id: UUID, data: AssessmentUpdate, tenant_id: UUID
-    ) -> Optional[Assessment]:
+    def update(self, assessment_id: UUID, data: AssessmentUpdate, tenant_id: UUID) -> Optional[Assessment]:
         """
         Update an existing assessment
 
@@ -180,9 +174,7 @@ class AssessmentService:
 
         return query.count()
 
-    def search_by_title(
-        self, tenant_id: UUID, title_query: str, limit: int = 10
-    ) -> List[Assessment]:
+    def search_by_title(self, tenant_id: UUID, title_query: str, limit: int = 10) -> List[Assessment]:
         """
         Search assessments by title
 
@@ -199,9 +191,7 @@ class AssessmentService:
             .filter(
                 and_(
                     Assessment.tenant_id == tenant_id,  # REQUIRED: Tenant filtering
-                    Assessment.title.ilike(
-                        f"%{title_query}%"
-                    ),  # Case-insensitive search
+                    Assessment.title.ilike(f"%{title_query}%"),  # Case-insensitive search
                 )
             )
             .limit(limit)

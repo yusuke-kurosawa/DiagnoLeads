@@ -3,9 +3,10 @@ Microsoft Teams Incoming Webhook Client
 シンプルで安全なメッセージ送信方法
 """
 
-from typing import Dict, Optional
-import httpx
 from datetime import datetime
+from typing import Dict, Optional
+
+import httpx
 
 
 class TeamsWebhookClient:
@@ -77,9 +78,7 @@ class TeamsWebhookClient:
             if e.response.status_code == 400:
                 raise Exception("Invalid card format or webhook URL")
             elif e.response.status_code == 404:
-                raise Exception(
-                    "Webhook URL not found. Please check the URL or recreate the webhook in Teams."
-                )
+                raise Exception("Webhook URL not found. Please check the URL or recreate the webhook in Teams.")
             else:
                 raise
 
@@ -123,9 +122,7 @@ class TeamsWebhookClient:
             print(f"❌ Error sending message: {str(e)}")
             raise
 
-    async def send_hot_lead_notification(
-        self, lead_data: Dict, dashboard_url: Optional[str] = None
-    ) -> Dict:
+    async def send_hot_lead_notification(self, lead_data: Dict, dashboard_url: Optional[str] = None) -> Dict:
         """
         ホットリード通知を送信
 
@@ -221,6 +218,7 @@ class TeamsWebhookClient:
 async def main():
     """動作テスト"""
     import os
+
     from dotenv import load_dotenv
 
     load_dotenv()
@@ -245,9 +243,7 @@ async def main():
     # テスト1: シンプルメッセージ
     print("\n1. Testing simple message...")
     try:
-        await client.send_simple_message(
-            title="テスト通知", text="これはDiagnoLeadsからのテストメッセージです。"
-        )
+        await client.send_simple_message(title="テスト通知", text="これはDiagnoLeadsからのテストメッセージです。")
         print("✅ Simple message sent")
     except Exception as e:
         print(f"❌ Failed: {e}")

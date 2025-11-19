@@ -3,15 +3,17 @@
 Demo Users Creation Script - Using Direct SQL
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(__file__))
 
+from uuid import uuid4
+
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
 from app.services.auth import AuthService
-from uuid import uuid4
 
 # Database setup
 engine = create_engine(settings.DATABASE_URL)

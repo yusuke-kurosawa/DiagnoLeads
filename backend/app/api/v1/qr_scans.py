@@ -6,13 +6,12 @@ Endpoints for updating scan tracking data (assessment progress, lead conversion)
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
-from app.models.qr_code_scan import QRCodeScan
 from app.models.lead import Lead
-
+from app.models.qr_code_scan import QRCodeScan
 
 router = APIRouter(prefix="/scans", tags=["qr-scans"])
 
@@ -44,9 +43,7 @@ async def mark_assessment_started(
     scan = result.scalar_one_or_none()
 
     if not scan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found")
 
     # Update flag
     if not scan.assessment_started:
@@ -80,9 +77,7 @@ async def mark_assessment_completed(
     scan = result.scalar_one_or_none()
 
     if not scan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found")
 
     # Update flags
     if not scan.assessment_completed:
@@ -122,18 +117,14 @@ async def link_lead_to_scan(
     scan = scan_result.scalar_one_or_none()
 
     if not scan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found")
 
     # Verify lead exists
     lead_result = await db.execute(select(Lead).where(Lead.id == lead_id))
     lead = lead_result.scalar_one_or_none()
 
     if not lead:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Lead {lead_id} not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Lead {lead_id} not found")
 
     # Update scan
     scan.lead_id = lead_id
@@ -174,9 +165,7 @@ async def get_scan_details(
     scan = result.scalar_one_or_none()
 
     if not scan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Scan {scan_id} not found")
 
     return {
         "id": str(scan.id),

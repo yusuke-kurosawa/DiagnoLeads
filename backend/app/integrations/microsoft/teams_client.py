@@ -3,9 +3,10 @@ Microsoft Teams Client - Technical Spike Prototype
 最小限のTeams統合プロトタイプ
 """
 
-from typing import Dict, Optional, List
 import json
 import os
+from typing import Dict, List, Optional
+
 import httpx
 
 # Import retry policy
@@ -65,9 +66,7 @@ class TeamsClient:
             Access token
         """
         # OAuth 2.0 Client Credentials Flow
-        token_url = (
-            f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
-        )
+        token_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
 
         data = {
             "client_id": self.client_id,
@@ -93,9 +92,7 @@ class TeamsClient:
             raise
 
     @with_retry(max_retries=3, initial_delay=2.0)
-    async def send_adaptive_card(
-        self, team_id: str, channel_id: str, card: Dict
-    ) -> Dict:
+    async def send_adaptive_card(self, team_id: str, channel_id: str, card: Dict) -> Dict:
         """
         Teams チャネルにAdaptive Cardを送信
 
@@ -149,9 +146,7 @@ class TeamsClient:
             if e.response.status_code == 403:
                 print("❌ Permission denied: ChannelMessage.Send permission required")
                 print(f"Response: {e.response.text}")
-                raise Exception(
-                    "Missing ChannelMessage.Send permission. Please add this permission in Azure Portal."
-                )
+                raise Exception("Missing ChannelMessage.Send permission. Please add this permission in Azure Portal.")
             else:
                 print(f"❌ Failed to send message: {e.response.status_code}")
                 print(f"Response: {e.response.text}")
@@ -357,15 +352,11 @@ async def main():
 
     if not all([tenant_id, client_id, client_secret]):
         print("❌ Error: Missing environment variables")
-        print(
-            "Required: MICROSOFT_TENANT_ID, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET"
-        )
+        print("Required: MICROSOFT_TENANT_ID, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET")
         return
 
     # Teams Client初期化
-    client = TeamsClient(
-        tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
-    )
+    client = TeamsClient(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
 
     # 認証
     print("\n1. Authentication Test")

@@ -5,6 +5,7 @@ Microsoft Teams API権限テストスクリプト
 
 import asyncio
 import os
+
 import httpx
 from dotenv import load_dotenv
 
@@ -55,15 +56,11 @@ async def test_api_endpoint(name, url, token, required_permission):
             elif response.status_code == 403:
                 error_data = response.json()
                 print("❌ PERMISSION DENIED (403)")
-                print(
-                    f"Error: {error_data.get('error', {}).get('message', 'Unknown error')}"
-                )
+                print(f"Error: {error_data.get('error', {}).get('message', 'Unknown error')}")
                 print("\n💡 Solution:")
                 print("   1. Go to Azure Portal → App registrations")
                 print("   2. Select your app → API permissions")
-                print(
-                    f"   3. Add '{required_permission}' under Microsoft Graph → Application permissions"
-                )
+                print(f"   3. Add '{required_permission}' under Microsoft Graph → Application permissions")
                 print("   4. Click 'Grant admin consent for [Your Org]'")
                 return False
             else:
@@ -116,9 +113,7 @@ async def main():
 
     results = []
     for test in tests:
-        success = await test_api_endpoint(
-            test["name"], test["url"], token, test["permission"]
-        )
+        success = await test_api_endpoint(test["name"], test["url"], token, test["permission"])
         results.append((test["name"], success))
         await asyncio.sleep(0.5)  # Rate limiting対策
 

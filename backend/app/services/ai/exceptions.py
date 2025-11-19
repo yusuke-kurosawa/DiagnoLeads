@@ -25,9 +25,7 @@ class AIAPIError(AIServiceError):
 class AIRateLimitError(AIServiceError):
     """Exception raised when hitting API rate limits"""
 
-    def __init__(
-        self, message: str = "Rate limit exceeded", retry_after: Optional[int] = None
-    ):
+    def __init__(self, message: str = "Rate limit exceeded", retry_after: Optional[int] = None):
         super().__init__(message)
         self.retry_after = retry_after
 

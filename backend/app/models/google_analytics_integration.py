@@ -3,11 +3,12 @@
 Manages GA4 integration settings per tenant.
 """
 
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -34,34 +35,20 @@ class GoogleAnalyticsIntegration(Base):
 
     # GA4 Configuration
     measurement_id = Column(String(20), nullable=False)  # Format: G-XXXXXXXXXX
-    measurement_protocol_api_secret = Column(
-        String(255), nullable=True
-    )  # Encrypted storage recommended
+    measurement_protocol_api_secret = Column(String(255), nullable=True)  # Encrypted storage recommended
 
     # Feature Flags
     enabled = Column(Boolean, default=True, nullable=False, index=True)
-    track_frontend = Column(
-        Boolean, default=True, nullable=False
-    )  # React admin dashboard
-    track_embed_widget = Column(
-        Boolean, default=True, nullable=False
-    )  # Embedded assessment widget
-    track_server_events = Column(
-        Boolean, default=False, nullable=False
-    )  # Server-side Measurement Protocol
+    track_frontend = Column(Boolean, default=True, nullable=False)  # React admin dashboard
+    track_embed_widget = Column(Boolean, default=True, nullable=False)  # Embedded assessment widget
+    track_server_events = Column(Boolean, default=False, nullable=False)  # Server-side Measurement Protocol
 
     # Custom Configuration
-    custom_dimensions = Column(
-        JSONB, nullable=True
-    )  # Store custom GA4 dimensions/metrics config
+    custom_dimensions = Column(JSONB, nullable=True)  # Store custom GA4 dimensions/metrics config
 
     # Timestamps
-    created_at = Column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
-    )
-    updated_at = Column(
-        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="google_analytics_integration")
@@ -89,9 +76,7 @@ class GoogleAnalyticsIntegration(Base):
         }
 
         if include_secret:
-            data["measurement_protocol_api_secret"] = (
-                self.measurement_protocol_api_secret
-            )
+            data["measurement_protocol_api_secret"] = self.measurement_protocol_api_secret
 
         return data
 

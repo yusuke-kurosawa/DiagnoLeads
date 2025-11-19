@@ -5,9 +5,8 @@ Tests that verify the API implementation matches the OpenAPI specification.
 Uses Schemathesis for property-based testing of all endpoints.
 """
 
-from pathlib import Path
 import json
-
+from pathlib import Path
 
 # Load OpenAPI schema
 OPENAPI_PATH = Path(__file__).parent.parent.parent / "openapi.json"
@@ -44,9 +43,7 @@ def test_openapi_endpoints_count():
 
     endpoint_count = len(schema_data["paths"])
     # We expect at least 16 endpoints (Assessment + Lead + Auth)
-    assert endpoint_count >= 16, (
-        f"Expected at least 16 endpoints, found {endpoint_count}"
-    )
+    assert endpoint_count >= 16, f"Expected at least 16 endpoints, found {endpoint_count}"
 
 
 def test_openapi_has_authentication():
@@ -56,10 +53,7 @@ def test_openapi_has_authentication():
 
     assert "components" in schema_data, "No components section in OpenAPI schema"
     # Check for security schemes (we use Bearer token)
-    has_security = (
-        "securitySchemes" in schema_data.get("components", {})
-        or "security" in schema_data
-    )
+    has_security = "securitySchemes" in schema_data.get("components", {}) or "security" in schema_data
     assert has_security, "No security schemes defined in OpenAPI schema"
 
 
@@ -72,9 +66,7 @@ def test_assessment_endpoints_in_schema():
     assessment_paths = [p for p in paths.keys() if "assessments" in p.lower()]
 
     # We expect at least some assessment endpoints
-    assert len(assessment_paths) > 0, (
-        f"Expected assessment endpoints, found {len(assessment_paths)}"
-    )
+    assert len(assessment_paths) > 0, f"Expected assessment endpoints, found {len(assessment_paths)}"
     print(f"Found {len(assessment_paths)} assessment endpoints: {assessment_paths}")
 
 
@@ -106,9 +98,7 @@ def test_schema_has_required_models():
     ]
 
     for schema_name in required_schemas:
-        assert schema_name in schemas, (
-            f"Required schema '{schema_name}' not found in OpenAPI spec"
-        )
+        assert schema_name in schemas, f"Required schema '{schema_name}' not found in OpenAPI spec"
 
 
 def test_openapi_info_metadata():

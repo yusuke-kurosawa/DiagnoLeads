@@ -4,21 +4,22 @@ Lead Model
 Represents a lead (prospect) in the sales funnel.
 """
 
+import uuid
+
 from sqlalchemy import (
+    JSON,
     Column,
-    String,
-    Integer,
     DateTime,
     ForeignKey,
-    Text,
-    JSON,
     Index,
+    Integer,
+    String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-import uuid
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -29,9 +30,7 @@ class Lead(Base):
     __tablename__ = "leads"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
-    )
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
     response_id = Column(
         UUID(as_uuid=True),
         ForeignKey("responses.id", ondelete="SET NULL"),
@@ -46,9 +45,7 @@ class Lead(Base):
     phone = Column(String(20), nullable=True)
 
     # Status & Score
-    status = Column(
-        String(50), default="new", nullable=False
-    )  # new, contacted, qualified, converted, disqualified
+    status = Column(String(50), default="new", nullable=False)  # new, contacted, qualified, converted, disqualified
     score = Column(Integer, default=0, nullable=False)  # 0-100
 
     # Engagement Tracking
@@ -65,9 +62,7 @@ class Lead(Base):
     updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     assigned_to = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),

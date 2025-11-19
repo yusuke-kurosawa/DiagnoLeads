@@ -6,10 +6,10 @@ REST API for analytics and reporting with multi-tenant support.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.services.analytics_service import AnalyticsService
 

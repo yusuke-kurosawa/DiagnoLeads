@@ -1,21 +1,20 @@
 """Tests for QR Code Analytics and Tracking"""
 
-import pytest
-from uuid import uuid4
 from datetime import datetime, timedelta
+from uuid import uuid4
+
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.qr_code import QRCode
-from app.models.qr_code_scan import QRCodeScan
 from app.models.assessment import Assessment
 from app.models.lead import Lead
+from app.models.qr_code import QRCode
+from app.models.qr_code_scan import QRCodeScan
 
 
 @pytest.fixture
-async def test_qr_with_scans(
-    db: AsyncSession, test_assessment: Assessment
-) -> tuple[QRCode, list[QRCodeScan]]:
+async def test_qr_with_scans(db: AsyncSession, test_assessment: Assessment) -> tuple[QRCode, list[QRCodeScan]]:
     """Create test QR code with multiple scans"""
     # Create QR code
     qr = QRCode(
@@ -133,9 +132,7 @@ class TestScanTracking:
     """Tests for scan tracking updates"""
 
     @pytest.mark.asyncio
-    async def test_mark_assessment_started(
-        self, client: AsyncClient, db: AsyncSession, test_qr_with_scans: tuple
-    ):
+    async def test_mark_assessment_started(self, client: AsyncClient, db: AsyncSession, test_qr_with_scans: tuple):
         """Test marking assessment as started"""
         qr, scans = test_qr_with_scans
         scan = scans[0]  # Use scan that hasn't started
@@ -149,9 +146,7 @@ class TestScanTracking:
         assert scan.assessment_started is True
 
     @pytest.mark.asyncio
-    async def test_mark_assessment_completed(
-        self, client: AsyncClient, db: AsyncSession, test_qr_with_scans: tuple
-    ):
+    async def test_mark_assessment_completed(self, client: AsyncClient, db: AsyncSession, test_qr_with_scans: tuple):
         """Test marking assessment as completed"""
         qr, scans = test_qr_with_scans
         scan = scans[1]  # Use scan that started but not completed
@@ -166,9 +161,7 @@ class TestScanTracking:
         assert scan.assessment_started is True  # Should auto-mark
 
     @pytest.mark.asyncio
-    async def test_link_lead_to_scan(
-        self, client: AsyncClient, db: AsyncSession, test_qr_with_scans: tuple
-    ):
+    async def test_link_lead_to_scan(self, client: AsyncClient, db: AsyncSession, test_qr_with_scans: tuple):
         """Test linking lead to scan"""
         qr, scans = test_qr_with_scans
         scan = scans[2]  # Use completed scan
@@ -185,9 +178,7 @@ class TestScanTracking:
         await db.commit()
         await db.refresh(lead)
 
-        response = await client.put(
-            f"/api/v1/scans/{scan.id}/lead", params={"lead_id": str(lead.id)}
-        )
+        response = await client.put(f"/api/v1/scans/{scan.id}/lead", params={"lead_id": str(lead.id)})
 
         assert response.status_code == 204
 
@@ -197,9 +188,7 @@ class TestScanTracking:
         assert scan.lead_created is True
 
     @pytest.mark.asyncio
-    async def test_get_scan_details(
-        self, client: AsyncClient, test_qr_with_scans: tuple
-    ):
+    async def test_get_scan_details(self, client: AsyncClient, test_qr_with_scans: tuple):
         """Test getting scan details"""
         qr, scans = test_qr_with_scans
         scan = scans[3]  # Use fully converted scan
@@ -221,15 +210,11 @@ class TestQRAnalytics:
     """Tests for QR code analytics"""
 
     @pytest.mark.asyncio
-    async def test_get_analytics(
-        self, client: AsyncClient, test_qr_with_scans: tuple, auth_headers: dict
-    ):
+    async def test_get_analytics(self, client: AsyncClient, test_qr_with_scans: tuple, auth_headers: dict):
         """Test getting QR code analytics"""
         qr, scans = test_qr_with_scans
 
-        response = await client.get(
-            f"/api/v1/qr-codes/{qr.id}/analytics", headers=auth_headers
-        )
+        response = await client.get(f"/api/v1/qr-codes/{qr.id}/analytics", headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -269,16 +254,12 @@ class TestQRAnalytics:
         assert funnel["converted"] == 1
 
     @pytest.mark.asyncio
-    async def test_analytics_with_custom_days(
-        self, client: AsyncClient, test_qr_with_scans: tuple, auth_headers: dict
-    ):
+    async def test_analytics_with_custom_days(self, client: AsyncClient, test_qr_with_scans: tuple, auth_headers: dict):
         """Test analytics with custom date range"""
         qr, scans = test_qr_with_scans
 
         # Request last 7 days
-        response = await client.get(
-            f"/api/v1/qr-codes/{qr.id}/analytics?days=7", headers=auth_headers
-        )
+        response = await client.get(f"/api/v1/qr-codes/{qr.id}/analytics?days=7", headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -289,9 +270,7 @@ class TestQRAnalytics:
         """Test analytics for non-existent QR code"""
         fake_id = uuid4()
 
-        response = await client.get(
-            f"/api/v1/qr-codes/{fake_id}/analytics", headers=auth_headers
-        )
+        response = await client.get(f"/api/v1/qr-codes/{fake_id}/analytics", headers=auth_headers)
 
         assert response.status_code == 404
 

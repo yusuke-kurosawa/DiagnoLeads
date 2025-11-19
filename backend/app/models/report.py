@@ -4,10 +4,10 @@ Report Model
 Represents custom report definitions for analytics data.
 """
 
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
 
-from sqlalchemy import Column, String, ForeignKey, DateTime, JSON, Boolean, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
@@ -98,9 +98,7 @@ class Report(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="reports")

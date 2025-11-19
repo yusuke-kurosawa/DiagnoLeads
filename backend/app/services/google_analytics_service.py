@@ -3,19 +3,20 @@
 Business logic for managing GA4 integrations.
 """
 
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from uuid import UUID
-import uuid
 import logging
+import uuid
 from typing import Optional
+from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.integrations.google_analytics import GA4MeasurementProtocol
 from app.models.google_analytics_integration import GoogleAnalyticsIntegration
 from app.schemas.google_analytics import (
     GoogleAnalyticsIntegrationCreate,
     GoogleAnalyticsTestResponse,
 )
-from app.integrations.google_analytics import GA4MeasurementProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +27,7 @@ class GoogleAnalyticsService:
     def __init__(self, db: Session):
         self.db = db
 
-    async def create_or_update(
-        self, tenant_id: UUID, data: GoogleAnalyticsIntegrationCreate
-    ) -> GoogleAnalyticsIntegration:
+    async def create_or_update(self, tenant_id: UUID, data: GoogleAnalyticsIntegrationCreate) -> GoogleAnalyticsIntegration:
         """Create or update GA4 integration for a tenant
 
         Args:
@@ -43,9 +42,7 @@ class GoogleAnalyticsService:
         """
         # Validate measurement_id format
         if not GoogleAnalyticsIntegration.validate_measurement_id(data.measurement_id):
-            raise ValueError(
-                "Invalid Measurement ID format. Expected format: G-XXXXXXXXXX"
-            )
+            raise ValueError("Invalid Measurement ID format. Expected format: G-XXXXXXXXXX")
 
         # Check if integration already exists
         existing = self.get_by_tenant(tenant_id)
@@ -62,9 +59,7 @@ class GoogleAnalyticsService:
             # Update API secret if provided
             if data.measurement_protocol_api_secret:
                 # TODO: Encrypt API secret before storing
-                existing.measurement_protocol_api_secret = (
-                    data.measurement_protocol_api_secret
-                )
+                existing.measurement_protocol_api_secret = data.measurement_protocol_api_secret
 
             self.db.commit()
             self.db.refresh(existing)
@@ -97,9 +92,7 @@ class GoogleAnalyticsService:
             except IntegrityError as e:
                 self.db.rollback()
                 logger.error(f"Failed to create GA4 integration: {str(e)}")
-                raise ValueError(
-                    "Failed to create GA4 integration. Tenant already has an integration."
-                )
+                raise ValueError("Failed to create GA4 integration. Tenant already has an integration.")
 
     def get_by_tenant(self, tenant_id: UUID) -> Optional[GoogleAnalyticsIntegration]:
         """Get GA4 integration by tenant ID
@@ -110,11 +103,7 @@ class GoogleAnalyticsService:
         Returns:
             GoogleAnalyticsIntegration or None if not found
         """
-        return (
-            self.db.query(GoogleAnalyticsIntegration)
-            .filter(GoogleAnalyticsIntegration.tenant_id == tenant_id)
-            .first()
-        )
+        return self.db.query(GoogleAnalyticsIntegration).filter(GoogleAnalyticsIntegration.tenant_id == tenant_id).first()
 
     def get_by_id(self, integration_id: UUID) -> Optional[GoogleAnalyticsIntegration]:
         """Get GA4 integration by ID
@@ -125,11 +114,7 @@ class GoogleAnalyticsService:
         Returns:
             GoogleAnalyticsIntegration or None if not found
         """
-        return (
-            self.db.query(GoogleAnalyticsIntegration)
-            .filter(GoogleAnalyticsIntegration.id == integration_id)
-            .first()
-        )
+        return self.db.query(GoogleAnalyticsIntegration).filter(GoogleAnalyticsIntegration.id == integration_id).first()
 
     async def delete(self, tenant_id: UUID) -> bool:
         """Delete GA4 integration for a tenant
@@ -225,7 +210,5 @@ class GoogleAnalyticsService:
         #     "track_embed_widget": integration.track_embed_widget
         # }
 
-        logger.warning(
-            "get_public_config not fully implemented - requires Assessment model"
-        )
+        logger.warning("get_public_config not fully implemented - requires Assessment model")
         return None

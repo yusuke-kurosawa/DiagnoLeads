@@ -8,9 +8,10 @@ Create Date: 2025-11-18 12:00:00.000000
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "b2c3d4e5f6g7"
@@ -25,14 +26,10 @@ def upgrade() -> None:
     # Create questions table
     op.create_table(
         "questions",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("assessment_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
-        sa.Column(
-            "type", sa.String(length=50), nullable=False
-        ),  # single_choice, multiple_choice, text, slider
+        sa.Column("type", sa.String(length=50), nullable=False),  # single_choice, multiple_choice, text, slider
         sa.Column("order", sa.Integer(), nullable=False),
         sa.Column("points", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("explanation", sa.Text(), nullable=True),
@@ -42,23 +39,17 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.ForeignKeyConstraint(
-            ["assessment_id"], ["assessments.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["assessment_id"], ["assessments.id"], ondelete="CASCADE"),
     )
 
     # Create indexes for questions
-    op.create_index(
-        "idx_questions_assessment_order", "questions", ["assessment_id", "order"]
-    )
+    op.create_index("idx_questions_assessment_order", "questions", ["assessment_id", "order"])
     op.create_index("idx_questions_assessment_id", "questions", ["assessment_id"])
 
     # Create question_options table
     op.create_table(
         "question_options",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("question_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("text", sa.String(length=255), nullable=False),
         sa.Column("points", sa.Integer(), nullable=False, server_default="0"),
@@ -72,23 +63,17 @@ def upgrade() -> None:
         "question_options",
         ["question_id", "order"],
     )
-    op.create_index(
-        "idx_question_options_question_id", "question_options", ["question_id"]
-    )
+    op.create_index("idx_question_options_question_id", "question_options", ["question_id"])
 
     # Create responses table
     op.create_table(
         "responses",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("assessment_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("session_id", sa.String(length=255), nullable=False, unique=True),
         sa.Column("email", sa.String(length=255), nullable=True),
         sa.Column("name", sa.String(length=255), nullable=True),
-        sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="in_progress"
-        ),  # in_progress, completed, abandoned
+        sa.Column("status", sa.String(length=50), nullable=False, server_default="in_progress"),  # in_progress, completed, abandoned
         sa.Column("total_score", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("ip_address", sa.String(length=100), nullable=True),
         sa.Column("user_agent", sa.String(length=500), nullable=True),
@@ -99,9 +84,7 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["assessment_id"], ["assessments.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["assessment_id"], ["assessments.id"], ondelete="CASCADE"),
     )
 
     # Create indexes for responses
@@ -117,9 +100,7 @@ def upgrade() -> None:
     # Create answers table
     op.create_table(
         "answers",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("response_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("question_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("answer_text", sa.Text(), nullable=True),
@@ -137,14 +118,10 @@ def upgrade() -> None:
     # Create indexes for answers
     op.create_index("idx_answers_response_id", "answers", ["response_id"])
     op.create_index("idx_answers_question_id", "answers", ["question_id"])
-    op.create_index(
-        "idx_answers_response_question", "answers", ["response_id", "question_id"]
-    )
+    op.create_index("idx_answers_response_question", "answers", ["response_id", "question_id"])
 
     # Add response_id to leads table
-    op.add_column(
-        "leads", sa.Column("response_id", postgresql.UUID(as_uuid=True), nullable=True)
-    )
+    op.add_column("leads", sa.Column("response_id", postgresql.UUID(as_uuid=True), nullable=True))
     op.create_foreign_key(
         "fk_leads_response_id",
         "leads",

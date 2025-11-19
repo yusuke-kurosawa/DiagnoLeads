@@ -4,14 +4,15 @@ Assessment API Tests
 Tests for assessment CRUD operations with multi-tenant isolation.
 """
 
-import pytest
 import uuid
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.models.assessment import Assessment
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.models.assessment import Assessment
 from app.services.auth import AuthService
 
 
@@ -79,21 +80,15 @@ def sample_assessment(db_session: Session, tenant: Tenant, user: User):
     return assessment
 
 
-def test_list_assessments_empty(
-    client: TestClient, tenant: Tenant, user: User, auth_headers: dict
-):
+def test_list_assessments_empty(client: TestClient, tenant: Tenant, user: User, auth_headers: dict):
     """Test listing assessments when none exist"""
-    response = client.get(
-        f"/api/v1/tenants/{tenant.id}/assessments", headers=auth_headers
-    )
+    response = client.get(f"/api/v1/tenants/{tenant.id}/assessments", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data == []
 
 
-def test_create_assessment(
-    client: TestClient, tenant: Tenant, user: User, auth_headers: dict
-):
+def test_create_assessment(client: TestClient, tenant: Tenant, user: User, auth_headers: dict):
     """Test creating a new assessment"""
     payload = {
         "title": "Marketing Assessment",
@@ -145,9 +140,7 @@ def test_list_assessments(
     sample_assessment: Assessment,
 ):
     """Test listing all assessments for a tenant"""
-    response = client.get(
-        f"/api/v1/tenants/{tenant.id}/assessments", headers=auth_headers
-    )
+    response = client.get(f"/api/v1/tenants/{tenant.id}/assessments", headers=auth_headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -219,9 +212,7 @@ def test_search_assessments(
     assert data[0]["title"] == "Sample Assessment"
 
 
-def test_cross_tenant_access_denied(
-    client: TestClient, db_session: Session, tenant: Tenant, auth_headers: dict
-):
+def test_cross_tenant_access_denied(client: TestClient, db_session: Session, tenant: Tenant, auth_headers: dict):
     """
     Test that users cannot access assessments from other tenants
 
@@ -271,14 +262,10 @@ def test_cross_tenant_access_denied(
     assert response.status_code == 403
 
 
-def test_get_nonexistent_assessment(
-    client: TestClient, tenant: Tenant, auth_headers: dict
-):
+def test_get_nonexistent_assessment(client: TestClient, tenant: Tenant, auth_headers: dict):
     """Test getting a non-existent assessment returns 404"""
     fake_id = uuid.uuid4()
-    response = client.get(
-        f"/api/v1/tenants/{tenant.id}/assessments/{fake_id}", headers=auth_headers
-    )
+    response = client.get(f"/api/v1/tenants/{tenant.id}/assessments/{fake_id}", headers=auth_headers)
 
     assert response.status_code == 404
 

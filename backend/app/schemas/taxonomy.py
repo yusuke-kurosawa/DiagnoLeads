@@ -4,10 +4,11 @@ Taxonomy Schemas
 Pydantic models for topics and industries.
 """
 
-from pydantic import BaseModel, Field
-from uuid import UUID
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 class TopicBase(BaseModel):
