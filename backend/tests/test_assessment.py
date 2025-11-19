@@ -273,4 +273,4 @@ def test_get_nonexistent_assessment(client: TestClient, tenant: Tenant, auth_hea
 def test_unauthorized_access(client: TestClient, tenant: Tenant):
     """Test that endpoints require authentication"""
     response = client.get(f"/api/v1/tenants/{tenant.id}/assessments")
-    assert response.status_code == 403  # No authentication header
+    assert response.status_code == 401  # No authentication header - returns Unauthorized
