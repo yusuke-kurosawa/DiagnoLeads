@@ -26,9 +26,37 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
+# Check if database is available
+def is_database_available():
+    """
+    Check if PostgreSQL database is available and accessible.
+
+    Returns:
+        bool: True if database connection succeeds, False otherwise
+    """
+    try:
+        # Try to connect to the database
+        connection = engine.connect()
+        connection.close()
+        return True
+    except Exception as e:
+        # Database not available (server not running, connection refused, etc.)
+        print(f"\n⚠️  Database not available: {e}")
+        print("💡 Database-dependent tests will be skipped.")
+        print("   To run all tests, start PostgreSQL server on localhost:5432")
+        return False
+
+
+# Global flag for database availability
+DB_AVAILABLE = is_database_available()
+
+
 @pytest.fixture(scope="function")
 def db_session():
     """Create a fresh database session for each test"""
+    if not DB_AVAILABLE:
+        pytest.skip("PostgreSQL database not available. Start PostgreSQL on localhost:5432 to run this test.")
+
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     try:
