@@ -4,7 +4,7 @@
  * Sends error reports to the backend for centralized logging and analysis.
  */
 
-import { apiClient } from './api';
+import { api } from './api';
 
 export interface ErrorReport {
   error_type: string;
@@ -110,7 +110,7 @@ export async function reportError(
     };
 
     // Send error report to backend
-    const response = await apiClient.post<ErrorLogResponse>(
+    const response = await api.post<ErrorLogResponse>(
       '/error-logs/report',
       errorReport
     );
