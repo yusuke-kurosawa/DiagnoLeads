@@ -214,7 +214,7 @@ async def get_error_trend(
     tenant_id: Optional[UUID] = Query(None),
     days: int = Query(7, ge=1, le=365),
     environment: Optional[str] = Query(None),
-    interval: str = Query("day", regex="^(day|hour)$"),
+    interval: str = Query("day", pattern="^(day|hour)$"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -312,7 +312,7 @@ async def get_errors_by_correlation(
 
     logs = ErrorLogService.get_error_by_correlation_id(db, correlation_id)
 
-    return [ErrorLogResponse.from_orm(log) for log in logs]
+    return [ErrorLogResponse.model_validate(log) for log in logs]
 
 
 @router.get("/{error_id}", response_model=ErrorLogResponse)
@@ -340,4 +340,4 @@ async def get_error_log(
                 detail="Can only view error logs for your own tenant",
             )
 
-    return ErrorLogResponse.from_orm(error_log)
+    return ErrorLogResponse.model_validate(error_log)
