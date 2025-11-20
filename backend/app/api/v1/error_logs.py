@@ -99,7 +99,7 @@ async def report_error(
             detail="Failed to log error",
         )
 
-    return ErrorLogResponse.from_orm(error_log)
+    return ErrorLogResponse.model_validate(error_log)
 
 
 @router.get("", response_model=ErrorLogListResponse)
@@ -143,7 +143,7 @@ async def list_error_logs(
         total=total,
         skip=skip,
         limit=limit,
-        items=[ErrorLogResponse.from_orm(log) for log in logs],
+        items=[ErrorLogResponse.model_validate(log) for log in logs],
     )
 
 

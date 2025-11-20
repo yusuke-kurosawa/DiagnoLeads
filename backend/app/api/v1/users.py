@@ -74,7 +74,7 @@ async def list_users(
     # Build responses with tenant information
     responses = []
     for user in users:
-        response = UserResponse.from_orm(user)
+        response = UserResponse.model_validate(user)
         if user.tenant:
             response.tenant_name = user.tenant.name
         responses.append(response)
@@ -108,7 +108,7 @@ async def get_user(
                 detail="Cannot view this user",
             )
 
-    return UserResponse.from_orm(user)
+    return UserResponse.model_validate(user)
 
 
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -130,7 +130,7 @@ async def create_user(
 
     # Create new user
     user = UserService.create_user(db, user_data)
-    return UserResponse.from_orm(user)
+    return UserResponse.model_validate(user)
 
 
 @router.put("/{user_id}", response_model=UserResponse)
@@ -180,7 +180,7 @@ async def update_user(
     db.commit()
     db.refresh(user)
 
-    return UserResponse.from_orm(user)
+    return UserResponse.model_validate(user)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
