@@ -5,7 +5,7 @@ Pydantic models for error log request/response validation.
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -65,7 +65,7 @@ class ErrorLogListResponse(BaseModel):
     total: int
     skip: int
     limit: int
-    items: list[ErrorLogResponse]
+    items: List[ErrorLogResponse]
 
 
 class ErrorSummaryResponse(BaseModel):
@@ -100,5 +100,5 @@ class ErrorAnalyticsResponse(BaseModel):
     """Comprehensive error analytics"""
 
     summary: ErrorSummaryResponse
-    frequent_errors: list[FrequentErrorResponse]
-    trend: list[ErrorTrendResponse]
+    frequent_errors: List[FrequentErrorResponse]
+    trend: List[ErrorTrendResponse]

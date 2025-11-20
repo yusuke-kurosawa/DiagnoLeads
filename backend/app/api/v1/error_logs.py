@@ -7,7 +7,7 @@ Also provides an endpoint for frontend error reporting.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -177,7 +177,7 @@ async def get_error_summary(
     return ErrorSummaryResponse(**summary)
 
 
-@router.get("/frequent", response_model=list[FrequentErrorResponse])
+@router.get("/frequent", response_model=List[FrequentErrorResponse])
 async def get_frequent_errors(
     tenant_id: Optional[UUID] = Query(None),
     days: int = Query(7, ge=1, le=365),
@@ -209,7 +209,7 @@ async def get_frequent_errors(
     return [FrequentErrorResponse(**error) for error in frequent_errors]
 
 
-@router.get("/trend", response_model=list[ErrorTrendResponse])
+@router.get("/trend", response_model=List[ErrorTrendResponse])
 async def get_error_trend(
     tenant_id: Optional[UUID] = Query(None),
     days: int = Query(7, ge=1, le=365),
@@ -296,7 +296,7 @@ async def get_error_analytics(
     )
 
 
-@router.get("/correlation/{correlation_id}", response_model=list[ErrorLogResponse])
+@router.get("/correlation/{correlation_id}", response_model=List[ErrorLogResponse])
 async def get_errors_by_correlation(
     correlation_id: str,
     current_user: User = Depends(get_current_user),
