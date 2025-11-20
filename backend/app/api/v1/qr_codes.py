@@ -205,7 +205,7 @@ async def update_qr_code(
         )
 
     # Apply updates
-    update_dict = update_data.dict(exclude_unset=True)
+    update_dict = update_data.model_dump(exclude_unset=True)
     for key, value in update_dict.items():
         setattr(qr_code, key, value)
 
