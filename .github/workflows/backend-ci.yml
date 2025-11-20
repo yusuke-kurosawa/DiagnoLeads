@@ -107,4 +107,4 @@ jobs:
 
       - name: Run MyPy
         working-directory: ./backend
-        run: mypy app/
+        run: mypy app/ --config-file mypy.ini

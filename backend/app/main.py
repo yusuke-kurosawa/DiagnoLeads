@@ -163,7 +163,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             endpoint=str(request.url.path),
             method=request.method,
             status_code=422,
-            context={"validation_errors": exc.errors()},
+            context={"validation_errors": exc.errors(include_context=False, include_url=False)},
             environment=settings.ENVIRONMENT,
             ip_address=get_client_ip(request),
             user_agent=request.headers.get("user-agent"),
