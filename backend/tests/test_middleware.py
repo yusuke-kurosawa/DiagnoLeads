@@ -4,7 +4,7 @@ Tests for Core Middleware
 Comprehensive tests for TenantMiddleware and request handling.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import Request
@@ -49,7 +49,7 @@ class TestTenantMiddleware:
         mock_request.url.path = "/health"
         call_next = AsyncMock(return_value=JSONResponse(content={"status": "ok"}))
 
-        response = await middleware.dispatch(mock_request, call_next)
+        await middleware.dispatch(mock_request, call_next)
 
         call_next.assert_called_once_with(mock_request)
 
@@ -60,7 +60,7 @@ class TestTenantMiddleware:
         mock_request.url.path = "/api/v1/auth/login"
         call_next = AsyncMock(return_value=JSONResponse(content={}))
 
-        response = await middleware.dispatch(mock_request, call_next)
+        await middleware.dispatch(mock_request, call_next)
 
         call_next.assert_called_once()
 
@@ -105,7 +105,7 @@ class TestTenantMiddleware:
 
         call_next = AsyncMock(return_value=JSONResponse(content={"data": []}))
 
-        response = await middleware.dispatch(mock_request, call_next)
+        await middleware.dispatch(mock_request, call_next)
 
         # Verify tenant_id and user_id were set on request state
         assert mock_request.state.tenant_id == tenant_id
@@ -120,7 +120,7 @@ class TestTenantMiddleware:
         # Create token without tenant_id
         token_payload = {"user_id": "user-123"}
         token = jwt.encode(token_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-        
+
         mock_request.method = "GET"
         mock_request.url.path = "/api/v1/leads"
         mock_request.headers.get.return_value = f"Bearer {token}"
@@ -136,7 +136,7 @@ class TestTenantMiddleware:
         """Test expired JWT token"""
         # Create expired token (using wrong secret will also cause JWTError)
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjB9.invalid"
-        
+
         mock_request.method = "GET"
         mock_request.url.path = "/api/v1/leads"
         mock_request.headers.get.return_value = f"Bearer {token}"
@@ -167,7 +167,7 @@ class TestTenantMiddleware:
             mock_request.url.path = path
             call_next = AsyncMock(return_value=JSONResponse(content={}))
 
-            response = await middleware.dispatch(mock_request, call_next)
+            await middleware.dispatch(mock_request, call_next)
 
             call_next.assert_called()
 
@@ -178,7 +178,7 @@ class TestTenantMiddleware:
         mock_request.url.path = "/api/v1/auth/register"
         call_next = AsyncMock(return_value=JSONResponse(content={}))
 
-        response = await middleware.dispatch(mock_request, call_next)
+        await middleware.dispatch(mock_request, call_next)
 
         call_next.assert_called_once()
 
@@ -190,6 +190,6 @@ class TestTenantMiddleware:
             mock_request.url.path = path
             call_next = AsyncMock(return_value=JSONResponse(content={}))
 
-            response = await middleware.dispatch(mock_request, call_next)
+            await middleware.dispatch(mock_request, call_next)
 
             call_next.assert_called()

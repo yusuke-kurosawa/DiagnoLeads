@@ -5,9 +5,7 @@ Comprehensive tests for logging setup and logger retrieval.
 """
 
 import logging
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from app.core.logging_config import get_logger, setup_logging
 

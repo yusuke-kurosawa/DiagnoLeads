@@ -4,7 +4,6 @@ Tests for Lead Analysis Templates
 Comprehensive tests for industry-specific lead analysis templates and helper functions.
 """
 
-import pytest
 
 from app.services.ai.lead_analysis_templates import (
     LEAD_ANALYSIS_TEMPLATES,

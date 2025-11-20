@@ -6,8 +6,6 @@ Test coverage for device parsing and IP extraction functions.
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from app.api.v1.redirect import get_client_ip, parse_device_info
 
 

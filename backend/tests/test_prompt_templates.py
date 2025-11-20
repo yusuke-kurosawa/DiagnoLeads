@@ -4,7 +4,6 @@ Tests for Prompt Templates
 Comprehensive tests for AI prompt generation templates.
 """
 
-import json
 
 import pytest
 

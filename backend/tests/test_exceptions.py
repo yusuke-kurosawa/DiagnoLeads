@@ -4,7 +4,6 @@ Tests for Core Exceptions Module
 Comprehensive test coverage for custom exception classes and error handling.
 """
 
-import pytest
 from fastapi import HTTPException, status
 
 from app.core.exceptions import (

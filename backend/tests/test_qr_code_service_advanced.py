@@ -5,8 +5,7 @@ Additional test coverage for edge cases and error handling
 Target: 100% coverage for qr_code_service.py
 """
 
-import io
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from PIL import Image
@@ -60,7 +59,7 @@ class TestQRCodeServiceLogoHandling:
     def test_generate_qr_with_logo_rgba_mode(self, mock_image_open, mock_open, service):
         """Test adding logo with RGBA (transparency) mode"""
         # Generate base QR code
-        qr_img = service.generate_qr_image("https://example.com")
+        service.generate_qr_image("https://example.com")
 
         # Create mock RGBA logo
         mock_logo = MagicMock()
@@ -84,7 +83,7 @@ class TestQRCodeServiceLogoHandling:
     def test_generate_qr_with_logo_rgb_mode(self, mock_image_open, mock_open, service):
         """Test adding logo with RGB (no transparency) mode"""
         # Generate base QR code
-        qr_img = service.generate_qr_image("https://example.com")
+        service.generate_qr_image("https://example.com")
 
         # Create mock RGB logo
         mock_logo = MagicMock()

@@ -4,7 +4,6 @@ Tests for Industry Templates
 Comprehensive tests for industry-specific templates and helper functions.
 """
 
-import pytest
 
 from app.services.ai.industry_templates import (
     INDUSTRY_TEMPLATES,

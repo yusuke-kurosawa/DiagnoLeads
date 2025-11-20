@@ -5,7 +5,6 @@ Comprehensive test coverage for report_export_service.py
 Target: 100% coverage
 """
 
-import io
 from unittest.mock import MagicMock, patch
 
 import pytest

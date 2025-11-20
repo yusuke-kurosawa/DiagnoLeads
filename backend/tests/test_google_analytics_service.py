@@ -10,9 +10,7 @@ from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
-from sqlalchemy.exc import IntegrityError
 
-from app.models.google_analytics_integration import GoogleAnalyticsIntegration
 from app.schemas.google_analytics import GoogleAnalyticsIntegrationCreate
 from app.services.google_analytics_service import GoogleAnalyticsService
 

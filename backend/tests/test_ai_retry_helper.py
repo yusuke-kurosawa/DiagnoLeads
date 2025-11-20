@@ -274,7 +274,7 @@ class TestRetryWithBackoff:
         async_func = AsyncMock(side_effect=error)
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            with pytest.raises(AIRateLimitError) as exc_info:
+            with pytest.raises(AIRateLimitError):
                 await retry_with_backoff(async_func, max_retries=0, initial_delay=0.1)
 
         # Should capture retry_after from original error

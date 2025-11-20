@@ -10,7 +10,6 @@ from uuid import uuid4
 from jose import jwt
 
 from app.core.config import settings
-from app.models.user import User
 from app.services.auth import AuthService
 
 

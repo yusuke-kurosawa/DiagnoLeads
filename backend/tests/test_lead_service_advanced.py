@@ -12,7 +12,6 @@ import pytest
 
 from app.models.google_analytics_integration import GoogleAnalyticsIntegration
 from app.models.lead import Lead
-from app.models.tenant import Tenant
 from app.schemas.lead import LeadCreate, LeadStatusUpdate
 from app.services.lead_service import LeadService
 
