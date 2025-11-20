@@ -81,8 +81,7 @@ class ErrorLogService:
             # Sanitize sensitive data from headers
             if request_headers:
                 request_headers = {
-                    k: v if k.lower() not in ["authorization", "cookie", "x-api-key"] else "***REDACTED***"
-                    for k, v in request_headers.items()
+                    k: v if k.lower() not in ["authorization", "cookie", "x-api-key"] else "***REDACTED***" for k, v in request_headers.items()
                 }
 
             error_log = ErrorLog(
@@ -236,18 +235,10 @@ class ErrorLogService:
         total_errors = query.count()
 
         # Errors by type
-        errors_by_type = (
-            query.with_entities(ErrorLog.error_type, func.count(ErrorLog.id))
-            .group_by(ErrorLog.error_type)
-            .all()
-        )
+        errors_by_type = query.with_entities(ErrorLog.error_type, func.count(ErrorLog.id)).group_by(ErrorLog.error_type).all()
 
         # Errors by severity
-        errors_by_severity = (
-            query.with_entities(ErrorLog.severity, func.count(ErrorLog.id))
-            .group_by(ErrorLog.severity)
-            .all()
-        )
+        errors_by_severity = query.with_entities(ErrorLog.severity, func.count(ErrorLog.id)).group_by(ErrorLog.severity).all()
 
         # Critical errors
         critical_errors = query.filter(ErrorLog.severity == ErrorSeverity.CRITICAL.value).count()
@@ -392,9 +383,7 @@ class ErrorLogService:
         ]
 
     @staticmethod
-    def get_error_by_correlation_id(
-        db: Session, correlation_id: str
-    ) -> List[ErrorLog]:
+    def get_error_by_correlation_id(db: Session, correlation_id: str) -> List[ErrorLog]:
         """
         Get all errors with the same correlation ID
 
@@ -405,12 +394,7 @@ class ErrorLogService:
         Returns:
             list: List of related error logs
         """
-        return (
-            db.query(ErrorLog)
-            .filter(ErrorLog.correlation_id == correlation_id)
-            .order_by(ErrorLog.created_at)
-            .all()
-        )
+        return db.query(ErrorLog).filter(ErrorLog.correlation_id == correlation_id).order_by(ErrorLog.created_at).all()
 
     @staticmethod
     def cleanup_old_logs(
