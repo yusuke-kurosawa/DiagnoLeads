@@ -15,7 +15,7 @@ export interface ErrorReport {
   endpoint?: string;
   method?: string;
   status_code?: number;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   correlation_id?: string;
   environment?: string;
 }
@@ -46,7 +46,7 @@ export async function reportError(
     action?: string;
     endpoint?: string;
     method?: string;
-    additionalInfo?: Record<string, any>;
+    additionalInfo?: Record<string, unknown>;
   }
 ): Promise<ErrorLogResponse | null> {
   try {
@@ -65,7 +65,10 @@ export async function reportError(
     } else if (typeof error === 'object' && error !== null) {
       // Handle API errors
       if ('response' in error) {
-        const apiError = error as any;
+        const apiError = error as {
+          response?: { data?: { detail?: string }; status?: number };
+          message?: string;
+        };
         errorType = 'API_ERROR';
         errorMessage = apiError.response?.data?.detail || apiError.message || 'API request failed';
         statusCode = apiError.response?.status;
@@ -137,7 +140,7 @@ export async function reportSimpleError(
  * Report API error
  */
 export async function reportApiError(
-  error: any,
+  error: unknown,
   endpoint: string,
   method: string
 ): Promise<ErrorLogResponse | null> {

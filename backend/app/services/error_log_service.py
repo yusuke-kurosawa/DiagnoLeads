@@ -12,7 +12,7 @@ from uuid import UUID
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
-from app.models.error_log import ErrorLog, ErrorSeverity, ErrorType, Environment
+from app.models.error_log import Environment, ErrorLog, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 

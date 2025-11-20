@@ -18,7 +18,7 @@ from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.middleware import TenantMiddleware
-from app.models.error_log import Environment, ErrorSeverity, ErrorType
+from app.models.error_log import ErrorSeverity, ErrorType
 from app.services.error_log_service import ErrorLogService
 
 logger = logging.getLogger(__name__)
