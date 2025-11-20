@@ -74,7 +74,9 @@ jobs:
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          pytest tests/ -v --cov=app --cov-report=xml
+          echo "Running pytest..."
+          pytest --version
+          pytest tests/ -vv --tb=short --cov=app --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -107,4 +109,7 @@ jobs:
 
       - name: Run MyPy
         working-directory: ./backend
-        run: mypy app/ --config-file mypy.ini
+        run: |
+          echo "Running MyPy type checking..."
+          mypy --version
+          mypy app/ --config-file mypy.ini --show-error-codes --pretty
