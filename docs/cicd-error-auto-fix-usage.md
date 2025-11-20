@@ -344,6 +344,35 @@ export GITHUB_TOKEN=your_token_here
 # 必要な権限: repo, workflow
 ```
 
+**原因4**: GitHub API経由でアーティファクトのダウンロードが403 Forbidden
+
+**現象**: `scripts/analyze-cicd-errors.py` を実行すると "Access denied" エラー
+
+**原因**: GitHub APIの仕様上、Personal Access Tokenでは他のワークフローランのアーティファクトをダウンロードできません。これはトークンに全権限を付与しても変わりません（セキュリティ設計）。
+
+**解決策**: **これは問題ではありません**。以下の代替手段を使用してください:
+
+1. **PR自動コメント機能を使用（推奨）**
+   - CI/CD失敗時、自動的にエラー詳細がPRにコメントされます
+   - ワークフロー内部で実行されるため、アーティファクトへのアクセスが可能
+   - 手動操作不要で完全自動
+
+2. **ジョブログダウンロードツールを使用**
+   ```bash
+   python3 scripts/download-job-logs.py
+   ```
+   - アーティファクトではなく、ジョブログを直接APIから取得
+   - アーティファクトの制限を回避
+
+3. **GitHub UIから手動ダウンロード**
+   - Actions → 失敗したワークフロー → Artifacts
+   - 最終手段として使用
+
+**なぜ自動化は問題なく動作するのか**:
+- `comment-on-failure.yml` と `auto-fix-linter.yml` は `workflow_run` トリガーで起動
+- これらのワークフローは**トリガー元のアーティファクトにアクセス可能**
+- すべての自動化はGitHub Actions内で完結するため、外部API呼び出しは不要
+
 ### 自動修正が動かない
 
 **原因1**: mainブランチへのPR
