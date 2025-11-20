@@ -2,7 +2,6 @@
 Pytest configuration and fixtures for DiagnoLeads tests
 """
 
-# Use PostgreSQL for testing
 import os
 
 import pytest
@@ -13,11 +12,14 @@ from sqlalchemy.orm import sessionmaker
 from app.core.database import Base, get_db
 from app.main import app
 
+# Use TEST_DATABASE_URL if available, otherwise DATABASE_URL,
+# fallback to localhost PostgreSQL
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
     os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"),
 )
 
+# Create engine with appropriate settings
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 
