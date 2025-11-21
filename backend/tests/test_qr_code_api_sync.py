@@ -5,10 +5,9 @@ Synchronous Integration tests for QR Code API endpoints
 （非同期インフラが未設定のため、カバレッジ向上のために同期版を作成）
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
-import pytest
 from fastapi import status
 
 from app.models.assessment import Assessment

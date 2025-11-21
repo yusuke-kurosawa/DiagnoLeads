@@ -4,10 +4,8 @@ Tests for Error Log API Endpoints
 エラーログAPI のテスト（エラー報告、分析、監視機能）
 """
 
-from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
-import pytest
 from fastapi import status
 
 from app.models.error_log import ErrorLog

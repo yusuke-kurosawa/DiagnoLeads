@@ -258,9 +258,7 @@ class TestReportNotFound:
 
     def test_get_nonexistent_report(self, client: TestClient, test_user: User):
         """Test getting non-existent report returns 404"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         response = client.get(
             f"/api/v1/tenants/{test_user.tenant_id}/reports/{uuid4()}",
@@ -271,9 +269,7 @@ class TestReportNotFound:
 
     def test_update_nonexistent_report(self, client: TestClient, test_user: User):
         """Test updating non-existent report returns 404"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         response = client.put(
             f"/api/v1/tenants/{test_user.tenant_id}/reports/{uuid4()}",
@@ -285,9 +281,7 @@ class TestReportNotFound:
 
     def test_delete_nonexistent_report(self, client: TestClient, test_user: User):
         """Test deleting non-existent report returns 404"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         response = client.delete(
             f"/api/v1/tenants/{test_user.tenant_id}/reports/{uuid4()}",
@@ -298,9 +292,7 @@ class TestReportNotFound:
 
     def test_execute_nonexistent_report(self, client: TestClient, test_user: User):
         """Test executing non-existent report returns 404"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         response = client.post(
             f"/api/v1/tenants/{test_user.tenant_id}/reports/{uuid4()}/execute",
@@ -311,9 +303,7 @@ class TestReportNotFound:
 
     def test_export_nonexistent_report(self, client: TestClient, test_user: User):
         """Test exporting non-existent report returns 404"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         response = client.post(
             f"/api/v1/tenants/{test_user.tenant_id}/reports/{uuid4()}/export?format=csv",
@@ -380,13 +370,9 @@ class TestReportExport:
 
     @patch("app.api.v1.reports.ReportService")
     @patch("app.api.v1.reports.ReportExportService")
-    def test_export_report_csv(
-        self, mock_export_service_class, mock_service_class, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_export_report_csv(self, mock_export_service_class, mock_service_class, client: TestClient, db_session: Session, test_user: User):
         """Test exporting report as CSV"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -427,13 +413,9 @@ class TestReportExport:
 
     @patch("app.api.v1.reports.ReportService")
     @patch("app.api.v1.reports.ReportExportService")
-    def test_export_report_xlsx(
-        self, mock_export_service_class, mock_service_class, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_export_report_xlsx(self, mock_export_service_class, mock_service_class, client: TestClient, db_session: Session, test_user: User):
         """Test exporting report as Excel"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -469,21 +451,14 @@ class TestReportExport:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            in response.headers["content-type"]
-        )
+        assert "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" in response.headers["content-type"]
         assert "Excel_Export.xlsx" in response.headers["content-disposition"]
 
     @patch("app.api.v1.reports.ReportService")
     @patch("app.api.v1.reports.ReportExportService")
-    def test_export_report_pdf(
-        self, mock_export_service_class, mock_service_class, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_export_report_pdf(self, mock_export_service_class, mock_service_class, client: TestClient, db_session: Session, test_user: User):
         """Test exporting report as PDF"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -524,9 +499,7 @@ class TestReportExport:
 
     def test_export_report_invalid_format(self, client: TestClient, db_session: Session, test_user: User):
         """Test exporting with invalid format returns 422"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -555,13 +528,9 @@ class TestReportExecutionErrors:
     """Tests for report execution error handling"""
 
     @patch("app.api.v1.reports.ReportService")
-    def test_execute_report_value_error(
-        self, mock_service_class, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_execute_report_value_error(self, mock_service_class, client: TestClient, db_session: Session, test_user: User):
         """Test report execution with ValueError returns 400"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -592,13 +561,9 @@ class TestReportExecutionErrors:
         assert "Invalid metric" in response.json()["detail"]
 
     @patch("app.api.v1.reports.ReportService")
-    def test_execute_report_general_error(
-        self, mock_service_class, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_execute_report_general_error(self, mock_service_class, client: TestClient, db_session: Session, test_user: User):
         """Test report execution with general exception returns 500"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -632,13 +597,9 @@ class TestReportExecutionErrors:
 class TestReportTenantIsolation:
     """Tests for tenant isolation in report operations"""
 
-    def test_cannot_access_other_tenant_report(
-        self, client: TestClient, db_session: Session, test_user: User, test_tenant_2
-    ):
+    def test_cannot_access_other_tenant_report(self, client: TestClient, db_session: Session, test_user: User, test_tenant_2):
         """Test that users cannot access reports from other tenants"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report in different tenant
         other_report = Report(
@@ -663,13 +624,9 @@ class TestReportTenantIsolation:
         # Should return 403 Forbidden
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_list_reports_filters_by_tenant(
-        self, client: TestClient, db_session: Session, test_user: User, test_tenant_2
-    ):
+    def test_list_reports_filters_by_tenant(self, client: TestClient, db_session: Session, test_user: User, test_tenant_2):
         """Test that listing reports only returns tenant's reports"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create reports in both tenants
         own_report = Report(
@@ -711,13 +668,9 @@ class TestReportTenantIsolation:
 class TestReportPrivacy:
     """Tests for report privacy settings"""
 
-    def test_list_reports_excludes_other_users_private_reports(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_list_reports_excludes_other_users_private_reports(self, client: TestClient, db_session: Session, test_user: User):
         """Test that listing reports excludes private reports from other users"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create another user in same tenant
         other_user_id = uuid4()

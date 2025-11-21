@@ -272,19 +272,11 @@ class TestSubmitAnswersAPI:
         db_session.refresh(response_obj)
 
         # Submit initial answer
-        payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "Option A", "points_awarded": 10}
-            ]
-        }
+        payload = {"answers": [{"question_id": str(question.id), "answer_text": "Option A", "points_awarded": 10}]}
         client.post(f"/api/v1/responses/{response_obj.id}/answers", json=payload)
 
         # Update answer
-        updated_payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "Option B", "points_awarded": 20}
-            ]
-        }
+        updated_payload = {"answers": [{"question_id": str(question.id), "answer_text": "Option B", "points_awarded": 20}]}
         response = client.post(f"/api/v1/responses/{response_obj.id}/answers", json=updated_payload)
 
         assert response.status_code == status.HTTP_200_OK
@@ -335,11 +327,7 @@ class TestSubmitAnswersAPI:
 
     def test_submit_to_nonexistent_response(self, client: TestClient):
         """Test submitting answer to non-existent response"""
-        payload = {
-            "answers": [
-                {"question_id": str(uuid4()), "answer_text": "A", "points_awarded": 10}
-            ]
-        }
+        payload = {"answers": [{"question_id": str(uuid4()), "answer_text": "A", "points_awarded": 10}]}
 
         response = client.post(f"/api/v1/responses/{uuid4()}/answers", json=payload)
 
@@ -374,11 +362,7 @@ class TestSubmitAnswersAPI:
         db_session.refresh(response_obj)
 
         # Try to submit answer
-        payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "A", "points_awarded": 10}
-            ]
-        }
+        payload = {"answers": [{"question_id": str(question.id), "answer_text": "A", "points_awarded": 10}]}
 
         response = client.post(f"/api/v1/responses/{response_obj.id}/answers", json=payload)
 
@@ -389,9 +373,7 @@ class TestSubmitAnswersAPI:
 class TestCompleteResponseAPI:
     """Tests for completing responses and creating leads"""
 
-    def test_complete_response_with_lead_creation(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_complete_response_with_lead_creation(self, client: TestClient, db_session: Session, test_user: User):
         """Test completing response and creating new lead"""
         # Create assessment and question
         assessment = Assessment(
@@ -421,9 +403,7 @@ class TestCompleteResponseAPI:
 
         # Complete with lead data
         payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "A", "points_awarded": 85}
-            ],
+            "answers": [{"question_id": str(question.id), "answer_text": "A", "points_awarded": 85}],
             "email": "newlead@example.com",
             "name": "New Lead",
             "company": "Test Company",
@@ -446,9 +426,7 @@ class TestCompleteResponseAPI:
         assert lead.company == "Test Company"
         assert lead.score == 85
 
-    def test_complete_response_update_existing_lead(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_complete_response_update_existing_lead(self, client: TestClient, db_session: Session, test_user: User):
         """Test completing response updates existing lead with higher score"""
         # Create assessment
         assessment = Assessment(
@@ -490,9 +468,7 @@ class TestCompleteResponseAPI:
 
         # Complete with higher score
         payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "A", "points_awarded": 90}
-            ],
+            "answers": [{"question_id": str(question.id), "answer_text": "A", "points_awarded": 90}],
             "email": "existing@example.com",
             "name": "Existing Lead Updated",
             "company": "Updated Company",
@@ -507,9 +483,7 @@ class TestCompleteResponseAPI:
         assert existing_lead.score == 90  # Score should be updated to max
         assert existing_lead.company == "Updated Company"
 
-    def test_complete_response_without_lead_data(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_complete_response_without_lead_data(self, client: TestClient, db_session: Session, test_user: User):
         """Test completing response without creating lead"""
         # Create assessment and question
         assessment = Assessment(
@@ -538,11 +512,7 @@ class TestCompleteResponseAPI:
         db_session.refresh(response_obj)
 
         # Complete without lead data
-        payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "A", "points_awarded": 50}
-            ]
-        }
+        payload = {"answers": [{"question_id": str(question.id), "answer_text": "A", "points_awarded": 50}]}
 
         response = client.post(f"/api/v1/responses/{response_obj.id}/complete", json=payload)
 
@@ -566,9 +536,7 @@ class TestCompleteResponseAPI:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_complete_already_completed_response(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_complete_already_completed_response(self, client: TestClient, db_session: Session, test_user: User):
         """Test that completing already completed response fails"""
         # Create assessment
         assessment = Assessment(
@@ -603,9 +571,7 @@ class TestCompleteResponseAPI:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "already completed" in response.json()["detail"].lower()
 
-    def test_complete_with_partial_lead_data(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_complete_with_partial_lead_data(self, client: TestClient, db_session: Session, test_user: User):
         """Test completing with only email (no name) doesn't create lead"""
         # Create assessment and question
         assessment = Assessment(
@@ -635,9 +601,7 @@ class TestCompleteResponseAPI:
 
         # Complete with only email (missing name)
         payload = {
-            "answers": [
-                {"question_id": str(question.id), "answer_text": "A", "points_awarded": 50}
-            ],
+            "answers": [{"question_id": str(question.id), "answer_text": "A", "points_awarded": 50}],
             "email": "onlyemail@example.com",
         }
 
@@ -653,9 +617,7 @@ class TestCompleteResponseAPI:
 class TestResponseScoring:
     """Tests for score calculation logic"""
 
-    def test_score_accumulation_across_multiple_submissions(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_score_accumulation_across_multiple_submissions(self, client: TestClient, db_session: Session, test_user: User):
         """Test that scores accumulate correctly across multiple submissions"""
         # Create assessment
         assessment = Assessment(
@@ -712,9 +674,7 @@ class TestResponseScoring:
 class TestPublicAssessmentEdgeCases:
     """Tests for edge cases in public assessment endpoint"""
 
-    def test_get_assessment_with_no_questions(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_get_assessment_with_no_questions(self, client: TestClient, db_session: Session, test_user: User):
         """Test getting published assessment with no questions"""
         assessment = Assessment(
             title="No Questions",
@@ -727,17 +687,13 @@ class TestPublicAssessmentEdgeCases:
         db_session.commit()
         db_session.refresh(assessment)
 
-        response = client.get(
-            f"/api/v1/tenants/{test_user.tenant_id}/assessments/{assessment.id}/public"
-        )
+        response = client.get(f"/api/v1/tenants/{test_user.tenant_id}/assessments/{assessment.id}/public")
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data["questions"]) == 0
 
-    def test_get_assessment_with_multiple_questions_ordered(
-        self, client: TestClient, db_session: Session, test_user: User
-    ):
+    def test_get_assessment_with_multiple_questions_ordered(self, client: TestClient, db_session: Session, test_user: User):
         """Test that questions are returned in correct order"""
         assessment = Assessment(
             title="Ordered Test",
@@ -756,9 +712,7 @@ class TestPublicAssessmentEdgeCases:
         db_session.add_all([q3, q1, q2])
         db_session.commit()
 
-        response = client.get(
-            f"/api/v1/tenants/{test_user.tenant_id}/assessments/{assessment.id}/public"
-        )
+        response = client.get(f"/api/v1/tenants/{test_user.tenant_id}/assessments/{assessment.id}/public")
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

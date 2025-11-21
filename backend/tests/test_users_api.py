@@ -6,7 +6,6 @@ Tests for User Management API Endpoints
 
 from uuid import uuid4
 
-import pytest
 from fastapi import status
 
 from app.models.user import User
