@@ -552,9 +552,13 @@ class TestCreateQRCodeEdgeCases:
             qr_data=qr_data,
         )
 
-        # Verify result - should use default style
+        # Verify result - should use default style values
         assert isinstance(qr_code, QRCode)
-        assert qr_code.style == {}
+        # QRCodeStyleBase has default values, so style is never empty
+        assert qr_code.style["color"] == "#1E40AF"
+        assert qr_code.style["size"] == 512
+        assert qr_code.style["frame"] == "none"
+        assert qr_code.style["logo_url"] is None
 
 
 # Run tests with: pytest tests/test_qr_code_service.py -v
