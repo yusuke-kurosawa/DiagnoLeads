@@ -274,6 +274,7 @@ class TestCompleteQRCodeCreation:
             return mock_result
 
         service.db.execute = AsyncMock(side_effect=mock_execute)
+        service.db.add = Mock()  # db.add() is synchronous
         service.db.commit = AsyncMock()
         service.db.refresh = AsyncMock()
 
@@ -328,6 +329,236 @@ class TestCompleteQRCodeCreation:
 
         with pytest.raises(ValueError, match="Assessment .* not found"):
             await service.create_qr_code(tenant_id=mock_tenant.id, assessment_id=uuid4(), qr_data=qr_create_data)
+
+
+class TestQRCodeRegeneration:
+    """Tests for QR code regeneration functionality"""
+
+    @pytest.fixture
+    def service(self):
+        """Create service with mock database"""
+        mock_db = AsyncMock()
+        return QRCodeService(db=mock_db)
+
+    @pytest.fixture
+    def existing_qr_code(self):
+        """Create existing QR code for regeneration tests"""
+        tenant_id = uuid4()
+        assessment_id = uuid4()
+        return QRCode(
+            id=uuid4(),
+            tenant_id=tenant_id,
+            assessment_id=assessment_id,
+            name="Existing QR Code",
+            short_code="abc123",
+            short_url="https://dgnl.ds/abc123",
+            utm_source="booth",
+            utm_medium="qr",
+            utm_campaign="expo_2025",
+            style={"color": "#1E40AF", "size": 512},
+            qr_code_image_url="https://storage.test.com/qr_abc123.png",
+            scan_count=10,
+            unique_scan_count=5,
+            enabled=True,
+        )
+
+    @pytest.mark.asyncio
+    async def test_regenerate_qr_image_success(self, service, existing_qr_code):
+        """Test successful QR code image regeneration"""
+        # Mock database to return existing QR code
+        mock_result = Mock()
+        mock_result.scalar_one_or_none.return_value = existing_qr_code
+        service.db.execute = AsyncMock(return_value=mock_result)
+        service.db.commit = AsyncMock()
+        service.db.refresh = AsyncMock()
+
+        # Mock storage upload
+        service.upload_to_storage = AsyncMock(return_value="https://storage.test.com/qr_abc123_v2.png")
+
+        # Regenerate QR code
+        result = await service.regenerate_qr_image(
+            qr_code_id=existing_qr_code.id,
+            tenant_id=existing_qr_code.tenant_id,
+        )
+
+        # Verify result
+        assert isinstance(result, QRCode)
+        assert result.qr_code_image_url == "https://storage.test.com/qr_abc123_v2.png"
+
+        # Verify commit was called
+        service.db.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_regenerate_qr_image_not_found(self, service):
+        """Test regeneration fails when QR code not found"""
+        # Mock database to return None
+        mock_result = Mock()
+        mock_result.scalar_one_or_none.return_value = None
+        service.db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(ValueError, match="QR code .* not found"):
+            await service.regenerate_qr_image(qr_code_id=uuid4(), tenant_id=uuid4())
+
+
+class TestQRCodeErrorCorrection:
+    """Tests for QR code error correction levels"""
+
+    @pytest.fixture
+    def service(self):
+        """Create service with mock database"""
+        mock_db = AsyncMock()
+        return QRCodeService(db=mock_db)
+
+    def test_generate_qr_image_error_correction_low(self, service):
+        """Test QR code generation with low error correction"""
+        img = service.generate_qr_image(
+            url="https://example.com/test",
+            error_correction="L",
+        )
+
+        assert isinstance(img, Image.Image)
+        assert img.size[0] == 512
+        assert img.size[1] == 512
+
+    def test_generate_qr_image_error_correction_medium(self, service):
+        """Test QR code generation with medium error correction"""
+        img = service.generate_qr_image(
+            url="https://example.com/test",
+            error_correction="M",
+        )
+
+        assert isinstance(img, Image.Image)
+
+    def test_generate_qr_image_error_correction_quartile(self, service):
+        """Test QR code generation with quartile error correction"""
+        img = service.generate_qr_image(
+            url="https://example.com/test",
+            error_correction="Q",
+        )
+
+        assert isinstance(img, Image.Image)
+
+    def test_generate_qr_image_invalid_error_correction_defaults_to_high(self, service):
+        """Test that invalid error correction defaults to high"""
+        img = service.generate_qr_image(
+            url="https://example.com/test",
+            error_correction="INVALID",
+        )
+
+        assert isinstance(img, Image.Image)
+
+
+class TestCreateQRCodeEdgeCases:
+    """Tests for edge cases in QR code creation"""
+
+    @pytest.fixture
+    def service(self):
+        """Create service with mock database"""
+        mock_db = AsyncMock()
+        return QRCodeService(db=mock_db)
+
+    @pytest.fixture
+    def mock_tenant(self):
+        """Create mock tenant"""
+        return Tenant(id=uuid4(), name="Test Company", slug="test-company")
+
+    @pytest.fixture
+    def mock_assessment(self, mock_tenant):
+        """Create mock assessment"""
+        return Assessment(
+            id=uuid4(),
+            tenant_id=mock_tenant.id,
+            title="Test Assessment",
+            status="published",
+        )
+
+    @pytest.mark.asyncio
+    async def test_create_qr_code_without_utm_parameters(self, service, mock_tenant, mock_assessment):
+        """Test QR code creation without any UTM parameters"""
+        qr_data = QRCodeCreate(
+            name="No UTM QR Code",
+            style=QRCodeStyleBase(color="#1E40AF", size=512),
+        )
+
+        # Mock database queries
+        def mock_execute(query):
+            mock_result = Mock()
+            if not hasattr(mock_execute, "call_count"):
+                mock_execute.call_count = 0
+
+            mock_execute.call_count += 1
+
+            if mock_execute.call_count == 1:
+                mock_result.scalar_one_or_none.return_value = mock_tenant
+            elif mock_execute.call_count == 2:
+                mock_result.scalar_one_or_none.return_value = mock_assessment
+            else:
+                mock_result.scalar_one_or_none.return_value = None
+
+            return mock_result
+
+        service.db.execute = AsyncMock(side_effect=mock_execute)
+        service.db.add = Mock()
+        service.db.commit = AsyncMock()
+        service.db.refresh = AsyncMock()
+        service.upload_to_storage = AsyncMock(return_value="https://storage.test.com/qr_test.png")
+
+        # Create QR code
+        qr_code = await service.create_qr_code(
+            tenant_id=mock_tenant.id,
+            assessment_id=mock_assessment.id,
+            qr_data=qr_data,
+        )
+
+        # Verify result
+        assert isinstance(qr_code, QRCode)
+        assert qr_code.name == "No UTM QR Code"
+        assert qr_code.utm_source is None
+        assert qr_code.utm_medium is None
+        assert qr_code.utm_campaign is None
+
+    @pytest.mark.asyncio
+    async def test_create_qr_code_without_style(self, service, mock_tenant, mock_assessment):
+        """Test QR code creation without custom style (uses defaults)"""
+        qr_data = QRCodeCreate(name="Default Style QR Code")
+
+        # Mock database queries
+        def mock_execute(query):
+            mock_result = Mock()
+            if not hasattr(mock_execute, "call_count"):
+                mock_execute.call_count = 0
+
+            mock_execute.call_count += 1
+
+            if mock_execute.call_count == 1:
+                mock_result.scalar_one_or_none.return_value = mock_tenant
+            elif mock_execute.call_count == 2:
+                mock_result.scalar_one_or_none.return_value = mock_assessment
+            else:
+                mock_result.scalar_one_or_none.return_value = None
+
+            return mock_result
+
+        service.db.execute = AsyncMock(side_effect=mock_execute)
+        service.db.add = Mock()
+        service.db.commit = AsyncMock()
+        service.db.refresh = AsyncMock()
+        service.upload_to_storage = AsyncMock(return_value="https://storage.test.com/qr_test.png")
+
+        # Create QR code
+        qr_code = await service.create_qr_code(
+            tenant_id=mock_tenant.id,
+            assessment_id=mock_assessment.id,
+            qr_data=qr_data,
+        )
+
+        # Verify result - should use default style values
+        assert isinstance(qr_code, QRCode)
+        # QRCodeStyleBase has default values, so style is never empty
+        assert qr_code.style["color"] == "#1E40AF"
+        assert qr_code.style["size"] == 512
+        assert qr_code.style["frame"] == "none"
+        assert qr_code.style["logo_url"] is None
 
 
 # Run tests with: pytest tests/test_qr_code_service.py -v

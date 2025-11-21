@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class QuestionOptionBase(BaseModel):
@@ -39,8 +39,7 @@ class QuestionOptionResponse(QuestionOptionBase):
     id: UUID
     question_id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuestionBase(BaseModel):
@@ -78,8 +77,7 @@ class QuestionResponse(QuestionBase):
     created_at: datetime
     options: List[QuestionOptionResponse] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuestionWithOptionsCreate(BaseModel):

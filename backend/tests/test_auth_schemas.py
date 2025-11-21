@@ -584,9 +584,8 @@ class TestTokenResponse:
         assert response.expires_in == 3600
 
     def test_user_response_config_from_attributes(self):
-        """Test UserResponse Config.from_attributes is set correctly"""
-        # This verifies that the Config class is properly configured
-        # which is important for ORM integration
-        assert hasattr(UserResponse, "Config")
-        assert hasattr(UserResponse.Config, "from_attributes")
-        assert UserResponse.Config.from_attributes is True
+        """Test UserResponse model_config.from_attributes is set correctly"""
+        # This verifies that the model_config is properly configured
+        # which is important for ORM integration (Pydantic v2)
+        assert hasattr(UserResponse, "model_config")
+        assert UserResponse.model_config.get("from_attributes") is True
