@@ -235,8 +235,8 @@ class TestReportsAPI:
         mock_service = MagicMock()
         mock_service.get_by_id.return_value = report
         mock_service.execute_report.return_value = {
-            "data_points": [{"date": "2024-01-01", "value": 100}],
-            "summary": {"total": 100},
+            "data_points": [{"label": "2024-01-01", "values": {"total": 100, "hot_leads": 25}}],
+            "summary": {"total": 100, "hot_leads": 25},
             "total_records": 1,
         }
         mock_service_class.return_value = mock_service
