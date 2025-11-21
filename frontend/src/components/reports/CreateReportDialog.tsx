@@ -110,8 +110,8 @@ export const CreateReportDialog: React.FC<CreateReportDialogProps> = ({
       report_type: formData.report_type,
       config: {
         metrics: formData.metrics,
-        visualization: formData.visualization as any,
-        group_by: formData.group_by !== 'none' ? (formData.group_by as any) : undefined,
+        visualization: formData.visualization as 'bar_chart' | 'line_chart' | 'pie_chart' | 'table',
+        group_by: formData.group_by !== 'none' ? (formData.group_by as 'status' | 'industry' | 'date' | 'assessment') : undefined,
         sort_order: 'desc',
       },
       is_public: formData.is_public,

@@ -8,7 +8,7 @@ export interface ReportConfig {
     status?: string[];
     score_range?: { min: number; max: number };
     assessment_ids?: string[];
-    [key: string]: any;
+    [key: string]: string | string[] | { start: string; end: string } | { min: number; max: number } | undefined;
   };
   group_by?: 'status' | 'industry' | 'date' | 'assessment';
   visualization?: 'bar_chart' | 'line_chart' | 'pie_chart' | 'table';
@@ -64,7 +64,7 @@ export interface ReportExecutionResult {
   report_id: string;
   report_name: string;
   executed_at: string;
-  data_points: Array<Record<string, any>>;
+  data_points: Array<Record<string, string | number | boolean | null>>;
   summary: {
     total_records: number;
     date_range?: { start: string; end: string };

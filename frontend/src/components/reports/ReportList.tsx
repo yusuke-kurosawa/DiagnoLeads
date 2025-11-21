@@ -79,7 +79,7 @@ export const ReportList: React.FC<ReportListProps> = ({ tenantId }) => {
       reportService.downloadExport(blob, filename);
       toast.dismiss();
       toast.success('エクスポートが完了しました');
-    } catch (error) {
+    } catch {
       toast.dismiss();
       toast.error('エクスポートに失敗しました');
     }

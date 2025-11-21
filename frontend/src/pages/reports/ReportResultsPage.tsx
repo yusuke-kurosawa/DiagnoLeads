@@ -49,7 +49,7 @@ export const ReportResultsPage: React.FC = () => {
       reportService.downloadExport(blob, filename);
       toast.dismiss();
       toast.success('エクスポートが完了しました');
-    } catch (error) {
+    } catch {
       toast.dismiss();
       toast.error('エクスポートに失敗しました');
     }
