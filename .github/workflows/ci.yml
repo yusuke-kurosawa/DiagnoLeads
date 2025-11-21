@@ -114,6 +114,10 @@ jobs:
         run: |
           echo "Running MyPy type checking..."
           mypy --version
+          echo "PWD: $(pwd)"
+          echo "Checking for mypy.ini..."
+          ls -la mypy.ini
+          echo "Running: mypy app/ --config-file mypy.ini --show-error-codes"
           mypy app/ --config-file mypy.ini --show-error-codes
 
       - name: Run database migrations
