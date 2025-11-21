@@ -24,10 +24,12 @@ class TestReportsAPI:
         report_data = {
             "name": "Monthly Leads Report",
             "description": "Monthly lead statistics",
-            "type": "leads",
-            "metrics": ["total", "hot_leads", "conversion_rate"],
-            "filters": {"status": "new"},
-            "config": {"chart_type": "bar"},
+            "report_type": "leads",
+            "config": {
+                "metrics": ["total", "hot_leads", "conversion_rate"],
+                "filters": {"status": "new"},
+                "visualization": "bar",
+            },
             "is_public": True,
         }
 
@@ -40,7 +42,7 @@ class TestReportsAPI:
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == "Monthly Leads Report"
-        assert data["type"] == "leads"
+        assert data["report_type"] == "leads"
 
     def test_create_report_forbidden_other_tenant(self, client: TestClient, test_user: User, test_tenant_2):
         """Test that users cannot create reports for other tenants"""
@@ -49,8 +51,10 @@ class TestReportsAPI:
         report_data = {
             "name": "Unauthorized Report",
             "description": "Should fail",
-            "type": "leads",
-            "metrics": ["total"],
+            "report_type": "leads",
+            "config": {
+                "metrics": ["total"],
+            },
         }
 
         response = client.post(
