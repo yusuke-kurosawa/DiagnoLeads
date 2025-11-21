@@ -21,8 +21,8 @@ class TestSetupLogging:
         mock_basic_config.assert_called_once()
         call_kwargs = mock_basic_config.call_args[1]
         assert call_kwargs["level"] == logging.INFO
-        assert "%(asctime)s" in call_kwargs["format"]
-        assert "%(levelname)s" in call_kwargs["format"]
+        assert "handlers" in call_kwargs
+        assert call_kwargs["force"] is True
 
     @patch("app.core.logging_config.logging.basicConfig")
     def test_setup_logging_debug_level(self, mock_basic_config):

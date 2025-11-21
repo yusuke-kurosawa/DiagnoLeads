@@ -31,6 +31,10 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    servers=[
+        {"url": "http://localhost:8000", "description": "Local development"},
+        {"url": "https://api.diagnoleads.com", "description": "Production"},
+    ],
 )
 
 # Multi-tenant Middleware (enforce tenant isolation)

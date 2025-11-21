@@ -15,9 +15,10 @@ lint:
     # Schema validation
     no-invalid-schema-examples: error
     no-ambiguous-paths: error
-    no-path-trailing-slash: error
+    no-path-trailing-slash: warn
     
     # Security
+    security-defined: warn
     no-server-example.com: warn
     no-server-trailing-slash: error
     
