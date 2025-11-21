@@ -55,6 +55,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Run database migrations
         working-directory: ./backend
@@ -77,8 +78,8 @@ jobs:
           ENVIRONMENT: test
         run: |
           echo "Running pytest..."
-          pytest --version
-          pytest tests/ -vv --tb=short --cov=app --cov-report=xml 2>&1 | tee pytest-output.log || true
+          python -m pytest --version
+          python -m pytest tests/ -vv --tb=short --cov=app --cov-report=xml 2>&1 | tee pytest-output.log || true
 
       - name: Show test failures
         if: steps.pytest.outcome == 'failure'
@@ -116,10 +117,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Run Ruff
         working-directory: ./backend
-        run: ruff check .
+        run: python -m ruff check .
 
       - name: Run MyPy
         id: mypy
@@ -127,8 +129,8 @@ jobs:
         continue-on-error: true
         run: |
           echo "Running MyPy type checking..."
-          mypy --version
-          mypy app/ --config-file mypy.ini --show-error-codes --pretty > mypy.log 2>&1 || true
+          python -m mypy --version
+          python -m mypy app/ --config-file mypy.ini --show-error-codes --pretty > mypy.log 2>&1 || true
           cat mypy.log
 
       - name: Check MyPy result
