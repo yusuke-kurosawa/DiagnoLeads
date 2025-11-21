@@ -46,11 +46,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
         # Check path patterns for public endpoints (embed widget)
         path = request.url.path
-        if (
-            "/assessments/" in path
-            and "/public" in path
-            or "/response-sessions" in path
-        ):
+        if "/assessments/" in path and "/public" in path or "/response-sessions" in path:
             return await call_next(request)
 
         # Extract JWT token from Authorization header
