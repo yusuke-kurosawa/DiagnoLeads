@@ -40,9 +40,7 @@ class TestLeadServiceGA4Integration:
             mock_client.send_event = AsyncMock(return_value=True)
             mock_ga4.return_value = mock_client
 
-            await service._send_ga4_event(
-                tenant_id=test_tenant.id, event_name="lead_created", event_params={"score": 80}
-            )
+            await service._send_ga4_event(tenant_id=test_tenant.id, event_name="lead_created", event_params={"score": 80})
 
             mock_client.send_event.assert_called_once()
 
@@ -162,9 +160,7 @@ class TestLeadServiceGA4Integration:
             mock_ga4.return_value = mock_client
 
             custom_client_id = "custom-client-123"
-            await service._send_ga4_event(
-                tenant_id=test_tenant.id, event_name="test_event", event_params={}, client_id=custom_client_id
-            )
+            await service._send_ga4_event(tenant_id=test_tenant.id, event_name="test_event", event_params={}, client_id=custom_client_id)
 
             # Verify client_id was passed
             call_args = mock_client.send_event.call_args

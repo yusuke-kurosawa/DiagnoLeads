@@ -71,9 +71,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_successful_after_retry(self, rate_limit_error):
         """Test function succeeds after one retry"""
-        async_func = AsyncMock(
-            side_effect=[rate_limit_error, "success"]
-        )
+        async_func = AsyncMock(side_effect=[rate_limit_error, "success"])
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
             result = await retry_with_backoff(async_func, max_retries=3, initial_delay=0.1)
@@ -84,9 +82,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_rate_limit_error_after_max_retries(self, rate_limit_error):
         """Test raises AIRateLimitError after max retries"""
-        async_func = AsyncMock(
-            side_effect=rate_limit_error
-        )
+        async_func = AsyncMock(side_effect=rate_limit_error)
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
             with pytest.raises(AIRateLimitError) as exc_info:
@@ -98,9 +94,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_connection_error_retry(self, connection_error):
         """Test retries on API connection error"""
-        async_func = AsyncMock(
-            side_effect=[connection_error, "success"]
-        )
+        async_func = AsyncMock(side_effect=[connection_error, "success"])
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
             result = await retry_with_backoff(async_func, max_retries=3, initial_delay=0.1)
@@ -111,9 +105,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_timeout_error_retry(self, timeout_error):
         """Test retries on API timeout error"""
-        async_func = AsyncMock(
-            side_effect=[timeout_error, "success"]
-        )
+        async_func = AsyncMock(side_effect=[timeout_error, "success"])
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
             result = await retry_with_backoff(async_func, max_retries=3, initial_delay=0.1)
@@ -124,9 +116,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_connection_error_max_retries(self, connection_error):
         """Test raises AIAPIError after max connection retries"""
-        async_func = AsyncMock(
-            side_effect=connection_error
-        )
+        async_func = AsyncMock(side_effect=connection_error)
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
             with pytest.raises(AIAPIError) as exc_info:
@@ -138,9 +128,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_non_retryable_api_error(self, api_error):
         """Test immediately raises on non-retryable API error"""
-        async_func = AsyncMock(
-            side_effect=api_error
-        )
+        async_func = AsyncMock(side_effect=api_error)
 
         with pytest.raises(AIAPIError) as exc_info:
             await retry_with_backoff(async_func, max_retries=3)
@@ -151,9 +139,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_unexpected_error(self):
         """Test handles unexpected errors"""
-        async_func = AsyncMock(
-            side_effect=ValueError("Unexpected error")
-        )
+        async_func = AsyncMock(side_effect=ValueError("Unexpected error"))
 
         with pytest.raises(AIAPIError) as exc_info:
             await retry_with_backoff(async_func, max_retries=3)
@@ -168,9 +154,7 @@ class TestRetryWithBackoff:
         error1 = RateLimitError("Rate limit", response=mock_response, body=None)
         error2 = RateLimitError("Rate limit", response=mock_response, body=None)
 
-        async_func = AsyncMock(
-            side_effect=[error1, error2, "success"]
-        )
+        async_func = AsyncMock(side_effect=[error1, error2, "success"])
 
         sleep_calls = []
 
@@ -198,9 +182,7 @@ class TestRetryWithBackoff:
         error1 = RateLimitError("Rate limit", response=mock_response, body=None)
         error2 = RateLimitError("Rate limit", response=mock_response, body=None)
 
-        async_func = AsyncMock(
-            side_effect=[error1, error2, "success"]
-        )
+        async_func = AsyncMock(side_effect=[error1, error2, "success"])
 
         sleep_calls = []
 
@@ -256,9 +238,7 @@ class TestRetryWithBackoff:
     @pytest.mark.asyncio
     async def test_zero_max_retries(self, rate_limit_error):
         """Test with zero max retries"""
-        async_func = AsyncMock(
-            side_effect=rate_limit_error
-        )
+        async_func = AsyncMock(side_effect=rate_limit_error)
 
         with pytest.raises(AIRateLimitError):
             await retry_with_backoff(async_func, max_retries=0, initial_delay=0.1)

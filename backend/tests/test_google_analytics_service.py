@@ -258,9 +258,7 @@ class TestGoogleAnalyticsServiceTestConnection:
 
         # Mock GA4 client
         mock_client = MagicMock()
-        mock_client.send_connection_test_event = AsyncMock(
-            return_value={"status": "success", "message": "Connection successful"}
-        )
+        mock_client.send_connection_test_event = AsyncMock(return_value={"status": "success", "message": "Connection successful"})
         mock_ga4_class.return_value = mock_client
 
         response = await service.test_connection(test_tenant.id)

@@ -235,9 +235,7 @@ class TestAuditServiceGetAuditLogs:
         start_date = datetime.utcnow() - timedelta(days=1)
         end_date = datetime.utcnow() + timedelta(days=1)
 
-        logs, total = AuditService.get_audit_logs(
-            db=db_session, tenant_id=test_tenant.id, start_date=start_date, end_date=end_date
-        )
+        logs, total = AuditService.get_audit_logs(db=db_session, tenant_id=test_tenant.id, start_date=start_date, end_date=end_date)
 
         assert len(logs) == 1
         assert total == 1
@@ -384,9 +382,7 @@ class TestAuditServiceGetEntityHistory:
             action="UPDATE",
         )
 
-        logs = AuditService.get_entity_history(
-            db=db_session, tenant_id=test_tenant.id, entity_type="USER", entity_id=entity_id
-        )
+        logs = AuditService.get_entity_history(db=db_session, tenant_id=test_tenant.id, entity_type="USER", entity_id=entity_id)
 
         assert len(logs) == 3
         assert all(log.entity_id == entity_id for log in logs)
@@ -416,9 +412,7 @@ class TestAuditServiceGetEntityHistory:
         )
 
         # Get history for entity1 only
-        logs = AuditService.get_entity_history(
-            db=db_session, tenant_id=test_tenant.id, entity_type="USER", entity_id=entity_id1
-        )
+        logs = AuditService.get_entity_history(db=db_session, tenant_id=test_tenant.id, entity_type="USER", entity_id=entity_id1)
 
         assert len(logs) == 1
         assert logs[0].entity_id == entity_id1
@@ -444,9 +438,7 @@ class TestAuditServiceCleanupOldLogs:
         db_session.flush()
 
         # Update created_at to be 100 days ago
-        db_session.query(AuditLog).filter(AuditLog.id == old_log.id).update(
-            {"created_at": datetime.utcnow() - timedelta(days=100)}
-        )
+        db_session.query(AuditLog).filter(AuditLog.id == old_log.id).update({"created_at": datetime.utcnow() - timedelta(days=100)})
         db_session.commit()
 
         # Create a recent log

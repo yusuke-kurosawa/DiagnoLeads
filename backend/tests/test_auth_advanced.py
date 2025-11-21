@@ -187,9 +187,7 @@ class TestAuthLoginAttempts:
 
     def test_check_and_increment_login_attempts_nonexistent_user(self, db_session):
         """Test login attempts for non-existent user"""
-        can_attempt, error_msg = AuthService.check_and_increment_login_attempts(
-            db_session, "nonexistent@example.com"
-        )
+        can_attempt, error_msg = AuthService.check_and_increment_login_attempts(db_session, "nonexistent@example.com")
 
         # Should allow attempt (to avoid user enumeration)
         assert can_attempt is True

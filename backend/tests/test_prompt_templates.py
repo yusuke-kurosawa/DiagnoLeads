@@ -4,7 +4,6 @@ Tests for Prompt Templates
 Comprehensive tests for AI prompt generation templates.
 """
 
-
 import pytest
 
 from app.services.ai.prompt_templates import (

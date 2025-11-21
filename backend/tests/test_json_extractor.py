@@ -68,34 +68,34 @@ class TestExtractFromMarkdownJSON:
 
     def test_extract_from_markdown_json_block(self):
         """Test extracting from markdown JSON block"""
-        response = '''Here is the JSON:
+        response = """Here is the JSON:
 ```json
 {
   "name": "Test",
   "value": 123
 }
 ```
-That's it!'''
+That's it!"""
         result = JSONExtractor.extract(response)
 
         assert result == {"name": "Test", "value": 123}
 
     def test_extract_from_markdown_json_with_text_before_after(self):
         """Test extracting with explanatory text"""
-        response = '''I'll provide the JSON now:
+        response = """I'll provide the JSON now:
 
 ```json
 {"status": "success"}
 ```
 
-Let me know if you need anything else.'''
+Let me know if you need anything else."""
         result = JSONExtractor.extract(response)
 
         assert result == {"status": "success"}
 
     def test_extract_from_markdown_json_multiple_blocks_uses_first(self):
         """Test multiple blocks uses first valid one"""
-        response = '''First block:
+        response = """First block:
 ```json
 {"first": true}
 ```
@@ -103,14 +103,14 @@ Let me know if you need anything else.'''
 Second block:
 ```json
 {"second": true}
-```'''
+```"""
         result = JSONExtractor.extract(response)
 
         assert result == {"first": True}
 
     def test_extract_from_markdown_json_complex_object(self):
         """Test extracting complex nested JSON"""
-        response = '''```json
+        response = """```json
 {
   "assessment": {
     "title": "Lead Qualification",
@@ -120,7 +120,7 @@ Second block:
     ]
   }
 }
-```'''
+```"""
         result = JSONExtractor.extract(response)
 
         assert result["assessment"]["title"] == "Lead Qualification"
@@ -132,9 +132,9 @@ class TestExtractFromMarkdownCode:
 
     def test_extract_from_markdown_code_block(self):
         """Test extracting from generic markdown code block"""
-        response = '''```
+        response = """```
 {"key": "value"}
-```'''
+```"""
         result = JSONExtractor.extract(response)
 
         assert result == {"key": "value"}
@@ -142,9 +142,9 @@ class TestExtractFromMarkdownCode:
     def test_extract_from_markdown_code_with_language_hint(self):
         """Test extracting from code block with language hint (not json)"""
         # This should still work as it tries both strategies
-        response = '''```javascript
+        response = """```javascript
 {"key": "value"}
-```'''
+```"""
         # Will try markdown code strategy
         result = JSONExtractor.extract(response)
 
@@ -152,7 +152,7 @@ class TestExtractFromMarkdownCode:
 
     def test_extract_from_markdown_code_skips_invalid_blocks(self):
         """Test skips invalid JSON blocks and finds valid one"""
-        response = '''First block (invalid):
+        response = """First block (invalid):
 ```
 This is not JSON
 ```
@@ -160,7 +160,7 @@ This is not JSON
 Second block (valid):
 ```
 {"valid": true}
-```'''
+```"""
         result = JSONExtractor.extract(response)
 
         assert result == {"valid": True}
@@ -178,7 +178,7 @@ class TestExtractFromJSONObject:
 
     def test_extract_json_object_with_nested_braces(self):
         """Test extracting JSON with nested objects"""
-        response = '''The result is: {"user": {"name": "Bob", "preferences": {"theme": "dark"}}} done'''
+        response = """The result is: {"user": {"name": "Bob", "preferences": {"theme": "dark"}}} done"""
         result = JSONExtractor.extract(response)
 
         assert result["user"]["name"] == "Bob"
@@ -212,11 +212,11 @@ class TestExtractStrategy_Priority:
 
     def test_markdown_json_preferred_over_plain_object(self):
         """Test markdown JSON block is preferred"""
-        response = '''{"outside": true}
+        response = """{"outside": true}
 
 ```json
 {"inside": true}
-```'''
+```"""
         result = JSONExtractor.extract(response)
 
         # Should prefer the markdown JSON block
@@ -224,11 +224,11 @@ class TestExtractStrategy_Priority:
 
     def test_markdown_code_fallback(self):
         """Test falls back to markdown code block"""
-        response = '''```
+        response = """```
 {"code_block": true}
 ```
 
-{"plain": true}'''
+{"plain": true}"""
         result = JSONExtractor.extract(response)
 
         assert result == {"code_block": True}
@@ -267,7 +267,7 @@ class TestExtractFromMarkdownJSONHelper:
 
     def test_extract_invalid_json_in_block_raises_error(self):
         """Test invalid JSON in block raises error"""
-        text = '```json\nNot valid JSON\n```'
+        text = "```json\nNot valid JSON\n```"
 
         with pytest.raises(json.JSONDecodeError):
             JSONExtractor._extract_from_markdown_json(text)
@@ -292,7 +292,7 @@ class TestExtractFromMarkdownCodeHelper:
 
     def test_extract_multiple_blocks_returns_first_valid(self):
         """Test returns first valid JSON from multiple blocks"""
-        text = '''```
+        text = """```
 Not JSON
 ```
 ```
@@ -300,19 +300,19 @@ Not JSON
 ```
 ```
 {"another": true}
-```'''
+```"""
         result = JSONExtractor._extract_from_markdown_code(text)
 
         assert result == {"valid": True}
 
     def test_extract_all_invalid_blocks_returns_none(self):
         """Test returns None when all blocks have invalid JSON"""
-        text = '''```
+        text = """```
 Not JSON 1
 ```
 ```
 Not JSON 2
-```'''
+```"""
         result = JSONExtractor._extract_from_markdown_code(text)
 
         assert result is None
@@ -377,7 +377,7 @@ class TestExtractRealWorldScenarios:
 
     def test_extract_claude_response_with_explanation(self):
         """Test typical Claude response format"""
-        response = '''I'll create the assessment JSON for you:
+        response = """I'll create the assessment JSON for you:
 
 ```json
 {
@@ -397,7 +397,7 @@ class TestExtractRealWorldScenarios:
 }
 ```
 
-This assessment will help identify qualified leads.'''
+This assessment will help identify qualified leads."""
         result = JSONExtractor.extract(response)
 
         assert result["title"] == "B2B SaaS Lead Qualification"
@@ -406,7 +406,7 @@ This assessment will help identify qualified leads.'''
 
     def test_extract_response_with_markdown_formatting(self):
         """Test response with markdown formatting"""
-        response = '''# Assessment JSON
+        response = """# Assessment JSON
 
 Here's the generated assessment:
 
@@ -416,14 +416,14 @@ Here's the generated assessment:
 
 ## Notes
 - Version 2 includes new features
-- Compatible with all browsers'''
+- Compatible with all browsers"""
         result = JSONExtractor.extract(response)
 
         assert result == {"title": "Marketing Assessment", "version": 2}
 
     def test_extract_response_with_mixed_code_blocks(self):
         """Test response with multiple code blocks of different types"""
-        response = '''Here's some TypeScript:
+        response = """Here's some TypeScript:
 ```typescript
 const data = { foo: "bar" };
 ```
@@ -431,7 +431,7 @@ const data = { foo: "bar" };
 And here's the JSON you requested:
 ```json
 {"actual": "data"}
-```'''
+```"""
         result = JSONExtractor.extract(response)
 
         assert result == {"actual": "data"}

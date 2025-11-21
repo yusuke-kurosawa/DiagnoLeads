@@ -184,11 +184,7 @@ class TestDatabaseLevelIsolation:
     ):
         """診断クエリがテナントでフィルタリングされることを確認"""
         # テナントAlphaの診断のみを取得
-        assessments_alpha = (
-            db_session.query(Assessment)
-            .filter(Assessment.tenant_id == tenant_alpha.id)
-            .all()
-        )
+        assessments_alpha = db_session.query(Assessment).filter(Assessment.tenant_id == tenant_alpha.id).all()
 
         assert len(assessments_alpha) == 1
         assert assessments_alpha[0].id == assessment_alpha.id
@@ -208,11 +204,7 @@ class TestDatabaseLevelIsolation:
     ):
         """リードクエリがテナントでフィルタリングされることを確認"""
         # テナントAlphaのリードのみを取得
-        leads_alpha = (
-            db_session.query(Lead)
-            .filter(Lead.tenant_id == tenant_alpha.id)
-            .all()
-        )
+        leads_alpha = db_session.query(Lead).filter(Lead.tenant_id == tenant_alpha.id).all()
 
         assert len(leads_alpha) == 1
         assert leads_alpha[0].id == lead_alpha.id
@@ -237,12 +229,7 @@ class TestDatabaseLevelIsolation:
         取得できないことを検証
         """
         # テナントAlphaのフィルタでテナントBetaのリードを取得しようとする
-        cross_tenant_lead = (
-            db_session.query(Lead)
-            .filter(Lead.tenant_id == tenant_alpha.id)
-            .filter(Lead.id == lead_beta.id)
-            .first()
-        )
+        cross_tenant_lead = db_session.query(Lead).filter(Lead.tenant_id == tenant_alpha.id).filter(Lead.id == lead_beta.id).first()
 
         # None が返されることを確認（データ漏洩なし）
         assert cross_tenant_lead is None
@@ -286,19 +273,11 @@ class TestDatabaseLevelIsolation:
     ):
         """COUNT クエリでもテナント分離が保たれることを確認"""
         # テナントAlphaのリード数
-        count_alpha = (
-            db_session.query(Lead)
-            .filter(Lead.tenant_id == tenant_alpha.id)
-            .count()
-        )
+        count_alpha = db_session.query(Lead).filter(Lead.tenant_id == tenant_alpha.id).count()
         assert count_alpha == 1
 
         # テナントBetaのリード数
-        count_beta = (
-            db_session.query(Lead)
-            .filter(Lead.tenant_id == tenant_beta.id)
-            .count()
-        )
+        count_beta = db_session.query(Lead).filter(Lead.tenant_id == tenant_beta.id).count()
         assert count_beta == 1
 
         # 全体のリード数（両方のテナント）
@@ -478,9 +457,7 @@ def create_test_token(user: User) -> str:
     """テスト用のJWTトークンを生成"""
     from app.services.auth import AuthService
 
-    return AuthService.create_access_token(
-        data={"sub": str(user.id), "tenant_id": str(user.tenant_id)}
-    )
+    return AuthService.create_access_token(data={"sub": str(user.id), "tenant_id": str(user.tenant_id)})
 
 
 # ============================================================================
@@ -548,11 +525,7 @@ class TestTenantIsolationPerformance:
         import time
 
         start = time.time()
-        leads = (
-            db_session.query(Lead)
-            .filter(Lead.tenant_id == target_tenant.id)
-            .all()
-        )
+        leads = db_session.query(Lead).filter(Lead.tenant_id == target_tenant.id).all()
         elapsed = time.time() - start
 
         # 正確に100件が返される

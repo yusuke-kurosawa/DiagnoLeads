@@ -18,9 +18,7 @@ class TestTopicsAPI:
 
     def test_get_topics(self, client: TestClient, db_session: Session, test_user: User):
         """Test getting all topics for a tenant"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create test topics
         topic1 = Topic(
@@ -50,9 +48,7 @@ class TestTopicsAPI:
 
     def test_get_topic_by_id(self, client: TestClient, db_session: Session, test_user: User):
         """Test getting a specific topic"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create test topic
         topic = Topic(
@@ -79,9 +75,7 @@ class TestTopicsAPI:
         """Test getting non-existent topic"""
         from uuid import uuid4
 
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         response = client.get(
             f"/api/v1/tenants/{test_user.tenant_id}/topics/{uuid4()}",
@@ -93,9 +87,7 @@ class TestTopicsAPI:
 
     def test_create_topic(self, client: TestClient, test_user: User):
         """Test creating a new topic"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         topic_data = {
             "name": "Marketing",
@@ -118,9 +110,7 @@ class TestTopicsAPI:
 
     def test_update_topic(self, client: TestClient, db_session: Session, test_user: User):
         """Test updating a topic"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create topic
         topic = Topic(
@@ -148,9 +138,7 @@ class TestTopicsAPI:
 
     def test_delete_topic(self, client: TestClient, db_session: Session, test_user: User):
         """Test deleting a topic"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create topic
         topic = Topic(
@@ -180,9 +168,7 @@ class TestIndustriesAPI:
 
     def test_get_industries(self, client: TestClient, db_session: Session, test_user: User):
         """Test getting all industries for a tenant"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create test industries
         industry1 = Industry(
@@ -211,9 +197,7 @@ class TestIndustriesAPI:
 
     def test_create_industry(self, client: TestClient, test_user: User):
         """Test creating a new industry"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         industry_data = {
             "name": "Retail",
@@ -234,9 +218,7 @@ class TestIndustriesAPI:
 
     def test_update_industry(self, client: TestClient, db_session: Session, test_user: User):
         """Test updating an industry"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create industry
         industry = Industry(
@@ -263,9 +245,7 @@ class TestIndustriesAPI:
 
     def test_delete_industry(self, client: TestClient, db_session: Session, test_user: User):
         """Test deleting an industry"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create industry
         industry = Industry(

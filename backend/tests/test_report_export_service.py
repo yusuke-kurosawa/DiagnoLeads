@@ -151,9 +151,7 @@ class TestReportExportServiceExcel:
 
         data_points = [{"label": "Test", "values": {"metric1": 123.456}}]
 
-        result = service.export_to_excel(
-            "Formatted Report", data_points, {"summary_key": "value"}, {"metrics": ["metric1"], "filters": {}}
-        )
+        result = service.export_to_excel("Formatted Report", data_points, {"summary_key": "value"}, {"metrics": ["metric1"], "filters": {}})
 
         assert isinstance(result, bytes)
         # Verify formatting functions were called
@@ -215,9 +213,7 @@ class TestReportExportServicePDF:
     @patch("reportlab.platypus.TableStyle")
     @patch("reportlab.platypus.Spacer")
     @patch("reportlab.platypus.PageBreak")
-    def test_export_to_pdf_empty_data(
-        self, mock_pagebreak, mock_spacer, mock_tablestyle, mock_table, mock_paragraph, mock_styles, mock_doc_class
-    ):
+    def test_export_to_pdf_empty_data(self, mock_pagebreak, mock_spacer, mock_tablestyle, mock_table, mock_paragraph, mock_styles, mock_doc_class):
         """Test PDF export with empty data points"""
         service = ReportExportService()
 
@@ -242,9 +238,7 @@ class TestReportExportServicePDF:
     @patch("reportlab.platypus.Table")
     @patch("reportlab.platypus.TableStyle")
     @patch("reportlab.lib.styles.ParagraphStyle")
-    def test_export_to_pdf_with_filters(
-        self, mock_para_style, mock_tablestyle, mock_table, mock_paragraph, mock_styles, mock_doc_class
-    ):
+    def test_export_to_pdf_with_filters(self, mock_para_style, mock_tablestyle, mock_table, mock_paragraph, mock_styles, mock_doc_class):
         """Test PDF export with filters in config"""
         service = ReportExportService()
 

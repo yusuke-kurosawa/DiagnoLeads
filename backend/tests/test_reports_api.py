@@ -19,9 +19,7 @@ class TestReportsAPI:
 
     def test_create_report(self, client: TestClient, db_session: Session, test_user: User):
         """Test creating a new report"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         report_data = {
             "name": "Monthly Leads Report",
@@ -46,9 +44,7 @@ class TestReportsAPI:
 
     def test_create_report_forbidden_other_tenant(self, client: TestClient, test_user: User, test_tenant_2):
         """Test that users cannot create reports for other tenants"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         report_data = {
             "name": "Unauthorized Report",
@@ -67,9 +63,7 @@ class TestReportsAPI:
 
     def test_list_reports(self, client: TestClient, db_session: Session, test_user: User):
         """Test listing reports"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create test reports
         report1 = Report(
@@ -106,9 +100,7 @@ class TestReportsAPI:
 
     def test_list_reports_include_private(self, client: TestClient, db_session: Session, test_user: User):
         """Test listing reports including private ones"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create private report
         report = Report(
@@ -132,9 +124,7 @@ class TestReportsAPI:
 
     def test_get_report_by_id(self, client: TestClient, db_session: Session, test_user: User):
         """Test getting a specific report"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -161,9 +151,7 @@ class TestReportsAPI:
 
     def test_update_report(self, client: TestClient, db_session: Session, test_user: User):
         """Test updating a report"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -193,9 +181,7 @@ class TestReportsAPI:
 
     def test_delete_report(self, client: TestClient, db_session: Session, test_user: User):
         """Test deleting a report"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
@@ -225,9 +211,7 @@ class TestReportsAPI:
     @patch("app.api.v1.reports.ReportService")
     def test_execute_report(self, mock_service_class, client: TestClient, db_session: Session, test_user: User):
         """Test executing a report"""
-        token = AuthService.create_access_token(
-            {"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email}
-        )
+        token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create report
         report = Report(
