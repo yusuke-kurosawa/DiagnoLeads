@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { reportService, type Report } from '../../services/reportService';
 import { SkeletonTable } from '@/components/ui/skeleton';
-import { EmptyState, ErrorEmptyState } from '@/components/ui/empty-state';
 import { CreateReportDialog } from './CreateReportDialog';
 import { toast } from 'react-hot-toast';
 
@@ -132,26 +131,44 @@ export const ReportList: React.FC<ReportListProps> = ({ tenantId }) => {
 
       {/* Error State */}
       {error && (
-        <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
-          <ErrorEmptyState
-            onRetry={() => queryClient.invalidateQueries({ queryKey: ['reports', tenantId] })}
-            errorMessage="レポートの読み込みに失敗しました"
-          />
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-12">
+          <div className="text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <h3 className="mt-2 text-sm font-semibold text-gray-900">読み込みエラー</h3>
+            <p className="mt-1 text-sm text-gray-500">レポートの読み込みに失敗しました</p>
+            <div className="mt-6">
+              <button
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['reports', tenantId] })}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                再試行
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && !error && (!reports || reports.length === 0) && (
         <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-12">
-          <EmptyState
-            icon={FileBarChart}
-            title="レポートがありません"
-            description="カスタムレポートを作成して、データ分析を始めましょう"
-            action={{
-              label: '最初のレポートを作成',
-              onClick: () => setIsCreateDialogOpen(true),
-            }}
-          />
+          <div className="text-center">
+            <FileBarChart className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-semibold text-gray-900">レポートがありません</h3>
+            <p className="mt-1 text-sm text-gray-500">カスタムレポートを作成して、データ分析を始めましょう</p>
+            <div className="mt-6">
+              <button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <Plus className="-ml-1 mr-2 h-5 w-5" />
+                最初のレポートを作成
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
