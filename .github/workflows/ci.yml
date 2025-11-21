@@ -136,7 +136,7 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
           ENVIRONMENT: test
         run: |
-          alembic upgrade head
+          python -m alembic upgrade head
 
       - name: Run tests with pytest
         id: pytest
@@ -174,13 +174,13 @@ jobs:
           mkdir -p cicd-error-logs
 
           # Capture pytest errors with full traceback
-          pytest tests/ -v --tb=long > cicd-error-logs/pytest-errors.log 2>&1 || true
+          python -m pytest tests/ -v --tb=long > cicd-error-logs/pytest-errors.log 2>&1 || true
 
           # Capture linter errors
-          ruff check . > cicd-error-logs/ruff-errors.log 2>&1 || true
+          python -m ruff check . > cicd-error-logs/ruff-errors.log 2>&1 || true
 
           # Capture type check errors
-          mypy app/ --config-file mypy.ini > cicd-error-logs/mypy-errors.log 2>&1 || true
+          python -m mypy app/ --config-file mypy.ini > cicd-error-logs/mypy-errors.log 2>&1 || true
 
           # Add metadata
           echo "Workflow: ${{ github.workflow }}" > cicd-error-logs/metadata.txt
