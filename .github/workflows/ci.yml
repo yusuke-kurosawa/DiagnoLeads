@@ -33,11 +33,12 @@ jobs:
       
       - name: Check OpenAPI spec exists
         run: |
-          if [ ! -f openapi.json ]; then
+          if [ ! -f ../openapi.json ]; then
             echo "❌ openapi.json not found"
             exit 1
           fi
           echo "✅ openapi.json exists"
+        working-directory: frontend
       
       - name: Generate TypeScript types
         working-directory: frontend
