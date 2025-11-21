@@ -71,8 +71,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="Public Report",
             description="Public",
-            type="leads",
-            metrics=["total"],
+            report_type="leads",
+            config={"metrics": ["total"]},
             is_public=True,
         )
         report2 = Report(
@@ -80,8 +80,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="Private Report",
             description="Private",
-            type="assessments",
-            metrics=["total"],
+            report_type="assessments",
+            config={"metrics": ["total"]},
             is_public=False,
         )
         db_session.add_all([report1, report2])
@@ -108,8 +108,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="My Private Report",
             description="Private",
-            type="leads",
-            metrics=["total"],
+            report_type="leads",
+            config={"metrics": ["total"]},
             is_public=False,
         )
         db_session.add(report)
@@ -132,8 +132,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="Test Report",
             description="Test",
-            type="leads",
-            metrics=["total"],
+            report_type="leads",
+            config={"metrics": ["total"]},
             is_public=True,
         )
         db_session.add(report)
@@ -159,8 +159,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="Original Name",
             description="Original",
-            type="leads",
-            metrics=["total"],
+            report_type="leads",
+            config={"metrics": ["total"]},
             is_public=True,
         )
         db_session.add(report)
@@ -189,8 +189,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="To Delete",
             description="Will be deleted",
-            type="leads",
-            metrics=["total"],
+            report_type="leads",
+            config={"metrics": ["total"]},
             is_public=True,
         )
         db_session.add(report)
@@ -219,8 +219,8 @@ class TestReportsAPI:
             created_by=test_user.id,
             name="Execution Report",
             description="Test",
-            type="leads",
-            metrics=["total", "hot_leads"],
+            report_type="leads",
+            config={"metrics": ["total", "hot_leads"]},
             is_public=True,
         )
         db_session.add(report)
