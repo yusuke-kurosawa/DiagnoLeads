@@ -167,7 +167,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             endpoint=str(request.url.path),
             method=request.method,
             status_code=422,
-            context={"validation_errors": exc.errors(include_url=False)},
+            context={"validation_errors": exc.errors()},
             environment=settings.ENVIRONMENT,
             ip_address=get_client_ip(request),
             user_agent=request.headers.get("user-agent"),
@@ -179,7 +179,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors(include_url=False)},
+        content={"detail": exc.errors()},
     )
 
 
