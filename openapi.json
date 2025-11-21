@@ -2428,5 +2428,15 @@
         "scheme": "bearer"
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local development"
+    },
+    {
+      "url": "https://api.diagnoleads.com",
+      "description": "Production"
+    }
+  ]
 }

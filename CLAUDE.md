@@ -248,6 +248,96 @@ cat openspec/specs/assessments/ai-generation.md
 
 ## 重要な開発規約
 
+### コーディングスタイルと品質基準
+
+#### Python コーディング規約
+**必須**: PEP8準拠 + プロジェクト固有ルール
+
+```python
+# ✅ 正しいimport順序
+# 1. 標準ライブラリ
+import os
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional
+from uuid import UUID, uuid4
+
+# 2. サードパーティライブラリ
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import and_, desc
+from sqlalchemy.orm import Session
+
+# 3. ローカルアプリケーション
+from app.core.config import settings
+from app.models.user import User
+from app.schemas.user import UserCreate, UserResponse
+from app.services.auth import AuthService
+```
+
+#### 日時処理の統一規約
+**必須**: すべてのdatetime処理でtimezone-awareを使用
+
+```python
+from datetime import datetime, timedelta, timezone
+
+# ❌ 絶対に使用禁止
+datetime.utcnow()  # offset-naive datetime
+
+# ✅ 必ずこちらを使用
+datetime.now(timezone.utc)  # timezone-aware datetime
+```
+
+**理由**:
+- PostgreSQL `DateTime(timezone=True)` との互換性
+- タイムゾーンバグの防止
+- 国際化対応
+
+#### 型ヒントの使用
+**推奨**: すべての関数で型ヒントを使用
+
+```python
+# ✅ 良い例
+def create_lead(
+    db: Session,
+    data: LeadCreate,
+    tenant_id: UUID,
+    created_by: UUID
+) -> Lead:
+    """リードを作成"""
+    lead = Lead(**data.model_dump(), tenant_id=tenant_id, created_by=created_by)
+    db.add(lead)
+    db.commit()
+    return lead
+```
+
+#### Docstring規約
+**推奨**: Googleスタイルのdocstring
+
+```python
+def calculate_lead_score(answers: List[Answer], weights: dict) -> int:
+    """リードスコアを計算する
+
+    Args:
+        answers: 診断の回答リスト
+        weights: 質問ごとの重み付け辞書
+
+    Returns:
+        int: 計算されたスコア（0-100）
+
+    Raises:
+        ValueError: answersが空の場合
+
+    Example:
+        >>> answers = [Answer(points=10), Answer(points=20)]
+        >>> score = calculate_lead_score(answers, {"q1": 1.5})
+        >>> print(score)
+        45
+    """
+    if not answers:
+        raise ValueError("Answers cannot be empty")
+
+    # 実装
+```
+
 ### マルチテナントデータアクセス
 
 すべてのデータベースクエリでテナントフィルタリングを**必ず**適用してください。
@@ -266,13 +356,137 @@ assessments = db.query(Assessment).filter(
 ).all()
 ```
 
-ミドルウェアまたはデコレーターで自動的にテナントスコープを適用することを推奨します。
+**ベストプラクティス**: サービスクラスで自動テナントフィルタリング
+
+```python
+class AssessmentService:
+    """アセスメントサービス（テナント分離保証）"""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def list_by_tenant(self, tenant_id: UUID) -> List[Assessment]:
+        """テナントのアセスメント一覧を取得
+
+        IMPORTANT: 必ずtenant_idでフィルタリング
+        """
+        return self.db.query(Assessment).filter(
+            Assessment.tenant_id == tenant_id
+        ).all()
+```
 
 ### APIエンドポイント設計
 
-- テナント固有のリソースは `/api/v1/tenants/{tenant_id}/assessments` のようなパスを使用
-- 認証が必要なエンドポイントには必ずJWT検証を実装
-- ページネーション、フィルタリング、ソートをサポート
+**必須**: RESTful設計原則とテナント分離
+
+```python
+# ✅ 正しいエンドポイント設計
+@router.get("/tenants/{tenant_id}/assessments")
+async def list_assessments(
+    tenant_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """アセスメント一覧取得
+
+    - tenant_idをパスに含める（必須）
+    - 認証チェック（current_user）
+    - テナント権限チェック
+    - ページネーション対応
+    """
+    # テナント権限検証
+    if current_user.tenant_id != tenant_id:
+        raise HTTPException(status_code=403, detail="Access forbidden")
+
+    service = AssessmentService(db)
+    return service.list_by_tenant(tenant_id, skip=skip, limit=limit)
+```
+
+**設計原則**:
+- テナント固有リソース: `/api/v1/tenants/{tenant_id}/resource`
+- 認証必須エンドポイント: `Depends(get_current_user)`
+- ページネーション: `skip`と`limit`パラメータ
+- フィルタリング: クエリパラメータで提供
+- ソート: `order_by`パラメータ
+
+### エラーハンドリング
+
+**必須**: 一貫したエラーレスポンス
+
+```python
+from fastapi import HTTPException, status
+
+# ✅ 良い例 - 適切なHTTPステータスコード
+@router.get("/tenants/{tenant_id}/leads/{lead_id}")
+async def get_lead(tenant_id: UUID, lead_id: UUID, ...):
+    lead = service.get_by_id(lead_id, tenant_id)
+
+    if not lead:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lead not found"
+        )
+
+    return lead
+
+# ✅ 権限エラー
+if current_user.tenant_id != tenant_id:
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Access forbidden"
+    )
+
+# ✅ バリデーションエラー
+if not data.email:
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail="Email is required"
+    )
+```
+
+**HTTPステータスコード使用ガイド**:
+- `200 OK`: 成功（GET, PUT）
+- `201 Created`: 作成成功（POST）
+- `204 No Content`: 削除成功（DELETE）
+- `400 Bad Request`: 不正なリクエスト
+- `401 Unauthorized`: 認証が必要
+- `403 Forbidden`: 権限不足
+- `404 Not Found`: リソースが存在しない
+- `422 Unprocessable Entity`: バリデーションエラー
+- `500 Internal Server Error`: サーバーエラー
+
+### ロギングとモニタリング
+
+**推奨**: 構造化ロギング
+
+```python
+import structlog
+
+logger = structlog.get_logger()
+
+# ✅ 良い例 - 構造化ログ
+logger.info(
+    "lead_created",
+    tenant_id=str(tenant_id),
+    lead_id=str(lead.id),
+    score=lead.score,
+    user_id=str(current_user.id)
+)
+
+# ✅ エラーログ
+try:
+    result = await ai_service.generate_assessment(...)
+except Exception as e:
+    logger.error(
+        "ai_generation_failed",
+        tenant_id=str(tenant_id),
+        error=str(e),
+        exc_info=True
+    )
+    raise
+```
 
 ### 埋め込みウィジェットの考慮事項
 
@@ -333,6 +547,180 @@ class AssessmentGenerator:
 - バックエンド: 80%以上
 - フロントエンド: 70%以上
 - クリティカルパス（認証、テナント分離、スコアリング）: 100%
+
+### テスト実装のベストプラクティス
+
+#### 1. Importの整理
+**必須**: すべてのimportはファイル先頭に配置（PEP8準拠）
+
+```python
+# ❌ 悪い例 - 関数内import
+def test_something():
+    from uuid import uuid4
+    user_id = uuid4()
+
+# ✅ 良い例 - ファイル先頭import
+from uuid import uuid4
+
+def test_something():
+    user_id = uuid4()
+```
+
+#### 2. Timezone-Aware Datetimeの使用
+**必須**: すべてのdatetime操作でtimezone-awareを使用（PostgreSQL `DateTime(timezone=True)` 対応）
+
+```python
+# ❌ 悪い例 - offset-naive datetime
+from datetime import datetime, timedelta
+expiry = datetime.utcnow() + timedelta(hours=1)
+
+# ✅ 良い例 - timezone-aware datetime
+from datetime import datetime, timedelta, timezone
+expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+```
+
+**理由**: Userモデルなどで `DateTime(timezone=True)` を使用しているため、offset-naiveとの比較でエラーが発生
+
+#### 3. SQLAlchemyモデルとリレーションシップ
+**必須**: リレーションシップは個別にモデルを作成してリンク
+
+```python
+# ❌ 悪い例 - optionsを直接dictで設定
+question = Question(
+    text="Question text",
+    options=[{"text": "Option 1", "points": 10}]  # これは動かない
+)
+
+# ✅ 良い例 - QuestionOptionモデルを個別に作成
+question = Question(text="Question text", order=1)
+db_session.add(question)
+db_session.commit()
+
+option1 = QuestionOption(
+    question_id=question.id,
+    text="Option 1",
+    points=10,
+    order=1
+)
+db_session.add(option1)
+db_session.commit()
+```
+
+#### 4. Mock/Patchの正しい使用
+**必須**: 実際のimportパスでpatchを適用
+
+```python
+# ❌ 悪い例 - サービスモジュールのアトリビュートをpatch
+@patch("app.services.report_export_service.Workbook")
+
+# ✅ 良い例 - 実際のライブラリをpatch
+@patch("openpyxl.Workbook")
+@patch("reportlab.platypus.SimpleDocTemplate")
+```
+
+#### 5. UUID検証のテスト
+**必須**: トークンテストでは有効なUUID文字列を使用
+
+```python
+# ❌ 悪い例 - 文字列をそのまま使用
+data = {"sub": "user-123", "tenant_id": "tenant-456"}
+
+# ✅ 良い例 - 有効なUUID
+from uuid import uuid4
+user_id = str(uuid4())
+tenant_id = str(uuid4())
+data = {"sub": user_id, "tenant_id": tenant_id}
+```
+
+#### 6. Fixtureの命名と使用
+**推奨**: 標準的なfixture名を使用
+
+```python
+# conftest.pyで定義されているfixture
+- db_session: 同期DBセッション
+- test_user: テストユーザー
+- test_tenant: テストテナント
+- client: FastAPI TestClient
+
+# ❌ 悪い例 - 存在しないfixture
+def test_something(async_db_session):  # 定義されていない
+
+# ✅ 良い例 - 存在するfixture
+def test_something(db_session):
+```
+
+#### 7. テスト構造
+**推奨**: テストクラスで論理的にグループ化
+
+```python
+class TestUserService:
+    """UserServiceのテスト"""
+
+    def test_create_user(self, db_session):
+        """ユーザー作成のテスト"""
+        pass
+
+    def test_update_user(self, db_session):
+        """ユーザー更新のテスト"""
+        pass
+
+class TestUserServicePasswordHashing:
+    """パスワードハッシュ機能のテスト"""
+
+    def test_hash_password(self):
+        """パスワードハッシュ化のテスト"""
+        pass
+```
+
+#### 8. APIエンドポイントテスト
+**必須**: 正しいエンドポイントパスを使用
+
+```python
+# ❌ 悪い例 - 古いパス構造
+response = client.get("/api/v1/leads")
+
+# ✅ 良い例 - テナントIDを含む正しいパス
+response = client.get(f"/api/v1/tenants/{tenant_id}/leads")
+```
+
+#### 9. テストカバレッジの優先順位
+
+1. **最優先**: マルチテナント分離の検証
+   - クロステナントアクセスの防止
+   - 権限チェック (403 Forbidden)
+
+2. **高優先**: ビジネスロジック
+   - スコアリング計算
+   - リード分類（Hot/Warm/Cold）
+   - AI生成ロジック
+
+3. **中優先**: CRUDオペレーション
+   - 作成・更新・削除の基本動作
+   - バリデーション
+
+4. **通常**: エッジケース
+   - 空データの処理
+   - 不正な入力の処理
+   - エラーハンドリング
+
+#### 10. テストデータの管理
+
+```python
+# ✅ 良い例 - 明示的なテストデータ
+def test_lead_scoring(db_session, test_tenant, test_user):
+    lead = Lead(
+        tenant_id=test_tenant.id,
+        created_by=test_user.id,
+        name="Test Lead",
+        email="test@example.com",
+        score=85,
+        status="qualified"
+    )
+    db_session.add(lead)
+    db_session.commit()
+
+    # テストロジック
+```
 
 ## データベーススキーマ管理
 

@@ -17,6 +17,7 @@ from app.api.v1 import (
     leads,
     qr_codes,
     qr_scans,
+    reports,
     responses,
     taxonomies,
     users,
@@ -31,6 +32,7 @@ api_router.include_router(assessments.router, tags=["Assessments"])
 api_router.include_router(responses.router, tags=["Public Responses"])
 api_router.include_router(leads.router, tags=["Leads"])
 api_router.include_router(analytics.router, tags=["Analytics"])
+api_router.include_router(reports.router, tags=["Reports"])
 api_router.include_router(qr_codes.router, tags=["QR Codes"])
 api_router.include_router(qr_scans.router, tags=["QR Scans"])
 api_router.include_router(ai.router, tags=["AI Services"])

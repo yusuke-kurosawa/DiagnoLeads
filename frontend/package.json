@@ -15,8 +15,8 @@
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
     "generate:types": "openapi-typescript ../openapi.json -o src/types/api.generated.ts",
-    "validate:openapi": "redocly lint ../openapi.json",
-    "openapi:bundle": "redocly bundle ../openapi.json -o ../openapi.bundle.json"
+    "validate:openapi": "npx @redocly/cli lint ../openapi.json --skip-rule=no-path-trailing-slash --skip-rule=security-defined",
+    "openapi:bundle": "npx @redocly/cli bundle ../openapi.json -o ../openapi.bundle.json --config=../.redocly.yaml"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

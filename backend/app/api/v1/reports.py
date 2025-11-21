@@ -228,10 +228,15 @@ async def execute_report(
         # Execute report
         results = service.execute_report(report_id, tenant_id)
 
+        # Use current time if report was never generated before
+        from datetime import datetime, timezone
+
+        generated_at = report.last_generated_at or datetime.now(timezone.utc)
+
         return ReportResultsResponse(
             report_id=report.id,
             report_name=report.name,
-            generated_at=report.last_generated_at,
+            generated_at=generated_at,
             config=report.config,
             data_points=results["data_points"],
             summary=results["summary"],

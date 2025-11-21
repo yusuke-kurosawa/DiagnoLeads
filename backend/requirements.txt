@@ -1,16 +1,20 @@
+# ============================================================================
+# Core Dependencies - Production
+# ============================================================================
+
 # FastAPI Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
 
 # Database
-sqlalchemy[asyncio]==2.0.23
-alembic==1.12.1
-psycopg2-binary==2.9.9
-asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.36
+alembic==1.14.0
+psycopg2-binary==2.9.10
+asyncpg==0.30.0
 
-# Redis
-redis==5.0.1
+# Redis Cache
+redis==5.2.1
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
@@ -18,52 +22,57 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-dotenv==1.0.0
 
+# Validation
+pydantic==2.10.3
+pydantic-settings==2.6.1
+email-validator==2.2.0
+
+# HTTP Client
+httpx==0.28.1
+
+# Logging
+structlog==24.4.0
+
+# ============================================================================
+# AI & Analytics
+# ============================================================================
+
 # AI - Anthropic Claude (Updated for AsyncAnthropic support)
 anthropic>=0.34.0
 
-# Microsoft 365 Integration (Phase 1)
-msal==1.25.0
-msgraph-sdk==1.2.0
-
-# LINE Messaging API (Phase 1)
-line-bot-sdk>=3.0.0
-
-# SMS - Twilio (Phase 1)
-twilio>=8.0.0
-
-# QR Code Generation (Phase 1)
-qrcode[pil]>=7.4.0
-pillow>=10.0.0
-
-# A/B Testing & Statistics (Phase 1)
+# A/B Testing & Statistics
 scipy>=1.11.0
 numpy>=1.26.0
 
-# Bot Framework (Phase 1) - Note: Version constraints relaxed to resolve urllib3 conflict
+# ============================================================================
+# Integrations & External Services
+# ============================================================================
+
+# Microsoft 365 Integration
+msal==1.31.1
+msgraph-sdk==1.11.0
+
+# LINE Messaging API
+line-bot-sdk>=3.0.0
+
+# SMS - Twilio
+twilio>=8.0.0
+
+# Bot Framework (Version constraints relaxed to resolve urllib3 conflict)
 botbuilder-core>=4.14.0
 botbuilder-schema>=4.14.0
 
-# HTTP Client
-httpx==0.25.1
-
-# Validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
-email-validator==2.2.0
-
-# Logging
-structlog==23.2.0
-
-# Testing (dev)
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-
-# Code Quality (dev)
-ruff==0.1.6
-mypy==1.7.1
-black==23.11.0
+# ============================================================================
+# Utilities
+# ============================================================================
 
 # User Agent Parsing & GeoIP
 user-agents==2.2.0
-geoip2==4.7.0
+geoip2==4.8.1
+
+# QR Code Generation
+qrcode[pil]==8.0
+
+# Report Export
+openpyxl==3.1.5
+reportlab==4.2.5

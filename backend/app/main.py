@@ -31,6 +31,10 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    servers=[
+        {"url": "http://localhost:8000", "description": "Local development"},
+        {"url": "https://api.diagnoleads.com", "description": "Production"},
+    ],
 )
 
 # Multi-tenant Middleware (enforce tenant isolation)
@@ -149,6 +153,29 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors"""
+    # Get errors and ensure they are JSON serializable
+    errors = exc.errors()
+
+    # Convert errors to JSON-safe format
+    # Pydantic v2 errors() can contain non-serializable objects in some cases
+    import json
+
+    try:
+        # Test serialization
+        json.dumps(errors)
+        serializable_errors = errors
+    except (TypeError, ValueError):
+        # If not serializable, convert to strings
+        serializable_errors = [
+            {
+                "type": str(err.get("type", "")),
+                "loc": tuple(str(loc) for loc in err.get("loc", [])),
+                "msg": str(err.get("msg", "")),
+                "input": str(err.get("input", ""))[:100],  # Truncate long inputs
+            }
+            for err in errors
+        ]
+
     # Log error to database
     db = SessionLocal()
     try:
@@ -163,7 +190,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             endpoint=str(request.url.path),
             method=request.method,
             status_code=422,
-            context={"validation_errors": exc.errors(include_context=False, include_url=False)},
+            context={"validation_errors": serializable_errors},
             environment=settings.ENVIRONMENT,
             ip_address=get_client_ip(request),
             user_agent=request.headers.get("user-agent"),
@@ -175,7 +202,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors(include_context=False, include_url=False)},
+        content={"detail": serializable_errors},
     )
 
 

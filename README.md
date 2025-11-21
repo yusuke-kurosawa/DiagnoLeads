@@ -164,7 +164,12 @@ cp .env.example .env
 cd backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 本番用依存関係
 pip install -r requirements.txt
+
+# 開発用依存関係（推奨）
+pip install -r requirements-dev.txt
 
 # データベースマイグレーション
 alembic upgrade head
@@ -172,6 +177,8 @@ alembic upgrade head
 # 開発サーバー起動
 uvicorn app.main:app --reload
 ```
+
+**詳細なセットアップ手順**: [開発者ガイド](./docs/DEVELOPER_GUIDE.md)
 
 ### 4. フロントエンドのセットアップ
 
@@ -184,6 +191,12 @@ npm run dev
 ```
 
 ## 📚 ドキュメント
+
+### 開発者向けドキュメント（必読）
+- **[開発者ガイド](./docs/DEVELOPER_GUIDE.md)** ⭐ セットアップ、テスト、デバッグ方法
+- **[セキュリティガイドライン](./docs/SECURITY.md)** 🔒 マルチテナント分離、認証、XSS/CSRF対策
+- **[リファクタリング報告](./docs/REFACTORING_SUMMARY.md)** 🔧 最新の保守性向上施策
+- [Claude Code用ガイド](./CLAUDE.md) - AI開発アシスタント向け
 
 ### プロジェクト管理
 - [セッションサマリー](./docs/SESSION_SUMMARY.md) ⭐ 最新の開発状況
@@ -201,8 +214,7 @@ npm run dev
 - [リアルタイムコラボ](./openspec/specs/features/realtime-collaboration.md)
 - [API Endpoints v2.0](./openspec/specs/api/endpoints-overview.md) (200+ endpoints)
 
-### 開発ガイド
-- [Claude Code用ガイド](./CLAUDE.md)
+### 技術仕様
 - [認証仕様](./openspec/specs/auth/authentication.md)
 - [マルチテナント仕様](./openspec/specs/auth/multi-tenant.md)
 
