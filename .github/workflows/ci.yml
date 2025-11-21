@@ -112,7 +112,7 @@ jobs:
       - name: Run MyPy type checker
         working-directory: backend
         run: |
-          mypy app/
+          mypy app/ --config-file mypy.ini
 
       - name: Run database migrations
         working-directory: backend
@@ -156,7 +156,7 @@ jobs:
           ruff check . > cicd-error-logs/ruff-errors.log 2>&1 || true
 
           # Capture type check errors
-          mypy app/ > cicd-error-logs/mypy-errors.log 2>&1 || true
+          mypy app/ --config-file mypy.ini > cicd-error-logs/mypy-errors.log 2>&1 || true
 
           # Add metadata
           echo "Workflow: ${{ github.workflow }}" > cicd-error-logs/metadata.txt
