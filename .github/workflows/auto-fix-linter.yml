@@ -1,0 +1,177 @@
+name: Auto-fix Linter Errors
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-fix-linter:
+    name: Auto-fix Linter Errors
+    runs-on: ubuntu-latest
+    # Only run on PRs, not on main/develop
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      !contains(github.event.workflow_run.head_branch, 'main') &&
+      !contains(github.event.workflow_run.head_branch, 'develop')
+
+    steps:
+      - name: Get PR details
+        id: pr
+        run: |
+          PR_NUMBER=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
+            --jq '.pull_requests[0].number')
+
+          PR_HEAD_REF=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/pulls/$PR_NUMBER" \
+            --jq '.head.ref')
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_head_ref=$PR_HEAD_REF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.pr_head_ref }}
+          token: ${{ github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Auto-fix backend linter errors
+        id: fix-backend
+        continue-on-error: true
+        working-directory: backend
+        run: |
+          # Run ruff check with auto-fix
+          ruff check --fix . || true
+
+          # Run ruff format
+          ruff format . || true
+
+          # Check if there are changes
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-fix frontend linter errors
+        id: fix-frontend
+        continue-on-error: true
+        working-directory: frontend
+        run: |
+          # Run ESLint with auto-fix
+          npm run lint -- --fix || true
+
+          # Check if there are changes
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push fixes
+        id: commit
+        if: steps.fix-backend.outputs.changed == 'true' || steps.fix-frontend.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add .
+
+          # Create commit message
+          cat > commit_message.txt <<'EOF'
+          fix: Auto-fix linter errors
+
+          This commit automatically fixes linter errors detected by CI/CD:
+          EOF
+
+          if [ "${{ steps.fix-backend.outputs.changed }}" == "true" ]; then
+            echo "- Backend: ruff check --fix + ruff format" >> commit_message.txt
+          fi
+
+          if [ "${{ steps.fix-frontend.outputs.changed }}" == "true" ]; then
+            echo "- Frontend: eslint --fix" >> commit_message.txt
+          fi
+
+          cat >> commit_message.txt <<'EOF'
+
+          These are safe, automatic fixes that don't change functionality.
+
+          Co-authored-by: CI/CD Auto-fix <github-actions[bot]@users.noreply.github.com>
+          EOF
+
+          git commit -F commit_message.txt
+
+          # Push changes
+          git push origin ${{ steps.pr.outputs.pr_head_ref }}
+
+          echo "committed=true" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: steps.commit.outputs.committed == 'true'
+        run: |
+          cat > comment.md <<'EOF'
+          ## 🤖 Auto-fix Applied
+
+          I've automatically fixed some linter errors in this PR:
+
+          EOF
+
+          if [ "${{ steps.fix-backend.outputs.changed }}" == "true" ]; then
+            echo "- ✅ **Backend**: Applied \`ruff check --fix\` and \`ruff format\`" >> comment.md
+          fi
+
+          if [ "${{ steps.fix-frontend.outputs.changed }}" == "true" ]; then
+            echo "- ✅ **Frontend**: Applied \`eslint --fix\`" >> comment.md
+          fi
+
+          cat >> comment.md <<'EOF'
+
+          These are safe, automatic fixes that don't change functionality.
+
+          The CI/CD pipeline will re-run automatically to verify the fixes.
+
+          ---
+
+          <sub>🤖 This is an automated fix. If you encounter any issues, please review the changes and adjust as needed.</sub>
+          EOF
+
+          gh pr comment ${{ steps.pr.outputs.pr_number }} --body "$(cat comment.md)"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: No fixes needed
+        if: steps.fix-backend.outputs.changed != 'true' && steps.fix-frontend.outputs.changed != 'true'
+        run: |
+          echo "No auto-fixable linter errors found"
+          echo "Manual intervention may be required"

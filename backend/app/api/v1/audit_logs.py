@@ -64,7 +64,7 @@ async def list_audit_logs(
         total=total,
         skip=skip,
         limit=limit,
-        items=[AuditLogResponse.from_orm(log) for log in logs],
+        items=[AuditLogResponse.model_validate(log) for log in logs],
     )
 
 
@@ -86,7 +86,7 @@ async def get_entity_history(
         entity_id=entity_id,
     )
 
-    return [AuditLogResponse.from_orm(log) for log in logs]
+    return [AuditLogResponse.model_validate(log) for log in logs]
 
 
 @router.get("/user/{user_id}", response_model=list[AuditLogResponse])
@@ -107,4 +107,4 @@ async def get_user_activity(
         days=days,
     )
 
-    return [AuditLogResponse.from_orm(log) for log in logs]
+    return [AuditLogResponse.model_validate(log) for log in logs]

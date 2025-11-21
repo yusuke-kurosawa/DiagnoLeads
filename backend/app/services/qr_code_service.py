@@ -343,7 +343,7 @@ class QRCodeService:
             utm_campaign=qr_data.utm_campaign,
             utm_term=qr_data.utm_term,
             utm_content=qr_data.utm_content,
-            style=qr_data.style.dict() if qr_data.style else {},
+            style=qr_data.style.model_dump() if qr_data.style else {},
             qr_code_image_url=image_url,
             scan_count=0,
             unique_scan_count=0,

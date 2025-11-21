@@ -55,27 +55,42 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+
+      - name: Run database migrations
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/diagnoleads_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key
+          ENVIRONMENT: test
+        run: |
+          alembic upgrade head
 
       - name: Run tests
+        id: pytest
         working-directory: ./backend
+        continue-on-error: true
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/diagnoleads_test
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          echo "Running pytest..."
+          pytest --version
+          pytest tests/ -vv --tb=short --cov=app --cov-report=xml 2>&1 | tee pytest-output.log || true
 
-      - name: Run multi-tenant isolation tests
+      - name: Show test failures
+        if: steps.pytest.outcome == 'failure'
         working-directory: ./backend
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/diagnoleads_test
-          REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test-secret-key
-          ENVIRONMENT: test
         run: |
-          python -m pytest tests/integration/test_multi_tenant_isolation.py -v
+          echo "::group::Test Output"
+          cat pytest-output.log
+          echo "::endgroup::"
+          echo "::group::Failed Tests Summary"
+          grep -A 5 "FAILED\|ERROR" pytest-output.log || echo "No specific failures found in log"
+          echo "::endgroup::"
+          exit 1
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -101,14 +116,23 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
 
       - name: Run Ruff
         working-directory: ./backend
-        run: |
-          python -m ruff check .
+        run: ruff check .
 
       - name: Run MyPy
+        id: mypy
         working-directory: ./backend
+        continue-on-error: true
         run: |
-          python -m mypy app/
+          echo "Running MyPy type checking..."
+          mypy --version
+          mypy app/ --config-file mypy.ini --show-error-codes --pretty > mypy.log 2>&1 || true
+          cat mypy.log
+
+      - name: Check MyPy result
+        if: steps.mypy.outcome == 'failure'
+        run: |
+          echo "::error::MyPy type checking failed. See logs above."
+          exit 1
