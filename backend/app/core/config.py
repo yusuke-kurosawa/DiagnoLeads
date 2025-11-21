@@ -70,7 +70,7 @@ class Settings(BaseSettings):
         """本番環境でデフォルトのシークレットキーを使用していないか検証"""
         if info.data.get("ENVIRONMENT") == "production":
             if v == "your-secret-key-change-this-in-production":
-                raise ValueError("本番環境でデフォルトのSECRET_KEYを使用しています。" "必ず強力なランダムキーに変更してください。")
+                raise ValueError("本番環境でデフォルトのSECRET_KEYを使用しています。必ず強力なランダムキーに変更してください。")
         return v
 
     # ========================================================================
