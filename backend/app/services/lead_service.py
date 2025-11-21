@@ -365,6 +365,10 @@ class LeadService:
         # Send GA4 event for status change (async, non-blocking)
         if old_status != new_status:
             try:
+                # Check if event loop is available first
+                asyncio.get_running_loop()
+
+                # Send status change event
                 asyncio.create_task(
                     self._send_ga4_event(
                         tenant_id=tenant_id,
@@ -377,9 +381,6 @@ class LeadService:
                         },
                     )
                 )
-
-                # Check if event loop is available first
-                asyncio.get_running_loop()
 
                 # Send conversion event if status changed to 'converted'
                 if new_status == "converted":
