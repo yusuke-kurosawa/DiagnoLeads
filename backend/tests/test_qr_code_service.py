@@ -274,6 +274,7 @@ class TestCompleteQRCodeCreation:
             return mock_result
 
         service.db.execute = AsyncMock(side_effect=mock_execute)
+        service.db.add = Mock()  # db.add() is synchronous
         service.db.commit = AsyncMock()
         service.db.refresh = AsyncMock()
 

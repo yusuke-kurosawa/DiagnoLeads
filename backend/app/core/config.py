@@ -9,7 +9,7 @@ from functools import lru_cache
 from typing import List, Literal
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -149,10 +149,11 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_UPLOAD_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".pdf", ".csv"]
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"  # 未定義の環境変数を無視
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",  # 未定義の環境変数を無視
+    )
 
     @property
     def is_production(self) -> bool:

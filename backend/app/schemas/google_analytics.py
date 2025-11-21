@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class GoogleAnalyticsIntegrationBase(BaseModel):
@@ -71,8 +71,7 @@ class GoogleAnalyticsIntegrationResponse(GoogleAnalyticsIntegrationBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True  # Pydantic v2 (was orm_mode in v1)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GoogleAnalyticsIntegrationPublic(BaseModel):
@@ -85,8 +84,7 @@ class GoogleAnalyticsIntegrationPublic(BaseModel):
     enabled: bool
     track_embed_widget: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GoogleAnalyticsTestResponse(BaseModel):

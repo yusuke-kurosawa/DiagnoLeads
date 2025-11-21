@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 # QR Code Schemas
 
@@ -105,8 +105,7 @@ class QRCodeResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QRCodeListResponse(BaseModel):
@@ -153,8 +152,7 @@ class QRCodeScanResponse(BaseModel):
     assessment_completed: bool
     lead_created: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Analytics Schemas
