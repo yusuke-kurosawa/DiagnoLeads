@@ -25,7 +25,96 @@ export GITHUB_TOKEN=your_github_token_here
 
 詳細は [CANCEL_WORKFLOWS_README.md](./CANCEL_WORKFLOWS_README.md) を参照してください。
 
-### 2. ER図生成ツール
+### 2. CI/CDエラー解析ツール
+
+GitHub Actionsの失敗したワークフローからエラーログをダウンロードし、解析レポートを生成します。
+
+**ファイル:**
+- `setup-cicd-tools.sh` - セットアップヘルパー（推奨：初回実行）
+- `analyze-cicd-errors.sh` - Bash版（GitHub CLI使用）
+- `analyze-cicd-errors.py` - Python版（**GitHub CLI不要**）
+
+**クイックスタート:**
+
+```bash
+# 1. セットアップ（初回のみ）
+./scripts/setup-cicd-tools.sh
+
+# 2. エラー解析
+# 方法A: Bash版（GitHub CLI使用）
+./scripts/analyze-cicd-errors.sh
+
+# 方法B: Python版（GitHub CLI不要）
+python3 scripts/analyze-cicd-errors.py
+
+# 3. Claude Codeで修正
+/fix-cicd
+```
+
+**特徴:**
+- ✅ 2つの実装（Bash版/Python版）から選択可能
+- ✅ Python版は**GitHub CLI不要**（標準ライブラリのみ）
+- ✅ 自動セットアップガイド
+- ✅ Claude Code統合（`/fix-cicd`コマンド）
+- ✅ 詳細なMarkdownレポート生成
+
+**Python版の利点:**
+- GitHub CLIのインストール不要
+- クロスプラットフォーム対応
+- CI/CD環境でも使用可能
+
+**必要な環境:**
+- Bash版: GitHub CLI (`gh`) + 認証
+- Python版: Python 3.7+ + GITHUB_TOKEN（推奨）
+
+詳細は [cicd-error-auto-fix-usage.md](../docs/cicd-error-auto-fix-usage.md) を参照してください。
+
+### 3. GitHub Actionsジョブログダウンローダー
+
+GitHub ActionsのジョブログをAPIから直接ダウンロードして表示するツールです。**アーティファクトAPIの制限を回避**してエラーログを取得できます。
+
+**ファイル:**
+- `download-job-logs.py` - ジョブログダウンロードツール
+
+**特徴:**
+- ✅ GitHub CLI不要（標準ライブラリのみ）
+- ✅ アーティファクトAPIの制限を回避
+- ✅ エラー行のハイライト表示
+- ✅ 最新の失敗したrunを自動検出
+
+**使用方法:**
+
+```bash
+# 最新の失敗したrunのログを表示
+python3 scripts/download-job-logs.py
+
+# 特定のrun IDのログを表示
+python3 scripts/download-job-logs.py 19520121110
+
+# 特定のjob IDのログを表示
+python3 scripts/download-job-logs.py --job 55881484347
+
+# ログをファイルに保存
+python3 scripts/download-job-logs.py --save
+
+# フルログを表示（エラーハイライトなし）
+python3 scripts/download-job-logs.py --full
+```
+
+**GitHub Token設定（推奨）:**
+```bash
+export GITHUB_TOKEN=your_token_here
+# レート制限を回避できます
+```
+
+**なぜこのツールが必要か:**
+- GitHub API経由ではアーティファクトをダウンロードできない（セキュリティ制限）
+- UIからのコピペは手間がかかる
+- ジョブログは直接アクセス可能
+
+詳細は [github-artifact-api-limitation.md](../docs/github-artifact-api-limitation.md) を参照してください。
+
+### 4. ER図生成ツール
 
 データベースのER図を自動生成するツールです。
 

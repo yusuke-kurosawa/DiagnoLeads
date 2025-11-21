@@ -3,6 +3,7 @@
 from app.models.ai_usage import AIUsageLog
 from app.models.answer import Answer
 from app.models.assessment import Assessment
+from app.models.error_log import ErrorLog
 from app.models.lead import Lead
 from app.models.question import Question
 from app.models.question_option import QuestionOption
@@ -22,4 +23,5 @@ __all__ = [
     "Lead",
     "Report",
     "AIUsageLog",
+    "ErrorLog",
 ]

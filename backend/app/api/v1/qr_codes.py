@@ -58,7 +58,7 @@ async def create_qr_code(
             assessment_id=assessment_id,
             qr_data=qr_data,
         )
-        return QRCodeResponse.from_orm(qr_code)
+        return QRCodeResponse.model_validate(qr_code)
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -122,7 +122,7 @@ async def list_qr_codes(
     pages = (total + limit - 1) // limit  # Ceiling division
 
     return QRCodeListResponse(
-        qr_codes=[QRCodeResponse.from_orm(qr) for qr in qr_codes],
+        qr_codes=[QRCodeResponse.model_validate(qr) for qr in qr_codes],
         total=total,
         page=page,
         limit=limit,
@@ -164,7 +164,7 @@ async def get_qr_code(
             detail=f"QR code {qr_code_id} not found",
         )
 
-    return QRCodeResponse.from_orm(qr_code)
+    return QRCodeResponse.model_validate(qr_code)
 
 
 @router.patch(
@@ -205,14 +205,14 @@ async def update_qr_code(
         )
 
     # Apply updates
-    update_dict = update_data.dict(exclude_unset=True)
+    update_dict = update_data.model_dump(exclude_unset=True)
     for key, value in update_dict.items():
         setattr(qr_code, key, value)
 
     await db.commit()
     await db.refresh(qr_code)
 
-    return QRCodeResponse.from_orm(qr_code)
+    return QRCodeResponse.model_validate(qr_code)
 
 
 @router.delete(
@@ -282,7 +282,7 @@ async def regenerate_qr_image(
 
     try:
         qr_code = await service.regenerate_qr_image(qr_code_id=qr_code_id, tenant_id=current_user.tenant_id)
-        return QRCodeResponse.from_orm(qr_code)
+        return QRCodeResponse.model_validate(qr_code)
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
