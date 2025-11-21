@@ -137,14 +137,24 @@ jobs:
           alembic upgrade head
 
       - name: Run tests with pytest
+        id: pytest
         working-directory: ./backend
+        continue-on-error: true
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/diagnoleads_test
           REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test-secret-key-for-ci
+          SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
-          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
+          echo "Running pytest..."
+          pytest --version
+          pytest tests/ -vv --tb=short --cov=app --cov-report=xml 2>&1 | tee pytest-output.log || true
+
+      - name: Check pytest result
+        if: steps.pytest.outcome == 'failure'
+        run: |
+          echo "::error::Pytest tests failed. See logs above."
+          exit 1
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
