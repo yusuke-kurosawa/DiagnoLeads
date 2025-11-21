@@ -8,6 +8,7 @@ Target: 100% coverage
 from unittest.mock import MagicMock, patch
 
 import pytest
+from reportlab.lib.styles import ParagraphStyle
 
 from app.services.report_export_service import ReportExportService
 
@@ -181,11 +182,11 @@ class TestReportExportServicePDF:
 
         mock_doc.build.side_effect = build_side_effect
 
-        # Mock styles
+        # Mock styles - must use actual ParagraphStyle instances
         mock_styles.return_value = {
-            "Heading1": MagicMock(),
-            "Heading2": MagicMock(),
-            "Normal": MagicMock(),
+            "Heading1": ParagraphStyle("Heading1"),
+            "Heading2": ParagraphStyle("Heading2"),
+            "Normal": ParagraphStyle("Normal"),
         }
 
         data_points = [{"label": "Product A", "values": {"sales": 5000, "profit": 1000}}]
@@ -225,9 +226,9 @@ class TestReportExportServicePDF:
         mock_doc.build.side_effect = lambda story: None
 
         mock_styles.return_value = {
-            "Heading1": MagicMock(),
-            "Heading2": MagicMock(),
-            "Normal": MagicMock(),
+            "Heading1": ParagraphStyle("Heading1"),
+            "Heading2": ParagraphStyle("Heading2"),
+            "Normal": ParagraphStyle("Normal"),
         }
 
         result = service.export_to_pdf("Empty Report", [], {"period": "custom"}, {"metrics": []})
@@ -252,9 +253,9 @@ class TestReportExportServicePDF:
         mock_doc.build.side_effect = lambda story: None
 
         mock_styles.return_value = {
-            "Heading1": MagicMock(),
-            "Heading2": MagicMock(),
-            "Normal": MagicMock(),
+            "Heading1": ParagraphStyle("Heading1"),
+            "Heading2": ParagraphStyle("Heading2"),
+            "Normal": ParagraphStyle("Normal"),
         }
 
         # Mock ParagraphStyle to return a mock style
@@ -289,9 +290,9 @@ class TestReportExportServicePDF:
         mock_doc.build.side_effect = lambda story: None
 
         mock_styles.return_value = {
-            "Heading1": MagicMock(),
-            "Heading2": MagicMock(),
-            "Normal": MagicMock(),
+            "Heading1": ParagraphStyle("Heading1"),
+            "Heading2": ParagraphStyle("Heading2"),
+            "Normal": ParagraphStyle("Normal"),
         }
 
         data_points = [
