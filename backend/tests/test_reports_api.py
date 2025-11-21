@@ -237,6 +237,7 @@ class TestReportsAPI:
         mock_service.execute_report.return_value = {
             "data_points": [{"date": "2024-01-01", "value": 100}],
             "summary": {"total": 100},
+            "total_records": 1,
         }
         mock_service_class.return_value = mock_service
 

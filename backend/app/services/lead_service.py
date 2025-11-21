@@ -249,6 +249,9 @@ class LeadService:
 
         # Send GA4 events (async, non-blocking)
         try:
+            # Check if event loop is available first
+            asyncio.get_running_loop()
+
             # Send lead_generated event
             asyncio.create_task(
                 self._send_ga4_event(
@@ -278,19 +281,21 @@ class LeadService:
                     )
                 )
         except RuntimeError:
-            # No event loop running, skip GA4 events
-            print("⚠️  Cannot send GA4 events: no event loop")
+            # No event loop running, skip GA4 events silently
+            pass
 
         # Send Teams notification if hot lead (async, non-blocking)
         if is_hot_lead:
             tenant = self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
             if tenant:
                 try:
+                    # Check if event loop is available first
+                    asyncio.get_running_loop()
                     # Run async notification in background
                     asyncio.create_task(self._send_teams_notification(lead, tenant))
                 except RuntimeError:
-                    # No event loop running, skip notification
-                    print("⚠️  Cannot send Teams notification: no event loop")
+                    # No event loop running, skip notification silently
+                    pass
 
         return lead
 
@@ -373,6 +378,9 @@ class LeadService:
                     )
                 )
 
+                # Check if event loop is available first
+                asyncio.get_running_loop()
+
                 # Send conversion event if status changed to 'converted'
                 if new_status == "converted":
                     asyncio.create_task(
@@ -388,8 +396,8 @@ class LeadService:
                         )
                     )
             except RuntimeError:
-                # No event loop running, skip GA4 events
-                print("⚠️  Cannot send GA4 events: no event loop")
+                # No event loop running, skip GA4 events silently
+                pass
 
         return lead
 
@@ -414,6 +422,8 @@ class LeadService:
         # Send GA4 events if lead becomes hot (score crosses threshold)
         if old_score < 80 and new_score >= 80:
             try:
+                # Check if event loop is available first
+                asyncio.get_running_loop()
                 asyncio.create_task(
                     self._send_ga4_event(
                         tenant_id=tenant_id,
@@ -428,19 +438,21 @@ class LeadService:
                     )
                 )
             except RuntimeError:
-                # No event loop running, skip GA4 events
-                print("⚠️  Cannot send GA4 events: no event loop")
+                # No event loop running, skip GA4 events silently
+                pass
 
         # Send Teams notification if lead becomes hot (score crosses threshold)
         if old_score < 80 and new_score >= 80:
             tenant = self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
             if tenant:
                 try:
+                    # Check if event loop is available first
+                    asyncio.get_running_loop()
                     # Run async notification in background
                     asyncio.create_task(self._send_teams_notification(lead, tenant))
                 except RuntimeError:
-                    # No event loop running, skip notification
-                    print("⚠️  Cannot send Teams notification: no event loop")
+                    # No event loop running, skip notification silently
+                    pass
 
         return lead
 
