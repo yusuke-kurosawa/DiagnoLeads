@@ -114,14 +114,14 @@ class TestQRCodeCRUDSync:
         # Should return 404 or 400
         assert response.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_400_BAD_REQUEST]
 
-    def test_create_qr_code_unauthorized(self, client, test_tenant, db_session):
+    def test_create_qr_code_unauthorized(self, client, test_tenant, test_user, db_session):
         """Test QR code creation without authentication"""
         assessment = Assessment(
             id=uuid4(),
             tenant_id=test_tenant.id,
             title="Test",
             status="published",
-            created_by=uuid4(),
+            created_by=test_user.id,
         )
         db_session.add(assessment)
         db_session.commit()
@@ -404,23 +404,36 @@ class TestQRCodeFiltering:
 class TestQRCodeTenantIsolation:
     """Tests for tenant isolation in QR code operations"""
 
-    def test_cannot_access_other_tenant_qr_code(self, client, test_user, test_tenant, db_session):
+    def test_cannot_access_other_tenant_qr_code(self, client, test_user, test_tenant, test_tenant_2, db_session):
         """Test that users cannot access QR codes from other tenants"""
-        # Create another tenant
-        other_tenant_id = uuid4()
+        from app.models.user import User
+
+        # Create user in other tenant
+        other_user = User(
+            email="otherqr@example.com",
+            password_hash=AuthService.hash_password("password123"),
+            name="Other QR User",
+            tenant_id=test_tenant_2.id,
+            role="tenant_admin",
+        )
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
+
+        # Create assessment for other tenant
         other_assessment = Assessment(
             id=uuid4(),
-            tenant_id=other_tenant_id,
+            tenant_id=test_tenant_2.id,
             title="Other Assessment",
             status="published",
-            created_by=uuid4(),
+            created_by=other_user.id,
         )
         db_session.add(other_assessment)
         db_session.commit()
 
         # Create QR code for other tenant
         other_qr = QRCode(
-            tenant_id=other_tenant_id,
+            tenant_id=test_tenant_2.id,
             assessment_id=other_assessment.id,
             name="Other Tenant QR",
             short_code="oth0001",

@@ -432,13 +432,12 @@ class TestDeleteUser:
 class TestTenantIsolation:
     """Tests for tenant isolation in user operations"""
 
-    def test_cannot_list_other_tenant_users(self, client, test_user, test_tenant, db_session):
+    def test_cannot_list_other_tenant_users(self, client, test_user, test_tenant, test_tenant_2, db_session):
         """Test that tenant admin cannot list users from other tenants"""
-        # Create another tenant and user
-        other_tenant_id = uuid4()
+        # Create user in other tenant
         other_user = User(
             id=uuid4(),
-            tenant_id=other_tenant_id,
+            tenant_id=test_tenant_2.id,
             email="othertenant@example.com",
             password_hash=AuthService.hash_password("password123"),
             name="Other Tenant User",
@@ -457,7 +456,7 @@ class TestTenantIsolation:
 
         # Try to filter by other tenant
         response = client.get(
-            f"/api/v1/users?tenant_id={other_tenant_id}",
+            f"/api/v1/users?tenant_id={test_tenant_2.id}",
             headers={"Authorization": f"Bearer {token}"},
         )
 

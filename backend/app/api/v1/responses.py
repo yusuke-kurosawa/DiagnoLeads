@@ -246,7 +246,6 @@ async def complete_response(
         )
 
     # Save any final answers
-    total_points = 0
     for answer_data in data.answers:
         existing_answer = (
             db.query(Answer)
@@ -270,7 +269,9 @@ async def complete_response(
             )
             db.add(answer)
 
-        total_points += answer_data.points_awarded
+    # Calculate total score from ALL answers in database
+    all_answers = db.query(Answer).filter(Answer.response_id == response_id).all()
+    total_points = sum(ans.points_awarded for ans in all_answers)
 
     # Update response
     response.total_score = total_points

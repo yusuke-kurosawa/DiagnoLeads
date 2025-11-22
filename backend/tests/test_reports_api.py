@@ -601,10 +601,22 @@ class TestReportTenantIsolation:
         """Test that users cannot access reports from other tenants"""
         token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
+        # Create user in test_tenant_2
+        other_user = User(
+            email="other@example.com",
+            password_hash=AuthService.hash_password("password123"),
+            name="Other User",
+            tenant_id=test_tenant_2.id,
+            role="tenant_admin",
+        )
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
+
         # Create report in different tenant
         other_report = Report(
             tenant_id=test_tenant_2.id,
-            created_by=uuid4(),
+            created_by=other_user.id,
             name="Other Tenant Report",
             description="Test",
             report_type="leads",
@@ -628,6 +640,18 @@ class TestReportTenantIsolation:
         """Test that listing reports only returns tenant's reports"""
         token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
+        # Create user in test_tenant_2
+        other_user = User(
+            email="other2@example.com",
+            password_hash=AuthService.hash_password("password123"),
+            name="Other User 2",
+            tenant_id=test_tenant_2.id,
+            role="tenant_admin",
+        )
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
+
         # Create reports in both tenants
         own_report = Report(
             tenant_id=test_user.tenant_id,
@@ -640,7 +664,7 @@ class TestReportTenantIsolation:
         )
         other_report = Report(
             tenant_id=test_tenant_2.id,
-            created_by=uuid4(),
+            created_by=other_user.id,
             name="Other Tenant Report",
             description="Test",
             report_type="leads",
@@ -673,12 +697,21 @@ class TestReportPrivacy:
         token = AuthService.create_access_token({"sub": str(test_user.id), "tenant_id": str(test_user.tenant_id), "email": test_user.email})
 
         # Create another user in same tenant
-        other_user_id = uuid4()
+        other_user = User(
+            email="colleague@example.com",
+            password_hash=AuthService.hash_password("password123"),
+            name="Colleague User",
+            tenant_id=test_user.tenant_id,
+            role="user",
+        )
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
 
         # Create private report by other user
         other_private = Report(
             tenant_id=test_user.tenant_id,
-            created_by=other_user_id,
+            created_by=other_user.id,
             name="Other User Private",
             description="Private",
             report_type="leads",
@@ -688,7 +721,7 @@ class TestReportPrivacy:
         # Create public report by other user
         other_public = Report(
             tenant_id=test_user.tenant_id,
-            created_by=other_user_id,
+            created_by=other_user.id,
             name="Other User Public",
             description="Public",
             report_type="leads",

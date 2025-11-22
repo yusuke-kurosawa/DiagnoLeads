@@ -84,7 +84,7 @@ class TestGenerateAssessment:
         assert "metadata" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_generate_assessment_with_db_logging(self, ai_service, db_session: Session):
+    async def test_generate_assessment_with_db_logging(self, ai_service, db_session: Session, test_tenant, test_user):
         """Test assessment generation with database logging"""
         assessment_json = {
             "title": "Test",
@@ -108,22 +108,19 @@ class TestGenerateAssessment:
 
         ai_service._call_claude_api = AsyncMock(return_value=mock_message)
 
-        tenant_id = uuid4()
-        user_id = uuid4()
-
         # Call with database session
         result = await ai_service.generate_assessment(
             topic="Test",
             industry="general",
-            tenant_id=tenant_id,
-            user_id=user_id,
+            tenant_id=test_tenant.id,
+            user_id=test_user.id,
             db=db_session,
         )
 
         assert result["success"] is True
 
         # Verify usage log was created
-        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == tenant_id).first()
+        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == test_tenant.id).first()
         assert usage_log is not None
         assert usage_log.operation == "generate_assessment"
         assert usage_log.input_tokens == 100
@@ -240,8 +237,23 @@ class TestAnalyzeLeadInsights:
         assert "follow_up_timing" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_analyze_lead_insights_with_db_logging(self, ai_service, db_session: Session):
+    async def test_analyze_lead_insights_with_db_logging(self, ai_service, db_session: Session, test_tenant, test_user):
         """Test lead analysis with database logging"""
+        from app.models.lead import Lead
+
+        # Create a test lead
+        lead = Lead(
+            tenant_id=test_tenant.id,
+            email="lead@example.com",
+            name="Test Lead",
+            score=0,
+            status="new",
+            created_by=test_user.id,
+        )
+        db_session.add(lead)
+        db_session.commit()
+        db_session.refresh(lead)
+
         insights_json = {
             "overall_score": 75,
             "hot_lead": False,
@@ -253,20 +265,17 @@ class TestAnalyzeLeadInsights:
 
         ai_service._call_claude_api = AsyncMock(return_value=mock_message)
 
-        tenant_id = uuid4()
-        lead_id = uuid4()
-
         result = await ai_service.analyze_lead_insights(
             assessment_responses={"q1": {"question": "Test", "answer": "Test"}},
-            tenant_id=tenant_id,
-            lead_id=lead_id,
+            tenant_id=test_tenant.id,
+            lead_id=lead.id,
             db=db_session,
         )
 
         assert result["success"] is True
 
         # Verify usage log
-        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == tenant_id, AIUsageLog.lead_id == lead_id).first()
+        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == test_tenant.id, AIUsageLog.lead_id == lead.id).first()
         assert usage_log is not None
         assert usage_log.operation == "analyze_lead_insights"
 
@@ -313,7 +322,7 @@ class TestRephraseContent:
         assert "improvements" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_rephrase_content_with_db_logging(self, ai_service, db_session: Session):
+    async def test_rephrase_content_with_db_logging(self, ai_service, db_session: Session, test_tenant):
         """Test content rephrasing with database logging"""
         rephrased_json = {
             "original": "Test",
@@ -324,18 +333,16 @@ class TestRephraseContent:
 
         ai_service._call_claude_api = AsyncMock(return_value=mock_message)
 
-        tenant_id = uuid4()
-
         result = await ai_service.rephrase_content(
             text="Test",
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             db=db_session,
         )
 
         assert result["success"] is True
 
         # Verify usage log
-        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == tenant_id).first()
+        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == test_tenant.id).first()
         assert usage_log is not None
         assert usage_log.operation == "rephrase_content"
 
@@ -568,23 +575,20 @@ class TestTokenUsageLogging:
             tenant_id=uuid4(),
         )
 
-    def test_log_token_usage_with_db(self, ai_service, db_session: Session):
+    def test_log_token_usage_with_db(self, ai_service, db_session: Session, test_tenant, test_user):
         """Test token usage logging with database"""
-        tenant_id = uuid4()
-        user_id = uuid4()
-
         ai_service._log_token_usage(
             operation="test_operation",
             usage={"input_tokens": 100, "output_tokens": 200},
-            tenant_id=tenant_id,
-            user_id=user_id,
+            tenant_id=test_tenant.id,
+            user_id=test_user.id,
             db=db_session,
             duration_ms=1500,
             success=True,
         )
 
         # Verify log was created
-        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == tenant_id).first()
+        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == test_tenant.id).first()
         assert usage_log is not None
         assert usage_log.operation == "test_operation"
         assert usage_log.input_tokens == 100
