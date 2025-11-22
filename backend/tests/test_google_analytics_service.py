@@ -85,10 +85,8 @@ class TestCreateOrUpdate:
         """Test creation fails with invalid measurement ID"""
         from pydantic import ValidationError
 
-        service = GoogleAnalyticsService(db_session)
-
         with pytest.raises(ValidationError) as exc_info:
-            data = GoogleAnalyticsIntegrationCreate(
+            GoogleAnalyticsIntegrationCreate(
                 measurement_id="INVALID-ID",
                 enabled=True,
                 track_frontend=True,
