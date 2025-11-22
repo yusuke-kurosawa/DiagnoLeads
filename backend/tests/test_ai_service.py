@@ -11,8 +11,7 @@ Comprehensive test coverage for AIService including:
 """
 
 import json
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
 import pytest
@@ -20,7 +19,6 @@ from sqlalchemy.orm import Session
 
 from app.core.constants import LeadScoreThreshold
 from app.models.ai_usage import AIUsageLog
-from app.services.ai import AIJSONParseError, AIValidationError
 from app.services.ai_service import AIService
 
 
@@ -268,11 +266,7 @@ class TestAnalyzeLeadInsights:
         assert result["success"] is True
 
         # Verify usage log
-        usage_log = (
-            db_session.query(AIUsageLog)
-            .filter(AIUsageLog.tenant_id == tenant_id, AIUsageLog.lead_id == lead_id)
-            .first()
-        )
+        usage_log = db_session.query(AIUsageLog).filter(AIUsageLog.tenant_id == tenant_id, AIUsageLog.lead_id == lead_id).first()
         assert usage_log is not None
         assert usage_log.operation == "analyze_lead_insights"
 
@@ -519,23 +513,17 @@ class TestPriorityCalculation:
 
     def test_calculate_priority_critical(self, ai_service):
         """Test critical priority calculation"""
-        priority = ai_service._calculate_priority_level(
-            score=LeadScoreThreshold.CRITICAL, hot_lead=True
-        )
+        priority = ai_service._calculate_priority_level(score=LeadScoreThreshold.CRITICAL, hot_lead=True)
         assert priority == "critical"
 
     def test_calculate_priority_high(self, ai_service):
         """Test high priority calculation"""
-        priority = ai_service._calculate_priority_level(
-            score=LeadScoreThreshold.HIGH, hot_lead=False
-        )
+        priority = ai_service._calculate_priority_level(score=LeadScoreThreshold.HIGH, hot_lead=False)
         assert priority == "high"
 
     def test_calculate_priority_medium(self, ai_service):
         """Test medium priority calculation"""
-        priority = ai_service._calculate_priority_level(
-            score=LeadScoreThreshold.MEDIUM, hot_lead=False
-        )
+        priority = ai_service._calculate_priority_level(score=LeadScoreThreshold.MEDIUM, hot_lead=False)
         assert priority == "medium"
 
     def test_calculate_priority_low(self, ai_service):
