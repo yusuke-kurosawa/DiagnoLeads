@@ -241,6 +241,7 @@ class TestRefreshTokenEndpoint:
         """Test refresh with expired token"""
         # Create expired refresh token
         from jose import jwt
+
         from app.core.config import settings
 
         expired_token = jwt.encode(

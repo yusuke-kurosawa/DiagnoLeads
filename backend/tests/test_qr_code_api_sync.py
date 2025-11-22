@@ -8,10 +8,10 @@ Synchronous Integration tests for QR Code API endpoints
 TypeErrorが発生します。本来の非同期テスト（test_qr_code_api.py）を使用してください。
 """
 
-import pytest
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
+import pytest
 from fastapi import status
 
 from app.models.assessment import Assessment

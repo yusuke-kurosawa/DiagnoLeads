@@ -650,7 +650,7 @@ class TestEdgeCases:
         invalid_assessment = {
             "title": "Test",
             "description": "Test",
-            "questions": [{"text": "Q?", "options": "not a list"}]  # options is string, will cause error
+            "questions": [{"text": "Q?", "options": "not a list"}],  # options is string, will cause error
         }
 
         result = ai_service._validate_assessment(invalid_assessment)
