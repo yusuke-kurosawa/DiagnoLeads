@@ -47,11 +47,11 @@ class TestCreateOrUpdate:
     @pytest.mark.asyncio
     async def test_update_existing_integration(self, db_session: Session, test_tenant):
         """Test updating an existing GA4 integration"""
-        # Create initial integration
+        # Create initial integration (must match pattern G-[A-Z0-9]{10})
         existing = GoogleAnalyticsIntegration(
             id=uuid4(),
             tenant_id=test_tenant.id,
-            measurement_id="G-OLD123",
+            measurement_id="G-OLDTEST123",
             enabled=False,
             track_frontend=False,
             track_embed_widget=False,
@@ -63,7 +63,7 @@ class TestCreateOrUpdate:
         # Update with new data
         service = GoogleAnalyticsService(db_session)
         data = GoogleAnalyticsIntegrationCreate(
-            measurement_id="G-NEW456",
+            measurement_id="G-NEWTEST456",
             measurement_protocol_api_secret="newsecret",
             enabled=True,
             track_frontend=True,
@@ -76,7 +76,7 @@ class TestCreateOrUpdate:
 
         # Verify update
         assert result.id == existing.id
-        assert result.measurement_id == "G-NEW456"
+        assert result.measurement_id == "G-NEWTEST456"
         assert result.enabled is True
         assert result.track_server_events is True
 
