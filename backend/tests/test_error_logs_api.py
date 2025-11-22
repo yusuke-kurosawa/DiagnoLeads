@@ -488,13 +488,26 @@ class TestGetErrorLog:
 class TestTenantIsolation:
     """Tests for tenant isolation in error log operations"""
 
-    def test_cannot_access_other_tenant_error_logs(self, client, test_user, test_tenant, db_session):
+    def test_cannot_access_other_tenant_error_logs(self, client, test_user, test_tenant, test_tenant_2, db_session):
         """Test that users cannot access error logs from other tenants"""
+        from app.models.user import User
+
+        # Create user in other tenant
+        other_user = User(
+            email="othererror@example.com",
+            password_hash=AuthService.hash_password("password123"),
+            name="Other Error User",
+            tenant_id=test_tenant_2.id,
+            role="tenant_admin",
+        )
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
+
         # Create error log for another tenant
-        other_tenant_id = uuid4()
         other_error = ErrorLog(
-            tenant_id=other_tenant_id,
-            user_id=uuid4(),
+            tenant_id=test_tenant_2.id,
+            user_id=other_user.id,
             error_type="OtherTenantError",
             error_message="Should not be accessible",
             severity="MEDIUM",

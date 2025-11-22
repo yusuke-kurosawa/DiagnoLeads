@@ -269,6 +269,9 @@ async def complete_response(
             )
             db.add(answer)
 
+    # Flush to ensure new answers are available in the session
+    db.flush()
+
     # Calculate total score from ALL answers in database
     all_answers = db.query(Answer).filter(Answer.response_id == response_id).all()
     total_points = sum(ans.points_awarded for ans in all_answers)

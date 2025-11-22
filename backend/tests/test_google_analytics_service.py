@@ -23,10 +23,9 @@ class TestCreateOrUpdate:
     """Tests for create_or_update method"""
 
     @pytest.mark.asyncio
-    async def test_create_new_integration(self, db_session: Session):
+    async def test_create_new_integration(self, db_session: Session, test_tenant):
         """Test creating a new GA4 integration"""
         service = GoogleAnalyticsService(db_session)
-        tenant_id = uuid4()
 
         data = GoogleAnalyticsIntegrationCreate(
             measurement_id="G-ABC123DEF4",
@@ -38,22 +37,20 @@ class TestCreateOrUpdate:
             custom_dimensions={"dimension1": "value1"},
         )
 
-        result = await service.create_or_update(tenant_id, data)
+        result = await service.create_or_update(test_tenant.id, data)
 
-        assert result.tenant_id == tenant_id
+        assert result.tenant_id == test_tenant.id
         assert result.measurement_id == "G-ABC123DEF4"
         assert result.enabled is True
         assert result.track_frontend is True
 
     @pytest.mark.asyncio
-    async def test_update_existing_integration(self, db_session: Session):
+    async def test_update_existing_integration(self, db_session: Session, test_tenant):
         """Test updating an existing GA4 integration"""
-        tenant_id = uuid4()
-
         # Create initial integration
         existing = GoogleAnalyticsIntegration(
             id=uuid4(),
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             measurement_id="G-OLD123",
             enabled=False,
             track_frontend=False,
@@ -75,7 +72,7 @@ class TestCreateOrUpdate:
             custom_dimensions={"dim": "val"},
         )
 
-        result = await service.create_or_update(tenant_id, data)
+        result = await service.create_or_update(test_tenant.id, data)
 
         # Verify update
         assert result.id == existing.id
@@ -84,21 +81,20 @@ class TestCreateOrUpdate:
         assert result.track_server_events is True
 
     @pytest.mark.asyncio
-    async def test_create_with_invalid_measurement_id(self, db_session: Session):
+    async def test_create_with_invalid_measurement_id(self, db_session: Session, test_tenant):
         """Test creation fails with invalid measurement ID"""
+        from pydantic import ValidationError
+
         service = GoogleAnalyticsService(db_session)
-        tenant_id = uuid4()
 
-        data = GoogleAnalyticsIntegrationCreate(
-            measurement_id="INVALID-ID",
-            enabled=True,
-            track_frontend=True,
-            track_embed_widget=True,
-            track_server_events=False,
-        )
-
-        with pytest.raises(ValueError) as exc_info:
-            await service.create_or_update(tenant_id, data)
+        with pytest.raises(ValidationError) as exc_info:
+            data = GoogleAnalyticsIntegrationCreate(
+                measurement_id="INVALID-ID",
+                enabled=True,
+                track_frontend=True,
+                track_embed_widget=True,
+                track_server_events=False,
+            )
 
         assert "Invalid Measurement ID format" in str(exc_info.value)
 
@@ -106,12 +102,11 @@ class TestCreateOrUpdate:
 class TestGetMethods:
     """Tests for get_by_tenant and get_by_id methods"""
 
-    def test_get_by_tenant_found(self, db_session: Session):
+    def test_get_by_tenant_found(self, db_session: Session, test_tenant):
         """Test getting integration by tenant ID"""
-        tenant_id = uuid4()
         integration = GoogleAnalyticsIntegration(
             id=uuid4(),
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             measurement_id="G-TEST123",
             enabled=True,
             track_frontend=True,
@@ -122,18 +117,18 @@ class TestGetMethods:
         db_session.commit()
 
         service = GoogleAnalyticsService(db_session)
-        result = service.get_by_tenant(tenant_id)
+        result = service.get_by_tenant(test_tenant.id)
 
         assert result is not None
-        assert result.tenant_id == tenant_id
+        assert result.tenant_id == test_tenant.id
         assert result.measurement_id == "G-TEST123"
 
-    def test_get_by_id_found(self, db_session: Session):
+    def test_get_by_id_found(self, db_session: Session, test_tenant):
         """Test getting integration by ID"""
         integration_id = uuid4()
         integration = GoogleAnalyticsIntegration(
             id=integration_id,
-            tenant_id=uuid4(),
+            tenant_id=test_tenant.id,
             measurement_id="G-TEST456",
             enabled=True,
             track_frontend=True,
@@ -154,12 +149,11 @@ class TestDelete:
     """Tests for delete method"""
 
     @pytest.mark.asyncio
-    async def test_delete_existing_integration(self, db_session: Session):
+    async def test_delete_existing_integration(self, db_session: Session, test_tenant):
         """Test deleting an existing integration"""
-        tenant_id = uuid4()
         integration = GoogleAnalyticsIntegration(
             id=uuid4(),
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             measurement_id="G-DELETE123",
             enabled=True,
             track_frontend=True,
@@ -170,12 +164,12 @@ class TestDelete:
         db_session.commit()
 
         service = GoogleAnalyticsService(db_session)
-        result = await service.delete(tenant_id)
+        result = await service.delete(test_tenant.id)
 
         assert result is True
 
         # Verify deletion
-        deleted = service.get_by_tenant(tenant_id)
+        deleted = service.get_by_tenant(test_tenant.id)
         assert deleted is None
 
 
@@ -183,21 +177,20 @@ class TestConnectionTest:
     """Tests for test_connection method"""
 
     @pytest.mark.asyncio
-    async def test_connection_integration_not_found(self, db_session: Session):
+    async def test_connection_integration_not_found(self, db_session: Session, test_tenant):
         """Test connection test when integration not found"""
         service = GoogleAnalyticsService(db_session)
-        result = await service.test_connection(uuid4())
+        result = await service.test_connection(test_tenant.id)
 
         assert result.status == "failed"
         assert "not found" in result.message
 
     @pytest.mark.asyncio
-    async def test_connection_integration_disabled(self, db_session: Session):
+    async def test_connection_integration_disabled(self, db_session: Session, test_tenant):
         """Test connection test when integration is disabled"""
-        tenant_id = uuid4()
         integration = GoogleAnalyticsIntegration(
             id=uuid4(),
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             measurement_id="G-TEST123",
             enabled=False,
             track_frontend=True,
@@ -208,18 +201,17 @@ class TestConnectionTest:
         db_session.commit()
 
         service = GoogleAnalyticsService(db_session)
-        result = await service.test_connection(tenant_id)
+        result = await service.test_connection(test_tenant.id)
 
         assert result.status == "failed"
         assert "disabled" in result.message
 
     @pytest.mark.asyncio
-    async def test_connection_no_api_secret(self, db_session: Session):
+    async def test_connection_no_api_secret(self, db_session: Session, test_tenant):
         """Test connection test when API secret is not configured"""
-        tenant_id = uuid4()
         integration = GoogleAnalyticsIntegration(
             id=uuid4(),
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             measurement_id="G-TEST123",
             enabled=True,
             measurement_protocol_api_secret=None,
@@ -231,19 +223,18 @@ class TestConnectionTest:
         db_session.commit()
 
         service = GoogleAnalyticsService(db_session)
-        result = await service.test_connection(tenant_id)
+        result = await service.test_connection(test_tenant.id)
 
         assert result.status == "failed"
         assert "API Secret not configured" in result.message
 
     @pytest.mark.asyncio
     @patch("app.services.google_analytics_service.GA4MeasurementProtocol")
-    async def test_connection_success(self, mock_ga4_class, db_session: Session):
+    async def test_connection_success(self, mock_ga4_class, db_session: Session, test_tenant):
         """Test successful connection test"""
-        tenant_id = uuid4()
         integration = GoogleAnalyticsIntegration(
             id=uuid4(),
-            tenant_id=tenant_id,
+            tenant_id=test_tenant.id,
             measurement_id="G-TEST123",
             measurement_protocol_api_secret="secret123",
             enabled=True,
@@ -266,7 +257,7 @@ class TestConnectionTest:
         mock_ga4_class.return_value = mock_client
 
         service = GoogleAnalyticsService(db_session)
-        result = await service.test_connection(tenant_id)
+        result = await service.test_connection(test_tenant.id)
 
         assert result.status == "success"
         assert "successful" in result.message
