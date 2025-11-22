@@ -4,7 +4,7 @@ Response API Endpoints
 Public API for assessment responses (for embed widget).
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -186,7 +186,7 @@ async def submit_answers(
             # Update existing answer
             existing_answer.answer_text = answer_data.answer_text
             existing_answer.points_awarded = answer_data.points_awarded
-            existing_answer.answered_at = datetime.utcnow()
+            existing_answer.answered_at = datetime.now(timezone.utc)
         else:
             # Create new answer
             answer = Answer(
@@ -246,7 +246,6 @@ async def complete_response(
         )
 
     # Save any final answers
-    total_points = 0
     for answer_data in data.answers:
         existing_answer = (
             db.query(Answer)
@@ -260,7 +259,7 @@ async def complete_response(
         if existing_answer:
             existing_answer.answer_text = answer_data.answer_text
             existing_answer.points_awarded = answer_data.points_awarded
-            existing_answer.answered_at = datetime.utcnow()
+            existing_answer.answered_at = datetime.now(timezone.utc)
         else:
             answer = Answer(
                 response_id=response_id,
@@ -270,12 +269,17 @@ async def complete_response(
             )
             db.add(answer)
 
-        total_points += answer_data.points_awarded
+    # Flush to ensure new answers are available in the session
+    db.flush()
+
+    # Calculate total score from ALL answers in database
+    all_answers = db.query(Answer).filter(Answer.response_id == response_id).all()
+    total_points = sum(ans.points_awarded for ans in all_answers)
 
     # Update response
     response.total_score = total_points
     response.status = "completed"
-    response.completed_at = datetime.utcnow()
+    response.completed_at = datetime.now(timezone.utc)
 
     if data.email:
         response.email = data.email
