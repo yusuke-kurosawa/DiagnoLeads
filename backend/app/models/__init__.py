@@ -3,13 +3,19 @@
 from app.models.ai_usage import AIUsageLog
 from app.models.answer import Answer
 from app.models.assessment import Assessment
+from app.models.audit_log import AuditLog
 from app.models.error_log import ErrorLog
+from app.models.google_analytics_integration import GoogleAnalyticsIntegration
+from app.models.industry import Industry
 from app.models.lead import Lead
+from app.models.qr_code import QRCode
+from app.models.qr_code_scan import QRCodeScan
 from app.models.question import Question
 from app.models.question_option import QuestionOption
 from app.models.report import Report
 from app.models.response import Response
 from app.models.tenant import Tenant
+from app.models.topic import Topic
 from app.models.user import User
 
 __all__ = [
@@ -24,4 +30,10 @@ __all__ = [
     "Report",
     "AIUsageLog",
     "ErrorLog",
+    "Topic",
+    "Industry",
+    "GoogleAnalyticsIntegration",
+    "AuditLog",
+    "QRCode",
+    "QRCodeScan",
 ]
