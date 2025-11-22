@@ -646,7 +646,12 @@ class TestEdgeCases:
     def test_validate_assessment_with_exception(self, ai_service):
         """Test validation handles unexpected exceptions"""
         # Invalid structure that causes exception during validation
-        invalid_assessment = {"questions": "not a list"}
+        # This has title, description, and questions, but questions[0]["options"] will cause TypeError
+        invalid_assessment = {
+            "title": "Test",
+            "description": "Test",
+            "questions": [{"text": "Q?", "options": "not a list"}]  # options is string, will cause error
+        }
 
         result = ai_service._validate_assessment(invalid_assessment)
 
