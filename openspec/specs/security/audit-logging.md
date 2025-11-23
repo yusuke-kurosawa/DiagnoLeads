@@ -592,4 +592,19 @@ def test_audit_log_creation(db_session, test_tenant, test_user):
 
 ---
 
-**実装ステータス**: ✅ 完全実装済み（ダッシュボードUI未実装）
+**実装ステータス**: ✅ 完全実装済み（ダッシュボードUI実装済み）
+
+## 🎨 ダッシュボードUI（実装済み）
+
+### AuditLogPage
+**ファイル**: `/frontend/src/pages/admin/AuditLogPage.tsx`
+
+**機能**:
+- フィルター機能（エンティティタイプ、アクション、期間）
+- CSV エクスポート機能
+- 監査ログテーブル（日時、操作、対象、詳細）
+- ページネーション
+- 変更履歴の可視化（old_values → new_values）
+
+**コンポーネント**: `/frontend/src/components/admin/AuditLogTable.tsx`
+**サービス**: `/frontend/src/services/auditLogService.ts`

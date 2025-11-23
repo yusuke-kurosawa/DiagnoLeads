@@ -406,4 +406,22 @@ def check_usage_threshold(tenant_id: UUID):
 
 ---
 
-**実装ステータス**: ✅ バックエンド実装完了（ダッシュボードUI未実装）
+**実装ステータス**: ✅ バックエンド実装完了（ダッシュボードUI実装済み）
+
+## 🎨 ダッシュボードUI（実装済み）
+
+### AIUsagePage
+**ファイル**: `/frontend/src/pages/admin/AIUsagePage.tsx`
+
+**機能**:
+- 使用量サマリー統計カード（総リクエスト数、総トークン数、総コスト、成功率）
+- 操作別内訳（リクエスト数、トークン数、コスト）
+- プログレスバーによる使用率可視化
+- レスポンシブデザイン
+
+**サービス**: `/frontend/src/services/aiUsageService.ts`
+- `getAIUsageSummary()` - 使用量サマリー取得
+- `getAIUsageLogs()` - 使用ログ一覧取得
+- `getAIUsageTrend()` - トレンドデータ取得
+
+**注意**: バックエンドAPIエンドポイント (`/tenants/{tenant_id}/ai-usage`) は今後実装予定

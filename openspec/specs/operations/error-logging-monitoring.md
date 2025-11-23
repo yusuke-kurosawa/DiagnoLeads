@@ -462,4 +462,20 @@ CI/CDパイプライン内のエラーも同じシステムで追跡：
 
 ---
 
-**実装ステータス**: ✅ 完全実装済み（本番環境対応）
+**実装ステータス**: ✅ 完全実装済み（本番環境対応 + ダッシュボードUI）
+
+## 🎨 ダッシュボードUI（実装済み）
+
+### ErrorLogPage
+**ファイル**: `/frontend/src/pages/admin/ErrorLogPage.tsx`
+
+**機能**:
+- エラーサマリー統計カード（総エラー数、CRITICAL、HIGH、MEDIUM）
+- フィルター機能（エラータイプ、重要度、環境）
+- エラーログテーブル（重要度アイコン、メッセージ、エンドポイント）
+- ページネーション
+
+**サービス**: `/frontend/src/services/errorLogService.ts`
+- `getErrorLogs()` - エラーログ一覧取得
+- `getErrorSummary()` - サマリー統計取得
+- `getErrorAnalytics()` - 包括的分析取得
