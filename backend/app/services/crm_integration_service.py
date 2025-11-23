@@ -32,11 +32,7 @@ class CRMIntegrationService:
         Returns:
             CRMIntegration if exists, None otherwise
         """
-        return (
-            self.db.query(CRMIntegration)
-            .filter(CRMIntegration.tenant_id == tenant_id)
-            .first()
-        )
+        return self.db.query(CRMIntegration).filter(CRMIntegration.tenant_id == tenant_id).first()
 
     def create_integration(
         self,
@@ -248,9 +244,7 @@ class CRMIntegrationService:
             return [], 0
 
         # Build query
-        query = self.db.query(CRMSyncLog).filter(
-            CRMSyncLog.integration_id == integration.id
-        )
+        query = self.db.query(CRMSyncLog).filter(CRMSyncLog.integration_id == integration.id)
 
         if status:
             query = query.filter(CRMSyncLog.status == status)
@@ -259,8 +253,6 @@ class CRMIntegrationService:
         total = query.count()
 
         # Get logs
-        logs = query.order_by(
-            CRMSyncLog.created_at.desc()
-        ).limit(limit).offset(offset).all()
+        logs = query.order_by(CRMSyncLog.created_at.desc()).limit(limit).offset(offset).all()
 
         return list(logs), total
