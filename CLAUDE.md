@@ -120,9 +120,10 @@ DiagnoLeads/
 
 ### フロントエンド
 - **言語**: TypeScript
-- **フレームワーク**: React 18 + Vite
+- **フレームワーク**: React 19 + Vite
 - **状態管理**: Zustand (軽量) + TanStack Query (サーバー状態)
-- **ルーティング**: React Router 6
+- **ルーティング**: React Router 7
+- **URL状態管理**: nuqs（型安全な検索パラメータ管理）
 - **UIライブラリ**: Tailwind CSS + shadcn/ui
 - **フォーム**: React Hook Form + Zod
 - **データ可視化**: Recharts
@@ -791,6 +792,7 @@ DEBUG=True
 - [Anthropic Claude API](https://docs.anthropic.com/)
 - [PostgreSQL Multi-Tenancy](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
 - [TanStack Query](https://tanstack.com/query/latest)
+- [nuqs - Type-safe search params](https://nuqs.dev/) - URL検索パラメータの型安全な管理（[導入ガイド](docs/frontend/NUQS_GUIDE.md)）
 - [shadcn/ui](https://ui.shadcn.com/)
 
 ### セキュリティ

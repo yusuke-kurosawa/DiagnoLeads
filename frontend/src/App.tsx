@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useAuthStore } from './store/authStore';
 import { ToastProvider } from './contexts/ToastContext';
 import { Layout } from './components/layout/Layout';
@@ -23,6 +24,7 @@ import AdminMasterPage from './pages/admin/AdminMasterPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import { HelpCenterPage } from './pages/help/HelpCenterPage';
+import { NuqsExamplePage } from './pages/examples/NuqsExamplePage';
 import ErrorPage from './pages/ErrorPage';
 import './App.css';
 
@@ -53,10 +55,11 @@ function App() {
     <ToastProvider>
       <ErrorBoundary>
         <Router>
-          {/* Google Analytics Tracking */}
-          <GATracker />
+          <NuqsAdapter>
+            {/* Google Analytics Tracking */}
+            <GATracker />
 
-          <Routes>
+            <Routes>
           {/* Error Routes */}
           <Route path="/error" element={<ErrorPage />} />
 
@@ -229,12 +232,16 @@ function App() {
         {/* Components Showcase (Demo) */}
         <Route path="/components" element={<ComponentsShowcase />} />
 
+        {/* nuqs Examples (Demo) */}
+        <Route path="/examples/nuqs" element={<NuqsExamplePage />} />
+
         {/* Default redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+            </Routes>
 
-          {/* Cookie Consent Banner (GDPR/CCPA) */}
-          <CookieConsent />
+            {/* Cookie Consent Banner (GDPR/CCPA) */}
+            <CookieConsent />
+          </NuqsAdapter>
         </Router>
       </ErrorBoundary>
     </ToastProvider>
