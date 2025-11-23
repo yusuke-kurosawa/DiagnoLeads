@@ -137,8 +137,8 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 ### Q2 2025 (Phase 1.5 - Revenue Foundation) 💰
 - **Subscription & Billing System**: Stripe統合、自動課金、従量課金
 - **White Label & Branding**: カスタムドメイン、ブランディングカスタマイズ
-- Lead management features (✅ 92% complete)
-- Analytics dashboard (⚠️ 87.5% complete - PDF export pending)
+- Lead management features (✅ 100% complete)
+- Analytics dashboard (✅ 100% complete - CSV/Excel/PDF export all implemented)
 - External integrations (Microsoft Teams, Slack)
 - Official launch
 
@@ -161,7 +161,7 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 ## Feature Specs (Index)
 
 **Total Specifications**: 14 core + 10 planning = 24
-**Implementation Status**: 92% (see [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md))
+**Implementation Status**: 100% (see [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md))
 
 ### Database & Data Models
 - **Data Model**: [./database/diagnoleads-data-model.md](./database/diagnoleads-data-model.md) ✅ v1.1 - Core entities + 7 operational models (ErrorLog, AuditLog, AIUsageLog, Report, Topic, Industry, GoogleAnalyticsIntegration)
@@ -181,7 +181,7 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 ### Analytics (2 specifications)
 - **Analytics Dashboard**: [./features/analytics-dashboard.md](./features/analytics-dashboard.md) - Real-time analytics & visualization
 - **Custom Reporting & Export**: [./analytics/custom-reporting-export.md](./analytics/custom-reporting-export.md) ✅ - 7 API endpoints, report builder with 13 metrics
-- **Report Export Formats**: [./analytics/report-export-formats.md](./analytics/report-export-formats.md) ⚠️ - CSV/Excel (complete), PDF (partial)
+- **Report Export Formats**: [./analytics/report-export-formats.md](./analytics/report-export-formats.md) ✅ - CSV/Excel/PDF all implemented
 
 ### Security (1 specification)
 - **Audit Logging**: [./security/audit-logging.md](./security/audit-logging.md) ✅ - GDPR/SOC2 compliant audit trail, 3 API endpoints, 90-day retention
