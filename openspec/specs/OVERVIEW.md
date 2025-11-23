@@ -125,17 +125,20 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 
 ## Roadmap
 
-### Q1 2025 (Phase 1)
+**📋 Detailed Roadmap**: [../ROADMAP.md](../ROADMAP.md) - 12-month implementation plan with priorities, resources, and ROI
+
+### Q1 2025 (Phase 1) ✅
 - ✅ Project setup with OpenSpec
 - ✅ MVP development (auth, multi-tenant, assessment builder)
-- ⏳ AI integration (Claude API)
+- ✅ AI integration (Claude API) - 100% implemented
+- ✅ Core operational features (error logging, email service, audit logging)
 - ⏳ Beta launch
 
 ### Q2 2025 (Phase 1.5 - Revenue Foundation) 💰
 - **Subscription & Billing System**: Stripe統合、自動課金、従量課金
 - **White Label & Branding**: カスタムドメイン、ブランディングカスタマイズ
-- Lead management features
-- Analytics dashboard
+- Lead management features (✅ 100% complete)
+- Analytics dashboard (✅ 100% complete - CSV/Excel/PDF export all implemented)
 - External integrations (Microsoft Teams, Slack)
 - Official launch
 
@@ -144,28 +147,59 @@ Salesforce、HubSpot、Slack等のMAツール・CRMと自動同期。
 - Multi-channel distribution (LINE, SMS, Email)
 - Real-time collaboration
 - Assessment marketplace (α版)
+- Custom tenant templates for industries
+- CRM integration (Salesforce/HubSpot)
 
 ### Q4 2025 (Phase 3)
 - Enterprise features (SSO, advanced security)
 - Advanced analytics & reporting
 - Custom integrations & API
+- ML-based conversion prediction
+- Dynamic lead scoring
 - Scale to 200+ tenants
 
 ## Feature Specs (Index)
+
+**Total Specifications**: 14 core + 10 planning = 24
+**Implementation Status**: 100% (see [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md))
+
+### Database & Data Models
+- **Data Model**: [./database/diagnoleads-data-model.md](./database/diagnoleads-data-model.md) ✅ v1.1 - Core entities + 7 operational models (ErrorLog, AuditLog, AIUsageLog, Report, Topic, Industry, GoogleAnalyticsIntegration)
+
+### AI Features (4 specifications)
+- **AI Support (Base)**: [./features/ai-support.md](./features/ai-support.md) ✅ - Claude API integration for assessment generation
+- **Usage Tracking & Billing**: [./ai/usage-tracking-billing.md](./ai/usage-tracking-billing.md) ✅ - Token tracking, cost calculation ($0.003/1K input, $0.015/1K output)
+- **Prompt Security**: [./ai/prompt-security.md](./ai/prompt-security.md) ✅ - 10 suspicious patterns, injection prevention, input sanitization
+- **Industry Templates**: [./ai/industry-templates.md](./ai/industry-templates.md) ✅ - 9 industry templates (IT/SaaS, Consulting, Manufacturing, etc.)
+- **Lead Analysis & Actions**: [./ai/lead-analysis-actions.md](./ai/lead-analysis-actions.md) ✅ - 5 industry analysis templates, 4-tier recommended actions
+
+### Operations (3 specifications)
+- **Error Logging & Monitoring**: [./operations/error-logging-monitoring.md](./operations/error-logging-monitoring.md) ✅ - 8 API endpoints, 10 error types, 4 severity levels
+- **Resilience & Retry**: [./operations/resilience-retry.md](./operations/resilience-retry.md) ✅ - Exponential backoff retry (3 attempts, 2x multiplier), circuit breaker pattern
+- **Email Service**: [./operations/email-service.md](./operations/email-service.md) ✅ - 3 transactional email types (password reset, welcome, lead notification)
+
+### Analytics (2 specifications)
+- **Analytics Dashboard**: [./features/analytics-dashboard.md](./features/analytics-dashboard.md) - Real-time analytics & visualization
+- **Custom Reporting & Export**: [./analytics/custom-reporting-export.md](./analytics/custom-reporting-export.md) ✅ - 7 API endpoints, report builder with 13 metrics
+- **Report Export Formats**: [./analytics/report-export-formats.md](./analytics/report-export-formats.md) ✅ - CSV/Excel/PDF all implemented
+
+### Security (1 specification)
+- **Audit Logging**: [./security/audit-logging.md](./security/audit-logging.md) ✅ - GDPR/SOC2 compliant audit trail, 3 API endpoints, 90-day retention
+
+### Core Features
+- **Lead Management**: [./features/lead-management.md](./features/lead-management.md) - Lead capture & management
+- **Lead Status Transition**: [./features/lead-status-transition.md](./features/lead-status-transition.md) ✅ - 5-stage sales funnel (new→contacted→qualified→converted/disqualified)
+- **Lead Search & Scoring**: [./features/lead-search-scoring.md](./features/lead-search-scoring.md) ✅ - Search by name/email/company, 0-100 AI scoring, Hot/Warm/Cold classification
+- **QR Code Distribution**: [./features/qr-code-distribution.md](./features/qr-code-distribution.md) ✅ - QR generation, scan tracking, funnel analysis
+- **Embed Widget**: [./features/embed-widget.md](./features/embed-widget.md) - JavaScript widget for client sites
+- **Publishing & Versioning**: [./features/publishing-and-versioning.md](./features/publishing-and-versioning.md) - Version control for assessments
+- **Integrations (Base)**: [./features/integrations.md](./features/integrations.md) - External service integrations
 
 ### UI/UX Specifications
 - **Design System**: [./ui-ux/design-system.md](./ui-ux/design-system.md) - Colors, typography, spacing, shadows
 - **Component Library**: [./ui-ux/component-library.md](./ui-ux/component-library.md) - Reusable UI components
 - **Usability Guidelines**: [./ui-ux/usability-guidelines.md](./ui-ux/usability-guidelines.md) - Accessibility & best practices
 - **Interaction Patterns**: [./ui-ux/interaction-patterns.md](./ui-ux/interaction-patterns.md) - Animations & micro-interactions
-
-### Core Features
-- AI Support: [./features/ai-support.md](./features/ai-support.md)
-- Embed Widget: [./features/embed-widget.md](./features/embed-widget.md)
-- Lead Management: [./features/lead-management.md](./features/lead-management.md)
-- Analytics Dashboard: [./features/analytics-dashboard.md](./features/analytics-dashboard.md)
-- Publishing & Versioning: [./features/publishing-and-versioning.md](./features/publishing-and-versioning.md)
-- Integrations (Base): [./features/integrations.md](./features/integrations.md)
 
 ### Revenue Foundation (Phase 1.5) 💰
 - **Subscription & Billing**: [./features/subscription-billing.md](./features/subscription-billing.md) ⚡ Priority: Critical (Stripe統合、自動課金、従量課金)

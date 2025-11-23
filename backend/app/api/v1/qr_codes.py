@@ -3,7 +3,7 @@
 from typing import Dict, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.qr_code import (
     QRCodeCreate,
     QRCodeListResponse,
+    QRCodePreviewRequest,
     QRCodeResponse,
     QRCodeUpdate,
 )
@@ -409,3 +410,143 @@ async def get_qr_analytics(
         "scans_by_country": scans_by_country,
         "funnel": funnel,
     }
+
+
+@router.post(
+    "/preview",
+    summary="Preview QR Code",
+    description="Generate QR code preview image without saving to database",
+    response_class=Response,
+)
+async def preview_qr_code(
+    preview_data: QRCodePreviewRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """
+    Generate QR code preview image.
+
+    Allows users to see QR code appearance before creating it.
+    Returns PNG image directly.
+
+    Args:
+        preview_data: Preview request with URL, color, and size
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        PNG image response
+    """
+    service = QRCodeService(db)
+
+    # Generate QR code image
+    qr_img = service.generate_qr_image(
+        url=preview_data.url,
+        color=preview_data.color,
+        size=preview_data.size,
+        error_correction="H",
+    )
+
+    # Convert to PNG bytes
+    png_bytes = service.qr_image_to_bytes(qr_img, format="PNG")
+
+    # Return image response
+    return Response(
+        content=png_bytes,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": 'inline; filename="qr-preview.png"',
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+    )
+
+
+@router.get(
+    "/{qr_code_id}/download",
+    summary="Download QR Code Image",
+    description="Download QR code image as PNG file",
+    response_class=Response,
+)
+async def download_qr_code(
+    qr_code_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """
+    Download QR code image.
+
+    Regenerates QR code image on-the-fly with current style settings
+    and returns as downloadable PNG file.
+
+    Args:
+        qr_code_id: QR code UUID
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        PNG image response
+
+    Raises:
+        404: QR code not found
+    """
+    # Verify QR code exists and belongs to tenant
+    result = await db.execute(
+        select(QRCode).where(
+            and_(
+                QRCode.id == qr_code_id,
+                QRCode.tenant_id == current_user.tenant_id,
+            )
+        )
+    )
+    qr_code = result.scalar_one_or_none()
+
+    if not qr_code:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"QR code {qr_code_id} not found",
+        )
+
+    service = QRCodeService(db)
+
+    # Build full URL from QR code data
+    base_url = f"https://app.diagnoleads.com/assessments/{qr_code.assessment_id}"
+    utm_params = []
+
+    if qr_code.utm_source:
+        utm_params.append(f"utm_source={qr_code.utm_source}")
+    if qr_code.utm_medium:
+        utm_params.append(f"utm_medium={qr_code.utm_medium}")
+    if qr_code.utm_campaign:
+        utm_params.append(f"utm_campaign={qr_code.utm_campaign}")
+    if qr_code.utm_term:
+        utm_params.append(f"utm_term={qr_code.utm_term}")
+    if qr_code.utm_content:
+        utm_params.append(f"utm_content={qr_code.utm_content}")
+
+    utm_params.append(f"qr={qr_code.short_code}")
+    full_url = f"{base_url}?{'&'.join(utm_params)}"
+
+    # Get style from QR code
+    qr_color = qr_code.style.get("color", "#1E40AF")
+    qr_size = qr_code.style.get("size", 512)
+
+    # Generate QR code image
+    qr_img = service.generate_qr_image(
+        url=full_url,
+        color=qr_color,
+        size=qr_size,
+        error_correction="H",
+    )
+
+    # Convert to PNG bytes
+    png_bytes = service.qr_image_to_bytes(qr_img, format="PNG")
+
+    # Return image response with download header
+    safe_filename = qr_code.name.replace(" ", "_").replace("/", "_")
+    return Response(
+        content=png_bytes,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f'attachment; filename="qr_code_{safe_filename}.png"',
+        },
+    )

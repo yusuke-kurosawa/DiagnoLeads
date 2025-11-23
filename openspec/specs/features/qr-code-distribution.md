@@ -121,13 +121,127 @@ GET /api/v1/qr-codes/{qr_id}.png?size=512
 GET /api/v1/qr-codes/{qr_id}.svg
 ```
 
-### 短縮URL→診断へのリダイレクト
+### QRコードプレビュー（実装済み）
 
 ```
-GET /r/{short_code}
-  - トラッキング情報を記録
-  - 診断ページにリダイレクト
+POST /api/v1/qr-codes/preview
+  Request:
+  {
+    "url": "https://app.diagnoleads.com/assessments/123?qr=abc123",
+    "color": "#1E40AF",
+    "size": 512
+  }
+
+  Response:
+  - Content-Type: image/png
+  - Binary PNG data
+  - Headers:
+    - Content-Disposition: inline; filename="qr-preview.png"
+    - Cache-Control: no-cache, no-store, must-revalidate
+
+  用途: QRコードを保存せずにプレビュー画像を生成。
+        作成フォームでのリアルタイムプレビューに使用。
 ```
+
+### QRコードダウンロード（実装済み）
+
+```
+GET /api/v1/tenants/{tenant_id}/qr-codes/{qr_code_id}/download
+  Response:
+  - Content-Type: image/png
+  - Binary PNG data
+  - Headers:
+    - Content-Disposition: attachment; filename="qr_code_{name}.png"
+
+  用途: 既存のQRコードを現在のスタイル設定でPNG画像として
+        ダウンロード。オンザフライで再生成。
+
+  認証: 必須（テナント権限チェック）
+```
+
+### 短縮URL→診断へのリダイレクト（実装済み）
+
+```
+GET /{short_code}
+  - トラッキング情報を記録（デバイス、OS、ブラウザ、IP、地域）
+  - QRCode.scan_countをインクリメント
+  - 診断ページにリダイレクト（UTMパラメータ付き）
+  - HTTP 307 Temporary Redirect
+
+GET /api/v1/qr-codes/{short_code}/preview
+  - リダイレクト先をプレビュー（非追跡）
+  Response:
+  {
+    "short_code": "abc123",
+    "short_url": "https://dgnl.ds/abc123",
+    "redirect_url": "https://app.diagnoleads.com/assessments/{id}?utm_source=...",
+    "enabled": true,
+    "scan_count": 145
+  }
+```
+
+**実装ファイル**: `/backend/app/api/v1/redirect.py`
+
+**注意**: 実装パスは `/r/{short_code}` ではなく `/{short_code}` です（独立ルーター）
+
+### スキャン追跡API（実装済み）
+
+#### スキャン→診断開始をマーク
+
+```
+PUT /api/v1/scans/{scan_id}/started
+  Response: 204 No Content
+
+  用途: QRスキャン後、ユーザーが診断を開始したタイミングで呼び出す
+```
+
+#### スキャン→診断完了をマーク
+
+```
+PUT /api/v1/scans/{scan_id}/completed
+  Response: 204 No Content
+
+  用途: ユーザーが診断を完了したタイミングで呼び出す
+```
+
+#### スキャン→リードをリンク
+
+```
+PUT /api/v1/scans/{scan_id}/lead
+  Request:
+  {
+    "lead_id": "lead_xyz789"
+  }
+
+  Response: 204 No Content
+
+  用途: QRスキャン経由で作成されたリードを紐付け
+```
+
+#### スキャン詳細取得
+
+```
+GET /api/v1/scans/{scan_id}
+  Response:
+  {
+    "id": "scan_abc123",
+    "qr_code_id": "qr_abc123",
+    "device_type": "mobile",
+    "os": "iOS",
+    "browser": "Safari",
+    "country": "Japan",
+    "city": "Tokyo",
+    "scanned_at": "2025-11-23T10:00:00Z",
+    "assessment_started": true,
+    "assessment_completed": true,
+    "lead_created": true,
+    "lead_id": "lead_xyz789"
+  }
+
+  認証: 不要（public）
+```
+
+**実装ファイル**: `/backend/app/api/v1/qr_scans.py`
 
 ## Data Model
 
