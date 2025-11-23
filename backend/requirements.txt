@@ -21,6 +21,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-dotenv==1.0.0
+cryptography==43.0.3  # Token encryption for CRM integrations
 
 # Validation
 pydantic==2.10.3

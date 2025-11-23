@@ -6,8 +6,10 @@ Implements Salesforce REST API integration for lead synchronization.
 
 import httpx
 from typing import Dict, Any
+from datetime import datetime, timezone, timedelta
 from app.integrations.crm.base import CRMClient
 from app.integrations.microsoft.retry_policy import with_retry
+from app.core.config import settings
 
 
 class SalesforceClient(CRMClient):
@@ -15,23 +17,95 @@ class SalesforceClient(CRMClient):
 
     API_VERSION = "v57.0"
 
-    async def authenticate(self, code: str) -> Dict[str, str]:
+    async def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
         """
-        Exchange OAuth code for access token.
+        Exchange OAuth authorization code for access token.
 
-        TODO: Implement full OAuth flow in Phase 2
+        Salesforce OAuth 2.0 token endpoint:
+        POST https://login.salesforce.com/services/oauth2/token
+
+        Args:
+            code: Authorization code from OAuth callback
+            redirect_uri: Redirect URI used in authorization request
+
+        Returns:
+            Dictionary containing:
+            - access_token: OAuth access token
+            - refresh_token: OAuth refresh token
+            - instance_url: Salesforce instance URL
+            - expires_at: Token expiration datetime (ISO format)
+
+        Raises:
+            httpx.HTTPStatusError: If token exchange fails
         """
-        # Placeholder for Phase 2 implementation
-        raise NotImplementedError("Salesforce OAuth not yet implemented")
+        token_url = "https://login.salesforce.com/services/oauth2/token"
+
+        data = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "client_id": settings.SALESFORCE_CLIENT_ID,
+            "client_secret": settings.SALESFORCE_CLIENT_SECRET,
+            "redirect_uri": redirect_uri,
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(token_url, data=data)
+            response.raise_for_status()
+
+            result = response.json()
+
+            # Salesforce tokens typically expire in 2 hours
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
+
+            return {
+                "access_token": result["access_token"],
+                "refresh_token": result.get("refresh_token", ""),
+                "instance_url": result["instance_url"],
+                "expires_at": expires_at.isoformat(),
+            }
 
     async def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
         """
-        Refresh Salesforce access token.
+        Refresh Salesforce access token using refresh token.
 
-        TODO: Implement token refresh in Phase 2
+        Salesforce refresh token endpoint:
+        POST https://login.salesforce.com/services/oauth2/token
+
+        Args:
+            refresh_token: Refresh token from initial OAuth flow
+
+        Returns:
+            Dictionary containing:
+            - access_token: New OAuth access token
+            - instance_url: Salesforce instance URL
+            - expires_at: Token expiration datetime (ISO format)
+
+        Raises:
+            httpx.HTTPStatusError: If token refresh fails
         """
-        # Placeholder for Phase 2 implementation
-        raise NotImplementedError("Token refresh not yet implemented")
+        token_url = "https://login.salesforce.com/services/oauth2/token"
+
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": settings.SALESFORCE_CLIENT_ID,
+            "client_secret": settings.SALESFORCE_CLIENT_SECRET,
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(token_url, data=data)
+            response.raise_for_status()
+
+            result = response.json()
+
+            # Salesforce tokens typically expire in 2 hours
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
+
+            return {
+                "access_token": result["access_token"],
+                "instance_url": result.get("instance_url", self.config.get("instance_url", "")),
+                "expires_at": expires_at.isoformat(),
+            }
 
     @with_retry(max_retries=3)
     async def create_lead(self, lead_data: Dict[str, Any]) -> str:

@@ -9,8 +9,10 @@ from sqlalchemy import Column, String, Boolean, Text, JSON, ForeignKey, UniqueCo
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
 from sqlalchemy.orm import relationship
 import uuid
+from cryptography.fernet import Fernet
 
 from app.models.base import Base
+from app.core.config import settings
 
 
 class CRMIntegration(Base):
@@ -58,43 +60,84 @@ class CRMIntegration(Base):
         UniqueConstraint('tenant_id', name='uq_crm_integration_tenant'),
     )
 
+    def _get_cipher(self) -> Fernet:
+        """
+        Get Fernet cipher for encryption/decryption.
+
+        Returns:
+            Fernet cipher instance
+        """
+        return Fernet(settings.ENCRYPTION_KEY.encode())
+
     def encrypt_access_token(self, token: str):
         """
-        Encrypt and store access token.
+        Encrypt and store access token using Fernet symmetric encryption.
 
-        TODO: Implement encryption in Phase 2
-        For now, this is a placeholder.
+        Args:
+            token: Plain text access token
+
+        Example:
+            >>> integration.encrypt_access_token("ya29.a0AfH6SMB...")
         """
-        # Placeholder - will implement with cryptography.fernet
-        self.access_token_encrypted = token
+        if not token:
+            self.access_token_encrypted = None
+            return
+
+        cipher = self._get_cipher()
+        encrypted = cipher.encrypt(token.encode())
+        self.access_token_encrypted = encrypted.decode()
 
     def decrypt_access_token(self) -> str:
         """
         Decrypt and return access token.
 
-        TODO: Implement decryption in Phase 2
-        For now, this is a placeholder.
+        Returns:
+            Plain text access token
+
+        Example:
+            >>> token = integration.decrypt_access_token()
         """
-        # Placeholder - will implement with cryptography.fernet
-        return self.access_token_encrypted or ""
+        if not self.access_token_encrypted:
+            return ""
+
+        cipher = self._get_cipher()
+        decrypted = cipher.decrypt(self.access_token_encrypted.encode())
+        return decrypted.decode()
 
     def encrypt_refresh_token(self, token: str):
         """
-        Encrypt and store refresh token.
+        Encrypt and store refresh token using Fernet symmetric encryption.
 
-        TODO: Implement encryption in Phase 2
+        Args:
+            token: Plain text refresh token
+
+        Example:
+            >>> integration.encrypt_refresh_token("1//0gHmTa...")
         """
-        # Placeholder
-        self.refresh_token_encrypted = token
+        if not token:
+            self.refresh_token_encrypted = None
+            return
+
+        cipher = self._get_cipher()
+        encrypted = cipher.encrypt(token.encode())
+        self.refresh_token_encrypted = encrypted.decode()
 
     def decrypt_refresh_token(self) -> str:
         """
         Decrypt and return refresh token.
 
-        TODO: Implement decryption in Phase 2
+        Returns:
+            Plain text refresh token
+
+        Example:
+            >>> token = integration.decrypt_refresh_token()
         """
-        # Placeholder
-        return self.refresh_token_encrypted or ""
+        if not self.refresh_token_encrypted:
+            return ""
+
+        cipher = self._get_cipher()
+        decrypted = cipher.decrypt(self.refresh_token_encrypted.encode())
+        return decrypted.decode()
 
 
 class CRMSyncLog(Base):

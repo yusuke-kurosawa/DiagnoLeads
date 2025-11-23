@@ -260,10 +260,13 @@ template = get_industry_template(industry, tenant_id=tenant_id)
 
 **Phase 2 Implementation** (Week 2 - ✅ COMPLETED):
 ```python
-# /backend/app/models/crm_integration.py - Data models
+# /backend/app/models/crm_integration.py - Data models with Fernet encryption
 # /backend/app/services/crm_integration_service.py - CRM sync service
 # /backend/app/core/oauth_state.py - OAuth state management
-# /backend/app/api/v1/crm_integrations.py - API endpoints
+# /backend/app/api/v1/crm_integrations.py - API endpoints with OAuth flow
+# /backend/app/integrations/crm/salesforce_client.py - OAuth implementation
+# /backend/app/integrations/crm/hubspot_client.py - OAuth implementation
+# /backend/alembic/versions/j0k1l2m3n4o5_add_crm_integration_tables.py - Migration
 ```
 
 **Success Criteria**:
@@ -277,16 +280,18 @@ template = get_industry_template(industry, tenant_id=tenant_id)
 - [x] **Phase 2**: CRM Integration Service (sync logic)
 - [x] **Phase 2**: OAuth state management (CSRF protection)
 - [x] **Phase 2**: API endpoints (connect, callback, sync, status)
-- [ ] **Phase 2**: OAuth token exchange implementation (TODO)
-- [ ] **Phase 2**: Token encryption (TODO: cryptography.fernet)
+- [x] **Phase 2**: OAuth token exchange (Salesforce & HubSpot)
+- [x] **Phase 2**: Token encryption (cryptography.fernet)
+- [x] **Phase 2**: Alembic migration for CRM tables
 - [ ] **Phase 3**: Bi-directional sync (DiagnoLeads ↔ CRM)
 - [ ] **Phase 3**: Field mapping UI
 - [ ] **Phase 3**: Webhook for real-time sync
 - [ ] **Phase 4**: Comprehensive error handling & monitoring
 
-**Progress**: Phase 2 Skeleton Complete (50% of total effort)
+**Progress**: Phase 2 Complete (65% of total effort)
 **Started**: 2025-11-23
-**Next Phase**: OAuth token exchange & encryption (Week 2 cont.)
+**Phase 2 Completed**: 2025-11-23
+**Next Phase**: Bi-directional sync & webhook (Phase 3)
 
 **Dependencies**: Trigger.dev for async jobs
 

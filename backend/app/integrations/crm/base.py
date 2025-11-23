@@ -24,15 +24,16 @@ class CRMClient(ABC):
         self.config = config
 
     @abstractmethod
-    async def authenticate(self, code: str) -> Dict[str, str]:
+    async def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
         """
         Exchange OAuth authorization code for tokens.
 
         Args:
             code: OAuth authorization code
+            redirect_uri: Redirect URI used in authorization request
 
         Returns:
-            Dictionary with access_token, refresh_token, expires_in, instance_url
+            Dictionary with access_token, refresh_token, expires_at, and optionally instance_url
 
         Raises:
             HTTPException: If authentication fails

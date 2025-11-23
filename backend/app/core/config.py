@@ -130,6 +130,19 @@ class Settings(BaseSettings):
     BCRYPT_ROUNDS: int = 12
     PASSWORD_MIN_LENGTH: int = 8
 
+    # Token Encryption (for CRM OAuth tokens)
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    ENCRYPTION_KEY: str = "your-encryption-key-change-this-in-production"
+
+    @field_validator("ENCRYPTION_KEY")
+    @classmethod
+    def validate_encryption_key(cls, v: str, info) -> str:
+        """本番環境でデフォルトの暗号化キーを使用していないか検証"""
+        if info.data.get("ENVIRONMENT") == "production":
+            if v == "your-encryption-key-change-this-in-production":
+                raise ValueError("本番環境でデフォルトのENCRYPTION_KEYを使用しています。必ず強力なランダムキーに変更してください。")
+        return v
+
     # ========================================================================
     # Rate Limiting
     # ========================================================================

@@ -9,11 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
+from datetime import datetime
 
 from app.core.oauth_state import generate_oauth_state, verify_oauth_state
 from app.services.crm_integration_service import CRMIntegrationService
-# TODO: Import get_db and get_current_user dependencies
-# from app.core.deps import get_db, get_current_user
+from app.core.deps import get_db
+# TODO: Import get_current_user dependency when authentication is ready
+# from app.core.deps import get_current_user
 # from app.models.user import User
 
 
@@ -140,19 +142,19 @@ async def connect_hubspot(
 async def salesforce_callback(
     code: str,
     state: str,
-    # db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Handle Salesforce OAuth callback.
 
-    TODO: Implement token exchange and storage in Phase 2.
+    Exchanges authorization code for tokens and stores them encrypted.
 
     Args:
         code: Authorization code from Salesforce
         state: State token for CSRF verification
 
     Returns:
-        Redirect to success page
+        Success message with integration ID
     """
     try:
         # Verify state token
@@ -164,27 +166,44 @@ async def salesforce_callback(
                 detail="Invalid CRM type for Salesforce callback",
             )
 
-        # TODO: Exchange code for access_token and refresh_token
-        # POST to https://login.salesforce.com/services/oauth2/token
-        # Parameters: grant_type=authorization_code, code, client_id, client_secret, redirect_uri
+        # Create temporary client for OAuth exchange
+        from app.integrations.crm.salesforce_client import SalesforceClient
+        from uuid import uuid4
 
-        # TODO: Store tokens in CRMIntegration model (encrypted)
-        # service = CRMIntegrationService(db)
-        # await service.create_integration(
-        #     tenant_id=tenant_id,
-        #     crm_type="salesforce",
-        #     access_token=access_token,
-        #     refresh_token=refresh_token,
-        #     instance_url=instance_url,
-        #     expires_at=expires_at,
-        # )
+        temp_client = SalesforceClient(uuid4(), {})
 
-        return {"message": "Salesforce connection successful (placeholder)"}
+        # Get redirect URI from environment or use default
+        # TODO: Make this configurable
+        redirect_uri = "http://localhost:8000/api/v1/integrations/salesforce/callback"
+
+        # Exchange code for tokens
+        token_data = await temp_client.authenticate(code, redirect_uri)
+
+        # Store tokens in CRMIntegration model (encrypted)
+        service = CRMIntegrationService(db)
+        integration = await service.create_integration(
+            tenant_id=tenant_id,
+            crm_type="salesforce",
+            access_token=token_data["access_token"],
+            refresh_token=token_data["refresh_token"],
+            instance_url=token_data.get("instance_url"),
+            expires_at=datetime.fromisoformat(token_data["expires_at"]),
+        )
+
+        return {
+            "message": "Salesforce connection successful",
+            "integration_id": str(integration.id),
+        }
 
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to connect Salesforce: {str(e)}",
         )
 
 
@@ -196,19 +215,19 @@ async def salesforce_callback(
 async def hubspot_callback(
     code: str,
     state: str,
-    # db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Handle HubSpot OAuth callback.
 
-    TODO: Implement token exchange and storage in Phase 2.
+    Exchanges authorization code for tokens and stores them encrypted.
 
     Args:
         code: Authorization code from HubSpot
         state: State token for CSRF verification
 
     Returns:
-        Redirect to success page
+        Success message with integration ID
     """
     try:
         # Verify state token
@@ -220,18 +239,44 @@ async def hubspot_callback(
                 detail="Invalid CRM type for HubSpot callback",
             )
 
-        # TODO: Exchange code for access_token and refresh_token
-        # POST to https://api.hubapi.com/oauth/v1/token
-        # Parameters: grant_type=authorization_code, code, client_id, client_secret, redirect_uri
+        # Create temporary client for OAuth exchange
+        from app.integrations.crm.hubspot_client import HubSpotClient
+        from uuid import uuid4
 
-        # TODO: Store tokens in CRMIntegration model (encrypted)
+        temp_client = HubSpotClient(uuid4(), {})
 
-        return {"message": "HubSpot connection successful (placeholder)"}
+        # Get redirect URI from environment or use default
+        # TODO: Make this configurable
+        redirect_uri = "http://localhost:8000/api/v1/integrations/hubspot/callback"
+
+        # Exchange code for tokens
+        token_data = await temp_client.authenticate(code, redirect_uri)
+
+        # Store tokens in CRMIntegration model (encrypted)
+        service = CRMIntegrationService(db)
+        integration = await service.create_integration(
+            tenant_id=tenant_id,
+            crm_type="hubspot",
+            access_token=token_data["access_token"],
+            refresh_token=token_data["refresh_token"],
+            instance_url=None,  # HubSpot doesn't have instance_url
+            expires_at=datetime.fromisoformat(token_data["expires_at"]),
+        )
+
+        return {
+            "message": "HubSpot connection successful",
+            "integration_id": str(integration.id),
+        }
 
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to connect HubSpot: {str(e)}",
         )
 
 
