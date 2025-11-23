@@ -10,7 +10,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.core.oauth_state import generate_oauth_state, verify_oauth_state
@@ -72,10 +72,10 @@ class IntegrationStatusResponse(BaseModel):
     summary="Initiate Salesforce OAuth connection",
     description="Generate Salesforce OAuth authorization URL for tenant",
 )
-async def connect_salesforce(
+def connect_salesforce(
     tenant_id: UUID,
     request: OAuthConnectRequest,
-    # db: AsyncSession = Depends(get_db),
+    # db: Session = Depends(get_db),
     # current_user: User = Depends(get_current_user),
 ):
     """
@@ -107,10 +107,10 @@ async def connect_salesforce(
     summary="Initiate HubSpot OAuth connection",
     description="Generate HubSpot OAuth authorization URL for tenant",
 )
-async def connect_hubspot(
+def connect_hubspot(
     tenant_id: UUID,
     request: OAuthConnectRequest,
-    # db: AsyncSession = Depends(get_db),
+    # db: Session = Depends(get_db),
     # current_user: User = Depends(get_current_user),
 ):
     """
@@ -141,10 +141,10 @@ async def connect_hubspot(
     summary="Salesforce OAuth callback",
     description="Handle OAuth callback from Salesforce",
 )
-async def salesforce_callback(
+def salesforce_callback(
     code: str,
     state: str,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
     """
     Handle Salesforce OAuth callback.
@@ -180,11 +180,11 @@ async def salesforce_callback(
         redirect_uri = "http://localhost:8000/api/v1/integrations/salesforce/callback"
 
         # Exchange code for tokens
-        token_data = await temp_client.authenticate(code, redirect_uri)
+        token_data = temp_client.authenticate(code, redirect_uri)
 
         # Store tokens in CRMIntegration model (encrypted)
         service = CRMIntegrationService(db)
-        integration = await service.create_integration(
+        integration = service.create_integration(
             tenant_id=tenant_id,
             crm_type="salesforce",
             access_token=token_data["access_token"],
@@ -215,10 +215,10 @@ async def salesforce_callback(
     summary="HubSpot OAuth callback",
     description="Handle OAuth callback from HubSpot",
 )
-async def hubspot_callback(
+def hubspot_callback(
     code: str,
     state: str,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
     """
     Handle HubSpot OAuth callback.
@@ -254,11 +254,11 @@ async def hubspot_callback(
         redirect_uri = "http://localhost:8000/api/v1/integrations/hubspot/callback"
 
         # Exchange code for tokens
-        token_data = await temp_client.authenticate(code, redirect_uri)
+        token_data = temp_client.authenticate(code, redirect_uri)
 
         # Store tokens in CRMIntegration model (encrypted)
         service = CRMIntegrationService(db)
-        integration = await service.create_integration(
+        integration = service.create_integration(
             tenant_id=tenant_id,
             crm_type="hubspot",
             access_token=token_data["access_token"],
@@ -290,10 +290,10 @@ async def hubspot_callback(
     summary="Sync lead to CRM",
     description="Manually trigger lead synchronization to CRM",
 )
-async def sync_lead(
+def sync_lead(
     tenant_id: UUID,
     request: SyncLeadRequest,
-    # db: AsyncSession = Depends(get_db),
+    # db: Session = Depends(get_db),
     # current_user: User = Depends(get_current_user),
 ):
     """
@@ -332,9 +332,9 @@ async def sync_lead(
     summary="Get CRM integration status",
     description="Retrieve CRM integration status for tenant",
 )
-async def get_integration_status(
+def get_integration_status(
     tenant_id: UUID,
-    # db: AsyncSession = Depends(get_db),
+    # db: Session = Depends(get_db),
     # current_user: User = Depends(get_current_user),
 ):
     """

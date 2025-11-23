@@ -19,7 +19,7 @@ class SalesforceClient(CRMClient):
 
     API_VERSION = "v57.0"
 
-    async def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
+    def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
         """
         Exchange OAuth authorization code for access token.
 
@@ -50,8 +50,8 @@ class SalesforceClient(CRMClient):
             "redirect_uri": redirect_uri,
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(token_url, data=data)
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(token_url, data=data)
             response.raise_for_status()
 
             result = response.json()
@@ -66,7 +66,7 @@ class SalesforceClient(CRMClient):
                 "expires_at": expires_at.isoformat(),
             }
 
-    async def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
         """
         Refresh Salesforce access token using refresh token.
 
@@ -94,8 +94,8 @@ class SalesforceClient(CRMClient):
             "client_secret": settings.SALESFORCE_CLIENT_SECRET,
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(token_url, data=data)
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(token_url, data=data)
             response.raise_for_status()
 
             result = response.json()
@@ -110,7 +110,7 @@ class SalesforceClient(CRMClient):
             }
 
     @with_retry(max_retries=3)
-    async def create_lead(self, lead_data: Dict[str, Any]) -> str:
+    def create_lead(self, lead_data: Dict[str, Any]) -> str:
         """
         Create a lead in Salesforce.
 
@@ -128,8 +128,8 @@ class SalesforceClient(CRMClient):
         # Apply field mapping
         mapped_data = self._apply_field_mapping(lead_data)
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 url,
                 json=mapped_data,
                 headers={
@@ -143,7 +143,7 @@ class SalesforceClient(CRMClient):
             return result["id"]  # Salesforce Lead ID
 
     @with_retry(max_retries=3)
-    async def update_lead(self, crm_id: str, lead_data: Dict[str, Any]) -> bool:
+    def update_lead(self, crm_id: str, lead_data: Dict[str, Any]) -> bool:
         """
         Update a lead in Salesforce.
 
@@ -162,8 +162,8 @@ class SalesforceClient(CRMClient):
         # Apply field mapping
         mapped_data = self._apply_field_mapping(lead_data)
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.patch(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.patch(
                 url,
                 json=mapped_data,
                 headers={
@@ -176,7 +176,7 @@ class SalesforceClient(CRMClient):
             return response.status_code == 204
 
     @with_retry(max_retries=3)
-    async def get_lead(self, crm_id: str) -> Dict[str, Any]:
+    def get_lead(self, crm_id: str) -> Dict[str, Any]:
         """
         Retrieve a lead from Salesforce.
 
@@ -191,8 +191,8 @@ class SalesforceClient(CRMClient):
         """
         url = f"{self.config['instance_url']}/services/data/{self.API_VERSION}/sobjects/Lead/{crm_id}"
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.get(
                 url,
                 headers={
                     "Authorization": f"Bearer {self.config['access_token']}",
@@ -203,7 +203,7 @@ class SalesforceClient(CRMClient):
             return response.json()
 
     @with_retry(max_retries=3)
-    async def delete_lead(self, crm_id: str) -> bool:
+    def delete_lead(self, crm_id: str) -> bool:
         """
         Delete a lead from Salesforce.
 
@@ -218,8 +218,8 @@ class SalesforceClient(CRMClient):
         """
         url = f"{self.config['instance_url']}/services/data/{self.API_VERSION}/sobjects/Lead/{crm_id}"
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.delete(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.delete(
                 url,
                 headers={
                     "Authorization": f"Bearer {self.config['access_token']}",

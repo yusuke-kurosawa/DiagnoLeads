@@ -24,7 +24,7 @@ class CRMClient(ABC):
         self.config = config
 
     @abstractmethod
-    async def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
+    def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
         """
         Exchange OAuth authorization code for tokens.
 
@@ -41,7 +41,7 @@ class CRMClient(ABC):
         pass
 
     @abstractmethod
-    async def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
         """
         Refresh access token using refresh token.
 
@@ -57,7 +57,7 @@ class CRMClient(ABC):
         pass
 
     @abstractmethod
-    async def create_lead(self, lead_data: Dict[str, Any]) -> str:
+    def create_lead(self, lead_data: Dict[str, Any]) -> str:
         """
         Create a lead in the CRM.
 
@@ -73,7 +73,7 @@ class CRMClient(ABC):
         pass
 
     @abstractmethod
-    async def update_lead(self, crm_id: str, lead_data: Dict[str, Any]) -> bool:
+    def update_lead(self, crm_id: str, lead_data: Dict[str, Any]) -> bool:
         """
         Update a lead in the CRM.
 
@@ -90,7 +90,7 @@ class CRMClient(ABC):
         pass
 
     @abstractmethod
-    async def get_lead(self, crm_id: str) -> Dict[str, Any]:
+    def get_lead(self, crm_id: str) -> Dict[str, Any]:
         """
         Retrieve a lead from the CRM.
 
@@ -106,7 +106,7 @@ class CRMClient(ABC):
         pass
 
     @abstractmethod
-    async def delete_lead(self, crm_id: str) -> bool:
+    def delete_lead(self, crm_id: str) -> bool:
         """
         Delete a lead from the CRM.
 

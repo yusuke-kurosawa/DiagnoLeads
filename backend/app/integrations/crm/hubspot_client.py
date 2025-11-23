@@ -19,7 +19,7 @@ class HubSpotClient(CRMClient):
 
     BASE_URL = "https://api.hubapi.com"
 
-    async def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
+    def authenticate(self, code: str, redirect_uri: str) -> Dict[str, str]:
         """
         Exchange OAuth authorization code for access token.
 
@@ -49,8 +49,8 @@ class HubSpotClient(CRMClient):
             "redirect_uri": redirect_uri,
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 token_url,
                 data=data,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -69,7 +69,7 @@ class HubSpotClient(CRMClient):
                 "expires_at": expires_at.isoformat(),
             }
 
-    async def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
         """
         Refresh HubSpot access token using refresh token.
 
@@ -97,8 +97,8 @@ class HubSpotClient(CRMClient):
             "client_secret": settings.SALESFORCE_CLIENT_SECRET,  # Using generic client_secret
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 token_url,
                 data=data,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -118,7 +118,7 @@ class HubSpotClient(CRMClient):
             }
 
     @with_retry(max_retries=3)
-    async def create_lead(self, lead_data: Dict[str, Any]) -> str:
+    def create_lead(self, lead_data: Dict[str, Any]) -> str:
         """
         Create a contact in HubSpot.
 
@@ -138,8 +138,8 @@ class HubSpotClient(CRMClient):
         # Apply field mapping
         properties = self._apply_field_mapping(lead_data)
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 url,
                 json={"properties": properties},
                 headers={
@@ -153,7 +153,7 @@ class HubSpotClient(CRMClient):
             return result["id"]  # HubSpot Contact ID
 
     @with_retry(max_retries=3)
-    async def update_lead(self, crm_id: str, lead_data: Dict[str, Any]) -> bool:
+    def update_lead(self, crm_id: str, lead_data: Dict[str, Any]) -> bool:
         """
         Update a contact in HubSpot.
 
@@ -172,8 +172,8 @@ class HubSpotClient(CRMClient):
         # Apply field mapping
         properties = self._apply_field_mapping(lead_data)
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.patch(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.patch(
                 url,
                 json={"properties": properties},
                 headers={
@@ -186,7 +186,7 @@ class HubSpotClient(CRMClient):
             return response.status_code == 200
 
     @with_retry(max_retries=3)
-    async def get_lead(self, crm_id: str) -> Dict[str, Any]:
+    def get_lead(self, crm_id: str) -> Dict[str, Any]:
         """
         Retrieve a contact from HubSpot.
 
@@ -201,8 +201,8 @@ class HubSpotClient(CRMClient):
         """
         url = f"{self.BASE_URL}/crm/v3/objects/contacts/{crm_id}"
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.get(
                 url,
                 headers={
                     "Authorization": f"Bearer {self.config['access_token']}",
@@ -213,7 +213,7 @@ class HubSpotClient(CRMClient):
             return response.json()
 
     @with_retry(max_retries=3)
-    async def delete_lead(self, crm_id: str) -> bool:
+    def delete_lead(self, crm_id: str) -> bool:
         """
         Delete a contact from HubSpot.
 
@@ -228,8 +228,8 @@ class HubSpotClient(CRMClient):
         """
         url = f"{self.BASE_URL}/crm/v3/objects/contacts/{crm_id}"
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.delete(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.delete(
                 url,
                 headers={
                     "Authorization": f"Bearer {self.config['access_token']}",
