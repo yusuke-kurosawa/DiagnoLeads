@@ -9,7 +9,7 @@
 
 ## 📋 Overview
 
-DiagnoLeadsのトランザクショナルメール送信サービス。SMTP経由でパスワードリセット、ウェルカムメール、リード通知等を配信します。
+DiagnoLeadsのトランザクショナルメール送信サービス。SMTP経由でパスワードリセット、ウェルカムメール、リード通知等を配信します。**Jinja2テンプレートエンジン**を使用して、カスタマイズ可能なHTMLメールを生成します。
 
 ### ビジネス価値
 
@@ -17,6 +17,7 @@ DiagnoLeadsのトランザクショナルメール送信サービス。SMTP経�
 - **セキュリティ**: パスワードリセットの安全な処理
 - **営業効率化**: リード獲得時の即座通知
 - **エンゲージメント**: ウェルカムメールで初期体験向上
+- **ブランディング**: テナントごとのロゴ、カラーでカスタマイズ可能
 
 ---
 
@@ -59,15 +60,17 @@ success = email_service.send_email(
 
 ---
 
-### send_password_reset_email(to_email, reset_token, user_name=None) -> bool
+### send_password_reset_email(to_email, reset_token, user_name=None, brand_color=None, logo_url=None) -> bool
 
-パスワードリセットメール
+パスワードリセットメール（Jinja2テンプレート使用）
 
 ```python
 success = email_service.send_password_reset_email(
     to_email="user@example.com",
     reset_token="abc123xyz",
     user_name="山田太郎",
+    brand_color="#3b82f6",  # オプション: カスタムブランドカラー
+    logo_url="https://cdn.example.com/logo.png",  # オプション: テナントロゴ
 )
 ```
 
@@ -82,27 +85,32 @@ success = email_service.send_password_reset_email(
 
 ---
 
-### send_welcome_email(to_email, user_name) -> bool
+### send_welcome_email(to_email, user_name, brand_color=None, brand_color_secondary=None, logo_url=None, dashboard_url=None) -> bool
 
-ウェルカムメール
+ウェルカムメール（Jinja2テンプレート使用）
 
 ```python
 success = email_service.send_welcome_email(
     to_email="newuser@example.com",
     user_name="佐藤花子",
+    brand_color="#3b82f6",  # オプション: メインカラー
+    brand_color_secondary="#2563eb",  # オプション: グラデーション用
+    logo_url="https://cdn.example.com/logo.png",  # オプション: テナントロゴ
+    dashboard_url="https://app.diagnoleads.com/dashboard",  # オプション
 )
 ```
 
 **内容**:
 - 登録感謝メッセージ
-- サービス概要
+- サービス概要（3つの主要機能）
+- ダッシュボードへのリンク
 - 次のステップ（診断作成）
 
 ---
 
-### send_lead_notification_email(to_email, lead_name, lead_email, assessment_title, score) -> bool
+### send_lead_notification_email(to_email, lead_name, lead_email, assessment_title, score, lead_company=None, recommended_actions=None, logo_url=None, dashboard_url=None) -> bool
 
-リード通知メール
+リード通知メール（Jinja2テンプレート使用）
 
 ```python
 success = email_service.send_lead_notification_email(
@@ -111,13 +119,19 @@ success = email_service.send_lead_notification_email(
     lead_email="suzuki@example.com",
     assessment_title="マーケティング成熟度診断",
     score=85,
+    lead_company="株式会社サンプル",  # オプション: 会社名
+    recommended_actions="即座にデモを提案。意思決定者との商談を設定。",  # オプション: AI推奨アクション
+    logo_url="https://cdn.example.com/logo.png",  # オプション: テナントロゴ
+    dashboard_url="https://app.diagnoleads.com/dashboard/leads",  # オプション
 )
 ```
 
 **内容**:
 - 🎉 新リード獲得の祝福
-- リード基本情報（名前、メール、スコア）
-- ダッシュボードへのリンク（未実装）
+- リード基本情報（名前、メール、会社、診断名、スコア）
+- スコアバッジ（🔥ホット/⚡ウォーム/❄️コールド）
+- AI推奨アクション
+- ダッシュボードへのリンク
 
 ---
 
@@ -226,21 +240,52 @@ except Exception as e:
 
 ---
 
-## 🚀 将来の改善
+## 🎨 Jinja2テンプレートエンジン（実装済み）
 
-### 1. メールテンプレートエンジン
+### テンプレート管理
 
-Jinja2でテンプレート管理：
+EmailServiceはJinja2テンプレートエンジンを使用して、HTMLメールを生成します。
 
 ```python
 from jinja2 import Environment, FileSystemLoader
 
-env = Environment(loader=FileSystemLoader('templates/email'))
-template = env.get_template('password_reset.html')
-html_content = template.render(user_name=user_name, reset_link=reset_link)
+# EmailService.__init__()で初期化
+template_dir = Path(__file__).parent.parent / "templates" / "emails"
+self.template_env = Environment(
+    loader=FileSystemLoader(str(template_dir)),
+    autoescape=select_autoescape(["html", "xml"]),
+)
+
+# テンプレートレンダリング
+def render_template(self, template_name: str, context: Dict[str, Any]) -> str:
+    template = self.template_env.get_template(template_name)
+    return template.render(**context)
 ```
 
-### 2. 配信サービス統合
+### テンプレートファイル
+
+| テンプレート | ファイル | 主要変数 |
+|------------|---------|---------|
+| パスワードリセット | `password_reset.html` | `reset_link`, `user_name`, `brand_color`, `logo_url` |
+| ウェルカム | `welcome.html` | `user_name`, `brand_color`, `brand_color_secondary`, `logo_url`, `dashboard_url` |
+| リード通知 | `lead_notification.html` | `lead_name`, `lead_email`, `lead_company`, `assessment_title`, `score`, `recommended_actions` |
+
+**テンプレート場所**: `/backend/app/templates/emails/`
+
+### テナントカスタマイズ
+
+各メールメソッドは以下のカスタマイズオプションをサポート：
+
+- `brand_color`: メインブランドカラー（デフォルト: `#3b82f6`）
+- `brand_color_secondary`: セカンダリカラー（グラデーション用）
+- `logo_url`: テナントロゴURL
+- `dashboard_url`: ダッシュボードURL
+
+---
+
+## 🚀 将来の改善
+
+### 1. 配信サービス統合
 
 SendGrid/AWS SES等のクラウドサービスへの移行：
 
@@ -262,23 +307,7 @@ class SendGridEmailService(EmailService):
 <a href="{BACKEND_URL}/track/click/{email_id}?url={target_url}">クリック</a>
 ```
 
-### 4. テナント別カスタマイズ
-
-テナントごとのブランディング：
-
-```python
-class TenantEmailService:
-    def get_template(self, tenant_id, template_name):
-        # テナント固有のロゴ、カラー、フッター
-        tenant = db.query(Tenant).get(tenant_id)
-        return {
-            "logo_url": tenant.logo_url,
-            "primary_color": tenant.brand_color,
-            "from_name": tenant.company_name,
-        }
-```
-
-### 5. 配信スケジューリング
+### 4. 配信スケジューリング
 
 ```python
 class ScheduledEmailService:
@@ -294,7 +323,7 @@ class ScheduledEmailService:
         db.add(task)
 ```
 
-### 6. A/Bテスト
+### 5. A/Bテスト
 
 ```python
 def send_with_ab_test(to_email, template_variant):
@@ -311,7 +340,11 @@ def send_with_ab_test(to_email, template_variant):
 
 | ファイル | 説明 |
 |---------|------|
-| `/backend/app/services/email_service.py` | EmailServiceクラス（322行） |
+| `/backend/app/services/email_service.py` | EmailServiceクラス（320行、Jinja2統合済み） |
+| `/backend/app/templates/emails/password_reset.html` | パスワードリセットHTMLテンプレート |
+| `/backend/app/templates/emails/welcome.html` | ウェルカムメールHTMLテンプレート |
+| `/backend/app/templates/emails/lead_notification.html` | リード通知HTMLテンプレート |
+| `/backend/requirements.txt` | Jinja2==3.1.4 依存関係追加 |
 
 ---
 
@@ -322,5 +355,5 @@ def send_with_ab_test(to_email, template_variant):
 
 ---
 
-**実装ステータス**: ✅ 完全実装済み（基本機能）
-**拡張機能**: ⏳ テンプレートエンジン、配信サービス統合、追跡機能は未実装
+**実装ステータス**: ✅ 完全実装済み（基本機能 + Jinja2テンプレートエンジン）
+**拡張機能**: ⏳ 配信サービス統合（SendGrid/AWS SES）、メール追跡、スケジューリング、A/Bテストは未実装
