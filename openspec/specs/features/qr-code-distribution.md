@@ -121,6 +121,44 @@ GET /api/v1/qr-codes/{qr_id}.png?size=512
 GET /api/v1/qr-codes/{qr_id}.svg
 ```
 
+### QRコードプレビュー（実装済み）
+
+```
+POST /api/v1/qr-codes/preview
+  Request:
+  {
+    "url": "https://app.diagnoleads.com/assessments/123?qr=abc123",
+    "color": "#1E40AF",
+    "size": 512
+  }
+
+  Response:
+  - Content-Type: image/png
+  - Binary PNG data
+  - Headers:
+    - Content-Disposition: inline; filename="qr-preview.png"
+    - Cache-Control: no-cache, no-store, must-revalidate
+
+  用途: QRコードを保存せずにプレビュー画像を生成。
+        作成フォームでのリアルタイムプレビューに使用。
+```
+
+### QRコードダウンロード（実装済み）
+
+```
+GET /api/v1/tenants/{tenant_id}/qr-codes/{qr_code_id}/download
+  Response:
+  - Content-Type: image/png
+  - Binary PNG data
+  - Headers:
+    - Content-Disposition: attachment; filename="qr_code_{name}.png"
+
+  用途: 既存のQRコードを現在のスタイル設定でPNG画像として
+        ダウンロード。オンザフライで再生成。
+
+  認証: 必須（テナント権限チェック）
+```
+
 ### 短縮URL→診断へのリダイレクト（実装済み）
 
 ```

@@ -69,6 +69,28 @@ class QRCodeUpdate(BaseModel):
     enabled: Optional[bool] = Field(None, description="Whether QR code is active")
 
 
+class QRCodePreviewRequest(BaseModel):
+    """Schema for previewing a QR code before creation."""
+
+    url: str = Field(
+        ...,
+        description="URL to encode in QR code",
+        max_length=2048,
+        examples=["https://app.diagnoleads.com/assessments/123?qr=abc123"],
+    )
+    color: Optional[str] = Field(
+        default="#1E40AF",
+        description="QR code color in hex format",
+        pattern="^#[0-9A-Fa-f]{6}$",
+    )
+    size: Optional[int] = Field(
+        default=512,
+        description="QR code size in pixels",
+        ge=256,
+        le=2048,
+    )
+
+
 class QRCodeResponse(BaseModel):
     """Schema for QR code response."""
 
