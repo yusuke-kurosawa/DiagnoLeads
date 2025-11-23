@@ -190,6 +190,42 @@ npm install
 npm run dev
 ```
 
+## 🔍 仕様検証（Spec-Driven Development）
+
+このプロジェクトでは、データベース整合性とOpenAPI仕様の品質を自動検証しています。
+
+### データベース整合性検証
+
+```bash
+cd backend
+# 外部キー、孤立レコード、制約をチェック
+python scripts/validate_database_integrity.py
+```
+
+### OpenAPI仕様検証
+
+```bash
+cd frontend
+# Spectralによる厳格な検証（Multi-tenant対応、命名規則など）
+npm run validate:openapi:strict
+
+# Breaking Change検出
+npm run openapi:diff
+
+# 包括的検証（型チェック + OpenAPI）
+npm run validate
+```
+
+### CI/CDでの自動検証
+
+PRを作成すると、以下が自動実行されます：
+- ✅ データベース整合性検証（Phase 1）
+- ✅ OpenAPI仕様検証（Phase 2）
+- ✅ Multi-tenant準拠チェック
+- ✅ Breaking Change検出
+
+詳細: [Spec-Driven Development サマリー](./SPEC_DRIVEN_DEVELOPMENT_SUMMARY.md)
+
 ## 📚 ドキュメント
 
 ### 開発者向けドキュメント（必読）

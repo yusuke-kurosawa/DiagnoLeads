@@ -496,6 +496,159 @@ describe('LeadCard', () => {
 
 ---
 
+## OpenAPI仕様のベストプラクティス
+
+DiagnoLeadsでは**Spectral**による厳格なOpenAPI検証を実施しています。
+
+### 必須ルール（エラーレベル）
+
+#### 1. Multi-tenant対応
+すべてのエンドポイントは `/api/v1/tenants/{tenant_id}/` を含む必要があります。
+
+**✅ 良い例**:
+```yaml
+/api/v1/tenants/{tenant_id}/leads:
+  get:
+    operationId: listLeads
+```
+
+**❌ 悪い例**:
+```yaml
+/api/v1/leads:  # tenant_id が含まれていない
+  get:
+    operationId: listLeads
+```
+
+**例外**: `/api/v1/health`, `/api/v1/auth`, `/api/v1/docs` は除外
+
+#### 2. operationId命名規則
+operationIdは **camelCase** で記述する必要があります。
+
+**✅ 良い例**:
+```yaml
+operationId: createLead
+operationId: getLeadById
+operationId: updateLeadStatus
+```
+
+**❌ 悪い例**:
+```yaml
+operationId: Create_Lead      # スネークケース
+operationId: CreateLead       # PascalCase
+operationId: create-lead      # ケバブケース
+```
+
+#### 3. レスポンススキーマ必須
+すべての成功レスポンス（2xx）にはスキーマ定義が必要です。
+
+**✅ 良い例**:
+```yaml
+responses:
+  200:
+    description: Success
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/Lead'
+```
+
+**❌ 悪い例**:
+```yaml
+responses:
+  200:
+    description: Success
+    # スキーマがない！
+```
+
+#### 4. セキュリティ要件必須
+すべての操作にセキュリティ定義が必要です（認証不要のエンドポイント以外）。
+
+**✅ 良い例**:
+```yaml
+/api/v1/tenants/{tenant_id}/leads:
+  get:
+    security:
+      - BearerAuth: []
+```
+
+### 推奨ルール（警告レベル）
+
+#### 1. エラーレスポンス形式
+エラーレスポンスは `ErrorResponse` スキーマを使用してください。
+
+**✅ 良い例**:
+```yaml
+responses:
+  400:
+    description: Bad Request
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ErrorResponse'
+```
+
+#### 2. パラメータ説明
+パスパラメータには説明を記載してください。
+
+**✅ 良い例**:
+```yaml
+parameters:
+  - name: tenant_id
+    in: path
+    required: true
+    description: テナントの一意識別子
+    schema:
+      type: string
+      format: uuid
+```
+
+#### 3. UUID フォーマット
+ID系パラメータは `format: uuid` を指定してください。
+
+**✅ 良い例**:
+```yaml
+parameters:
+  - name: lead_id
+    schema:
+      type: string
+      format: uuid
+```
+
+### 検証コマンド
+
+```bash
+cd frontend
+
+# Spectral厳格検証
+npm run validate:openapi:strict
+
+# Breaking Change検出
+npm run openapi:diff
+
+# 包括的検証
+npm run validate
+```
+
+### Breaking Changeポリシー
+
+以下の変更は**Breaking Change**とみなされます：
+- ✗ エンドポイントの削除
+- ✗ パスの変更
+- ✗ HTTPメソッドの変更
+- ✗ 必須パラメータの追加
+- ✗ レスポンス型の変更（string → number等）
+- ✗ Enumの値削除
+
+**Breaking Changeを含むPRの要件**:
+1. APIバージョンのメジャーバンプ
+2. 最低3ヶ月の非推奨期間
+3. クライアント移行ガイドの作成
+4. Tech Leadの承認
+
+詳細: [OpenAPI Validation Enhancement](./openspec/changes/openapi-validation-enhancement/proposal.md)
+
+---
+
 ## ドキュメントの更新
 
 コードを変更した場合、関連するドキュメントも更新してください：
