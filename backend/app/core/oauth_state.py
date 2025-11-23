@@ -5,10 +5,9 @@ Manages OAuth state tokens for CSRF protection during OAuth flows.
 """
 
 import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
-from datetime import datetime, timedelta, timezone
-
 
 # In-memory state store (for development)
 # TODO: Replace with Redis in production for horizontal scaling
@@ -90,9 +89,7 @@ def _cleanup_expired_states():
     This is called automatically during state generation.
     """
     now = datetime.now(timezone.utc)
-    expired_keys = [
-        key for key, (_, expires_at) in _state_store.items() if now > expires_at
-    ]
+    expired_keys = [key for key, (_, expires_at) in _state_store.items() if now > expires_at]
 
     for key in expired_keys:
         del _state_store[key]

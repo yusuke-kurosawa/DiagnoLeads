@@ -4,15 +4,16 @@ CRM Integration Models
 Database models for CRM integrations (Salesforce, HubSpot).
 """
 
-from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Text, JSON, ForeignKey, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
-from sqlalchemy.orm import relationship
 import uuid
-from cryptography.fernet import Fernet
+from datetime import datetime, timezone
 
-from app.models.base import Base
+from cryptography.fernet import Fernet
+from sqlalchemy import JSON, Boolean, Column, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
+from sqlalchemy.orm import relationship
+
 from app.core.config import settings
+from app.models.base import Base
 
 
 class CRMIntegration(Base):
@@ -49,16 +50,16 @@ class CRMIntegration(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     tenant = relationship("Tenant", back_populates="crm_integration")
     sync_logs = relationship("CRMSyncLog", back_populates="integration", cascade="all, delete-orphan")
 
     # Constraints
-    __table_args__ = (
-        UniqueConstraint('tenant_id', name='uq_crm_integration_tenant'),
-    )
+    __table_args__ = (UniqueConstraint("tenant_id", name="uq_crm_integration_tenant"),)
 
     def _get_cipher(self) -> Fernet:
         """
@@ -156,7 +157,7 @@ class CRMSyncLog(Base):
     # Sync Details
     sync_type = Column(String(20), nullable=False)  # 'create', 'update', 'delete'
     direction = Column(String(20), nullable=False)  # 'to_crm', 'from_crm'
-    status = Column(String(20), nullable=False, default='pending')  # 'success', 'failed', 'pending'
+    status = Column(String(20), nullable=False, default="pending")  # 'success', 'failed', 'pending'
 
     # CRM Record Info
     crm_record_id = Column(String(255), nullable=True)  # Salesforce/HubSpot record ID

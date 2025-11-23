@@ -5,16 +5,16 @@ Manages CRM integrations and lead synchronization.
 """
 
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.integrations.crm.hubspot_client import HubSpotClient
+from app.integrations.crm.salesforce_client import SalesforceClient
 from app.models.crm_integration import CRMIntegration, CRMSyncLog
 from app.models.lead import Lead
-from app.integrations.crm.salesforce_client import SalesforceClient
-from app.integrations.crm.hubspot_client import HubSpotClient
 
 
 class CRMIntegrationService:
@@ -33,9 +33,7 @@ class CRMIntegrationService:
         Returns:
             CRMIntegration if exists, None otherwise
         """
-        result = await self.db.execute(
-            select(CRMIntegration).where(CRMIntegration.tenant_id == tenant_id)
-        )
+        result = await self.db.execute(select(CRMIntegration).where(CRMIntegration.tenant_id == tenant_id))
         return result.scalar_one_or_none()
 
     async def create_integration(
@@ -106,9 +104,7 @@ class CRMIntegrationService:
             raise ValueError("CRM integration not configured or disabled")
 
         # Get lead
-        result = await self.db.execute(
-            select(Lead).where(Lead.id == lead_id)
-        )
+        result = await self.db.execute(select(Lead).where(Lead.id == lead_id))
         lead = result.scalar_one_or_none()
         if not lead:
             raise ValueError(f"Lead {lead_id} not found")

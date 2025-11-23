@@ -4,12 +4,14 @@ Salesforce CRM Integration Client
 Implements Salesforce REST API integration for lead synchronization.
 """
 
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
+
 import httpx
-from typing import Dict, Any
-from datetime import datetime, timezone, timedelta
+
+from app.core.config import settings
 from app.integrations.crm.base import CRMClient
 from app.integrations.microsoft.retry_policy import with_retry
-from app.core.config import settings
 
 
 class SalesforceClient(CRMClient):

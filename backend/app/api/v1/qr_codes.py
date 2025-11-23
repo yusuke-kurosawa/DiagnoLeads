@@ -455,7 +455,7 @@ async def preview_qr_code(
         content=png_bytes,
         media_type="image/png",
         headers={
-            "Content-Disposition": f'inline; filename="qr-preview.png"',
+            "Content-Disposition": 'inline; filename="qr-preview.png"',
             "Cache-Control": "no-cache, no-store, must-revalidate",
         },
     )

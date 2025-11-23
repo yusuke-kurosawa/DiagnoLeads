@@ -4,16 +4,18 @@ CRM Integration API Endpoints
 Endpoints for managing CRM integrations (Salesforce, HubSpot).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.deps import get_db
 from app.core.oauth_state import generate_oauth_state, verify_oauth_state
 from app.services.crm_integration_service import CRMIntegrationService
-from app.core.deps import get_db
+
 # TODO: Import get_current_user dependency when authentication is ready
 # from app.core.deps import get_current_user
 # from app.models.user import User
@@ -167,8 +169,9 @@ async def salesforce_callback(
             )
 
         # Create temporary client for OAuth exchange
-        from app.integrations.crm.salesforce_client import SalesforceClient
         from uuid import uuid4
+
+        from app.integrations.crm.salesforce_client import SalesforceClient
 
         temp_client = SalesforceClient(uuid4(), {})
 
@@ -240,8 +243,9 @@ async def hubspot_callback(
             )
 
         # Create temporary client for OAuth exchange
-        from app.integrations.crm.hubspot_client import HubSpotClient
         from uuid import uuid4
+
+        from app.integrations.crm.hubspot_client import HubSpotClient
 
         temp_client = HubSpotClient(uuid4(), {})
 

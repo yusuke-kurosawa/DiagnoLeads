@@ -5,7 +5,7 @@ Abstract base class for CRM integrations (Salesforce, HubSpot).
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Any, Dict
 from uuid import UUID
 
 
