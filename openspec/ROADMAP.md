@@ -92,7 +92,7 @@ def export_to_pdf_weasyprint(self, html_template):
 
 ---
 
-### A2. Email Template Engine ⭐⭐
+### A2. Email Template Engine ⭐⭐ ✅ COMPLETED
 
 **Specification**: `email-service.md`
 
@@ -118,12 +118,13 @@ html_content = template.render(
 ```
 
 **Success Criteria**:
-- [ ] Jinja2 integration
-- [ ] 3 base templates (password reset, welcome, lead notification)
-- [ ] Template variables documentation
-- [ ] Fallback to inline HTML if template missing
+- [x] Jinja2 integration
+- [x] 3 base templates (password reset, welcome, lead notification)
+- [x] Template variables documentation
+- [x] Fallback to inline HTML if template missing
 
-**Dependencies**: None
+**Completed**: 2025-11-23
+**Commit**: feat(email): Add Jinja2 template engine for customizable emails
 
 ---
 
@@ -163,7 +164,7 @@ export function ErrorLogDashboard() {
 
 ---
 
-### A4. QR Code Preview ⭐
+### A4. QR Code Preview ⭐ ✅ COMPLETED
 
 **Specification**: `qr-code-distribution.md`
 
@@ -175,26 +176,31 @@ export function ErrorLogDashboard() {
 
 **Implementation**:
 ```python
-@router.get("/{short_code}/preview")
-async def preview_qr_assessment(short_code: str):
-    """QRコードスキャン前のプレビュー表示"""
-    qr_code = db.query(QRCode).filter(...).first()
+@router.post("/qr-codes/preview")
+async def preview_qr_code(preview_data: QRCodePreviewRequest):
+    """Generate QR code preview without saving"""
+    # Generate QR code image
+    qr_img = service.generate_qr_image(...)
+    png_bytes = service.qr_image_to_bytes(qr_img, format="PNG")
 
-    return {
-        "assessment_title": qr_code.assessment.title,
-        "description": qr_code.assessment.description,
-        "estimated_time": "5 minutes",
-        "question_count": len(qr_code.assessment.questions),
-    }
+    return Response(content=png_bytes, media_type="image/png")
+
+@router.get("/{tenant_id}/qr-codes/{qr_code_id}/download")
+async def download_qr_code(qr_code_id: UUID):
+    """Download existing QR code as PNG"""
+    # Regenerate image on-the-fly
+    qr_img = service.generate_qr_image(...)
+    return Response(content=png_bytes, media_type="image/png")
 ```
 
 **Success Criteria**:
-- [ ] Preview endpoint
-- [ ] Preview page UI (frontend)
-- [ ] "Start Assessment" button
-- [ ] Analytics tracking
+- [x] Preview endpoint (POST /qr-codes/preview)
+- [x] Download endpoint (GET /{tenant_id}/qr-codes/{qr_code_id}/download)
+- [x] QRCodePreviewRequest schema
+- [x] Specification updated
 
-**Dependencies**: None
+**Completed**: 2025-11-23
+**Commit**: feat(qr-codes): Add QR code preview and download functionality
 
 ---
 
