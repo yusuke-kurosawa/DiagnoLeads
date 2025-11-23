@@ -5,7 +5,7 @@ Provides tools to seed the database with initial data for development and testin
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -209,10 +209,11 @@ class DatabaseSeeder:
             logger.info(f"  ✅ Created assessment: {assessment_data['title']}")
 
         self.db.commit()
+
     def seed_questions(self, questions: List[Dict[str, Any]]):
         """Seed questions"""
         logger.info("❓ Seeding questions...")
-    
+
         for question_data in questions:
             # Check if question already exists
             result = self.db.execute(
@@ -220,11 +221,11 @@ class DatabaseSeeder:
                 {"id": question_data["id"]},
             )
             existing = result.fetchone()
-    
+
             if existing:
                 logger.info(f"  ⏭️  Question '{question_data['text'][:50]}...' already exists")
                 continue
-    
+
             # Insert question
             self.db.execute(
                 text(
@@ -244,14 +245,14 @@ class DatabaseSeeder:
                 },
             )
             logger.info(f"  ✅ Created question: {question_data['text'][:50]}...")
-    
+
         self.db.commit()
-    
-    
+
+
     def seed_question_options(self, options: List[Dict[str, Any]]):
         """Seed question options"""
         logger.info("📝 Seeding question options...")
-    
+
         for option_data in options:
             # Check if option already exists
             result = self.db.execute(
@@ -259,11 +260,11 @@ class DatabaseSeeder:
                 {"id": option_data["id"]},
             )
             existing = result.fetchone()
-    
+
             if existing:
                 logger.info(f"  ⏭️  Option '{option_data['text'][:30]}...' already exists")
                 continue
-    
+
             # Insert option
             self.db.execute(
                 text(
@@ -281,14 +282,14 @@ class DatabaseSeeder:
                 },
             )
             logger.info(f"  ✅ Created option: {option_data['text'][:30]}...")
-    
+
         self.db.commit()
-    
-    
+
+
     def seed_leads(self, leads: List[Dict[str, Any]]):
         """Seed leads"""
         logger.info("🎯 Seeding leads...")
-    
+
         for lead_data in leads:
             # Check if lead already exists
             result = self.db.execute(
@@ -296,11 +297,11 @@ class DatabaseSeeder:
                 {"email": lead_data["email"], "tenant_id": lead_data["tenant_id"]},
             )
             existing = result.fetchone()
-    
+
             if existing:
                 logger.info(f"  ⏭️  Lead '{lead_data['email']}' already exists")
                 continue
-    
+
             # Insert lead
             self.db.execute(
                 text(
