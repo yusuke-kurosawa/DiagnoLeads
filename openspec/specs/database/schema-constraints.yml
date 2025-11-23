@@ -1,0 +1,300 @@
+version: "1.0"
+database: diagnoleads
+description: "DiagnoLeads データベーススキーマ制約定義"
+
+# ====================
+# 外部キー制約ルール
+# ====================
+foreign_key_rules:
+  
+  # CASCADE: 親が削除されたら子も削除
+  cascade_deletes:
+    - parent: tenants
+      children:
+        - users
+        - assessments
+        - leads
+        - qr_codes
+        - audit_logs
+        - google_analytics_integrations
+        - topics
+        - industries
+        - reports
+        - error_logs
+      reason: "テナント削除時はすべての関連データを完全削除（データ分離の保証）"
+    
+    - parent: assessments
+      children:
+        - questions
+        - responses
+        - qr_codes
+      reason: "アセスメント削除時は質問・回答・QRコードも削除"
+    
+    - parent: questions
+      children:
+        - question_options
+        - answers
+      reason: "質問削除時は選択肢・回答も削除"
+    
+    - parent: responses
+      children:
+        - answers
+      reason: "回答削除時は個別回答（Answers）も削除"
+    
+    - parent: qr_codes
+      children:
+        - qr_code_scans
+      reason: "QRコード削除時はスキャン履歴も削除"
+  
+  # SET NULL: 親が削除されても子は残す（匿名化・履歴保持）
+  set_null_on_delete:
+    - parent: users
+      children:
+        - leads.created_by
+        - leads.updated_by
+        - leads.assigned_to
+        - reports.created_by
+        - error_logs.user_id
+        - ai_usage.user_id
+      reason: "ユーザー削除後も記録は保持（匿名化）。誰が作成したかの履歴より、データの存在が重要"
+    
+    - parent: responses
+      children:
+        - leads.response_id
+      reason: "回答削除後もリードは保持。リードは独立したエンティティとして管理"
+    
+    - parent: leads
+      children:
+        - qr_code_scans.lead_id
+        - ai_usage.lead_id
+      reason: "リード削除後もスキャン履歴・AI利用履歴は分析用に保持"
+    
+    - parent: assessments
+      children:
+        - ai_usage.assessment_id
+      reason: "アセスメント削除後もAI利用履歴は保持（利用統計分析用）"
+  
+  # RESTRICT: 子が存在する場合は親を削除できない
+  restrict_deletes:
+    # 将来的に追加予定（例: アクティブなサブスクリプション）
+    # - parent: tenants
+    #   children:
+    #     - subscriptions
+    #   reason: "アクティブなサブスクリプションがある場合はテナント削除不可"
+
+# ====================
+# 一意制約
+# ====================
+unique_constraints:
+  - table: users
+    columns: [email]
+    scope: global
+    reason: "メールアドレスはシステム全体で一意。ログイン認証に使用"
+  
+  - table: assessments
+    columns: [tenant_id, slug]
+    scope: tenant
+    reason: "テナント内でスラッグは一意。URL生成に使用"
+  
+  - table: qr_codes
+    columns: [code]
+    scope: global
+    reason: "QRコードは全体で一意。スキャン時の識別に使用"
+  
+  - table: topics
+    columns: [tenant_id, name]
+    scope: tenant
+    reason: "テナント内でトピック名は一意"
+  
+  - table: industries
+    columns: [tenant_id, name]
+    scope: tenant
+    reason: "テナント内で業界名は一意"
+
+# ====================
+# チェック制約
+# ====================
+check_constraints:
+  - table: leads
+    constraint: score_range
+    expression: "score >= 0 AND score <= 100"
+    reason: "スコアは0-100の範囲。パーセンテージとして扱う"
+  
+  - table: assessments
+    constraint: valid_status
+    expression: "status IN ('draft', 'published', 'archived')"
+    reason: "定義されたステータスのみ許可"
+  
+  - table: users
+    constraint: valid_role
+    expression: "role IN ('admin', 'member', 'viewer')"
+    reason: "定義された役割のみ許可"
+  
+  - table: qr_code_scans
+    constraint: valid_scanned_at
+    expression: "scanned_at <= NOW()"
+    reason: "スキャン時刻は未来の日時ではない"
+  
+  - table: leads
+    constraint: valid_status
+    expression: "status IN ('new', 'contacted', 'qualified', 'converted', 'lost')"
+    reason: "定義されたリードステータスのみ許可"
+
+# ====================
+# インデックス戦略
+# ====================
+indexes:
+  # パフォーマンス最適化用インデックス
+  performance:
+    - table: leads
+      columns: [tenant_id, created_at]
+      type: btree
+      reason: "テナント別の最新リード取得（一覧表示で頻繁に使用）"
+    
+    - table: leads
+      columns: [tenant_id, status]
+      type: btree
+      reason: "ステータス別のリードフィルタリング"
+    
+    - table: responses
+      columns: [assessment_id, created_at]
+      type: btree
+      reason: "アセスメント別の回答取得（時系列分析）"
+    
+    - table: answers
+      columns: [response_id, question_id]
+      type: btree
+      reason: "回答内容の高速検索"
+    
+    - table: qr_code_scans
+      columns: [qr_code_id, scanned_at]
+      type: btree
+      reason: "QRコードのスキャン履歴分析"
+    
+    - table: audit_logs
+      columns: [tenant_id, created_at]
+      type: btree
+      reason: "監査ログの時系列検索"
+    
+    - table: error_logs
+      columns: [tenant_id, created_at]
+      type: btree
+      reason: "エラーログの時系列検索とフィルタリング"
+    
+    - table: assessments
+      columns: [tenant_id, status]
+      type: btree
+      reason: "ステータス別のアセスメントフィルタリング"
+  
+  # 一意性保証用インデックス
+  uniqueness:
+    - table: users
+      columns: [email]
+      type: unique
+      reason: "メールアドレスの一意性保証"
+    
+    - table: qr_codes
+      columns: [code]
+      type: unique
+      reason: "QRコードの一意性保証"
+    
+    - table: assessments
+      columns: [tenant_id, slug]
+      type: unique
+      reason: "テナント内でのスラッグ一意性保証"
+
+# ====================
+# データ型の標準化
+# ====================
+data_types:
+  id_fields:
+    type: UUID
+    reason: "すべてのIDフィールドはUUIDv4を使用。セキュリティとスケーラビリティ"
+  
+  timestamp_fields:
+    type: TIMESTAMP WITH TIME ZONE
+    reason: "タイムゾーンを含む日時。グローバル対応"
+  
+  text_fields:
+    short: VARCHAR(255)
+    medium: VARCHAR(1000)
+    long: TEXT
+    reason: "用途に応じた適切な長さ制限"
+  
+  boolean_fields:
+    type: BOOLEAN
+    default: false
+    reason: "明示的なデフォルト値でNULL回避"
+
+# ====================
+# 命名規則
+# ====================
+naming_conventions:
+  tables: snake_case_plural
+  columns: snake_case
+  indexes: "idx_{table}_{columns}"
+  foreign_keys: "fk_{table}_{referenced_table}"
+  unique_constraints: "uq_{table}_{columns}"
+  check_constraints: "ck_{table}_{constraint_name}"
+
+# ====================
+# Multi-Tenant分離戦略
+# ====================
+multi_tenant_isolation:
+  strategy: "Row-Level Security (RLS) + Application-Level"
+  
+  mandatory_tenant_id:
+    - users
+    - assessments
+    - leads
+    - questions
+    - responses
+    - qr_codes
+    - audit_logs
+    - topics
+    - industries
+    - reports
+    - error_logs
+  
+  rls_policies:
+    - policy: tenant_isolation_policy
+      apply_to: all_tables_with_tenant_id
+      rule: "tenant_id = current_setting('app.current_tenant_id')::uuid"
+      reason: "PostgreSQL Row-Level Securityでデータ分離を強制"
+
+# ====================
+# 監査とコンプライアンス
+# ====================
+audit_requirements:
+  created_at:
+    type: TIMESTAMP WITH TIME ZONE
+    nullable: false
+    default: NOW()
+    tables: all
+    reason: "すべてのレコードに作成日時を記録"
+  
+  updated_at:
+    type: TIMESTAMP WITH TIME ZONE
+    nullable: true
+    default: NOW()
+    tables: 
+      - users
+      - assessments
+      - leads
+      - questions
+    reason: "更新可能なレコードには更新日時を記録"
+  
+  created_by:
+    type: UUID
+    nullable: true  # システム生成の場合はNULL
+    foreign_key: users.id
+    ondelete: SET NULL
+    tables:
+      - assessments
+      - leads
+      - reports
+    reason: "作成者を記録（匿名化可能）"
+  
+  audit_log_retention:
+    period: 7_years
+    reason: "コンプライアンス要件（GDPR等）"

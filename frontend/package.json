@@ -16,7 +16,10 @@
     "type-check": "tsc --noEmit",
     "generate:types": "openapi-typescript ../openapi.json -o src/types/api.generated.ts",
     "validate:openapi": "npx @redocly/cli lint ../openapi.json --skip-rule=no-path-trailing-slash --skip-rule=security-defined",
-    "openapi:bundle": "npx @redocly/cli bundle ../openapi.json -o ../openapi.bundle.json --config=../.redocly.yaml"
+    "validate:openapi:strict": "spectral lint ../openapi.json",
+    "openapi:diff": "oasdiff breaking <(git show main:../openapi.json) ../openapi.json",
+    "openapi:bundle": "npx @redocly/cli bundle ../openapi.json -o ../openapi.bundle.json --config=../.redocly.yaml",
+    "validate": "npm run type-check && npm run validate:openapi:strict"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
