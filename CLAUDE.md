@@ -59,7 +59,7 @@ DiagnoLeads/
 │   ├── tests/
 │   └── requirements.txt
 │
-├── frontend/                          # React + Vite
+├── frontend/                          # React Router - 管理画面
 │   ├── src/
 │   │   ├── features/                  # 機能ベースの構造
 │   │   │   ├── assessments/
@@ -68,12 +68,38 @@ DiagnoLeads/
 │   │   ├── components/                # 共通UIコンポーネント
 │   │   ├── stores/                    # Zustand状態管理
 │   │   └── lib/                       # ユーティリティ、API
+│   ├── test/
+│   │   ├── setup.ts                   # Vitestセットアップ
+│   │   └── e2e/                       # Playwrightテスト
+│   ├── vitest.config.ts
+│   ├── playwright.config.ts
+│   └── package.json
+│
+├── marketing/                         # Next.js - マーケティング・公開ページ（将来実装）
+│   ├── app/
+│   │   ├── page.tsx                   # ランディングページ
+│   │   ├── pricing/page.tsx           # 料金ページ
+│   │   ├── assessments/
+│   │   │   └── [slug]/page.tsx        # 公開診断（SEO最適化）
+│   │   ├── embed/
+│   │   │   └── [assessmentId]/page.tsx # 埋め込みプレビュー
+│   │   ├── api/
+│   │   │   └── embed/route.ts         # ウィジェット配信API
+│   │   └── components/
+│   ├── test/
+│   │   └── e2e/                       # Playwrightテスト
+│   ├── vitest.config.ts
+│   ├── playwright.config.ts
 │   └── package.json
 │
 ├── embed/                             # 埋め込みウィジェット
 │   └── ...
 │
 └── docs/                              # ドキュメント
+    ├── frontend/
+    │   ├── NUQS_GUIDE.md              # nuqs導入ガイド
+    │   └── TEST_STRATEGY.md           # テスト戦略
+    └── backend/
 ```
 
 ### マルチテナントアーキテクチャ
@@ -118,15 +144,27 @@ DiagnoLeads/
 - **非同期ジョブ**: Trigger.dev (無料枠)
 - **ホスティング**: Railway (無料枠 → $5/月)
 
-### フロントエンド
+### フロントエンド（管理画面 - frontend/）
 - **言語**: TypeScript
-- **フレームワーク**: React 18 + Vite
-- **状態管理**: Zustand (軽量) + TanStack Query (サーバー状態)
-- **ルーティング**: React Router 6
+- **フレームワーク**: React 19 + Vite
+- **ルーティング**: React Router 7
+- **状態管理**: Zustand + TanStack Query + nuqs
 - **UIライブラリ**: Tailwind CSS + shadcn/ui
 - **フォーム**: React Hook Form + Zod
 - **データ可視化**: Recharts
-- **ホスティング**: Vercel (無料枠)
+- **テスト**: Vitest + Testing Library + Playwright
+- **ホスティング**: Vercel（`app.diagnoleads.com`）
+
+### マーケティング・公開ページ（marketing/ - 将来実装）
+- **言語**: TypeScript
+- **フレームワーク**: Next.js 15（App Router）
+- **レンダリング**: Server Components + Client Components
+- **状態管理**: Server State + nuqs
+- **UIライブラリ**: Tailwind CSS + shadcn/ui
+- **フォーム**: Server Actions + React Hook Form
+- **テスト**: Vitest + Testing Library + Playwright
+- **SEO**: 動的メタタグ、OGP、構造化データ
+- **ホスティング**: Vercel（`diagnoleads.com`）
 
 ### AI機能
 - **プロバイダー**: Anthropic Claude API
@@ -533,20 +571,52 @@ class AssessmentGenerator:
 
 ## テストの方針
 
+### 統一テスト戦略
+
+**全フロントエンドプロジェクト（frontend/ と marketing/）で統一:**
+```json
+{
+  "ユニット・統合テスト": "Vitest + Testing Library",
+  "E2Eテスト": "Playwright",
+  "ビジュアルリグレッション": "Playwright + Percy（オプション）"
+}
+```
+
 ### バックエンド
-- **単体テスト**: サービス層のビジネスロジック
+- **単体テスト**: サービス層のビジネスロジック（pytest）
 - **統合テスト**: API エンドポイント（テナント分離の検証を含む）
 - **E2Eテスト**: 診断作成から埋め込み、リード獲得までのフロー
 
-### フロントエンド
-- **単体テスト**: コンポーネント、状態管理、ユーティリティ関数
-- **統合テスト**: ページ単位の動作
-- **E2Eテスト**: Playwright / Cypress によるユーザーフロー検証
+### フロントエンド（frontend/ - React Router）
+- **ユニット・統合テスト**: Vitest + Testing Library
+  - コンポーネントテスト
+  - 状態管理テスト（Zustand、TanStack Query）
+  - ユーティリティ関数テスト
+  - カスタムフックテスト
+- **E2Eテスト**: Playwright
+  - ユーザーフローの検証
+  - 認証フロー
+  - クロスブラウザテスト（Chrome、Firefox、Safari）
+
+### マーケティング・公開ページ（marketing/ - Next.js）
+- **ユニット・統合テスト**: Vitest + Testing Library
+  - サーバーコンポーネントテスト
+  - クライアントコンポーネントテスト
+  - Server Actionsテスト
+  - ユーティリティ関数テスト
+- **E2Eテスト**: Playwright
+  - 公開診断ページのフロー
+  - 埋め込みウィジェットのテスト
+  - SEO要素の検証（メタタグ、OGP）
+  - パフォーマンステスト
+- **ビジュアルリグレッション**: Playwright + Percy（オプション）
+  - UIの意図しない変更を検出
+  - レスポンシブデザインの検証
 
 ### カバレッジ目標
 - バックエンド: 80%以上
 - フロントエンド: 70%以上
-- クリティカルパス（認証、テナント分離、スコアリング）: 100%
+- クリティカルパス（認証、テナント分離、スコアリング、決済）: 100%
 
 ### テスト実装のベストプラクティス
 
@@ -791,6 +861,7 @@ DEBUG=True
 - [Anthropic Claude API](https://docs.anthropic.com/)
 - [PostgreSQL Multi-Tenancy](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
 - [TanStack Query](https://tanstack.com/query/latest)
+- [nuqs - Type-safe search params](https://nuqs.dev/) - URL検索パラメータの型安全な管理（[導入ガイド](docs/frontend/NUQS_GUIDE.md)）
 - [shadcn/ui](https://ui.shadcn.com/)
 
 ### セキュリティ
