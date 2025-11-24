@@ -248,7 +248,6 @@ class DatabaseSeeder:
 
         self.db.commit()
 
-
     def seed_question_options(self, options: List[Dict[str, Any]]):
         """Seed question options"""
         logger.info("📝 Seeding question options...")
@@ -284,7 +283,6 @@ class DatabaseSeeder:
             logger.info(f"  ✅ Created option: {option_data['text'][:30]}...")
 
         self.db.commit()
-
 
     def seed_leads(self, leads: List[Dict[str, Any]]):
         """Seed leads"""
@@ -336,7 +334,6 @@ class DatabaseSeeder:
 
         self.db.commit()
 
-
     def seed_topics(self, topics: List[Dict[str, Any]]):
         """Seed topics"""
         logger.info("🏷️  Seeding topics...")
@@ -376,7 +373,6 @@ class DatabaseSeeder:
             logger.info(f"  ✅ Created topic: {topic_data['name']}")
 
         self.db.commit()
-
 
     def seed_industries(self, industries: List[Dict[str, Any]]):
         """Seed industries"""
