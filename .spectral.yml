@@ -1,0 +1,157 @@
+extends: [[spectral:oas, all]]
+
+rules:
+  # ====================
+  # 必須フィールド
+  # ====================
+  operation-operationId: error
+  operation-tags: error
+  operation-description: warn
+  operation-summary: error
+  
+  # ====================
+  # セキュリティ
+  # ====================
+  oas3-api-servers: error
+  
+  # ====================
+  # カスタムルール
+  # ====================
+  
+  # Multi-tenant対応の検証
+  multi-tenant-path:
+    description: "All API paths must include tenant_id parameter for multi-tenant isolation"
+    message: "Path must include /tenants/{tenant_id}/ for proper tenant isolation"
+    given: "$.paths[*]~"
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        match: "/api/v1/tenants/\\{tenant_id\\}/"
+  
+  # operationIdの命名規則（camelCase）
+  operation-id-naming:
+    description: "operationId must follow camelCase naming convention"
+    message: "operationId '{{value}}' must be camelCase (e.g., createAssessment, getLeadById)"
+    given: "$.paths[*][*].operationId"
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[a-z][a-zA-Z0-9]*$"
+  
+  # レスポンススキーマ必須（2xx）
+  response-schema-required:
+    description: "All success responses (2xx) must have a schema definition"
+    message: "Response {{property}} must include a schema in content/application/json"
+    given: "$.paths[*][*].responses[2??].content.application~json"
+    severity: error
+    then:
+      field: schema
+      function: truthy
+  
+  # エラーレスポンスの標準化
+  error-response-format:
+    description: "Error responses (4xx, 5xx) should use ErrorResponse schema"
+    message: "Error response should reference #/components/schemas/ErrorResponse"
+    given: "$.paths[*][*].responses[4??,5??].content.application~json.schema.$ref"
+    severity: warn
+    then:
+      function: pattern
+      functionOptions:
+        match: "#/components/schemas/ErrorResponse"
+  
+  # リクエストボディのスキーマ必須
+  request-body-schema-required:
+    description: "Request body must have a schema for POST/PUT/PATCH operations"
+    message: "Request body must include a schema definition"
+    given: "$.paths[*][post,put,patch].requestBody.content.application~json"
+    severity: error
+    then:
+      field: schema
+      function: truthy
+  
+  # パスパラメータの説明必須
+  path-parameter-description:
+    description: "Path parameters must have descriptions"
+    message: "Parameter '{{value}}' must have a description"
+    given: "$.paths[*][*].parameters[?(@.in == 'path')]"
+    severity: warn
+    then:
+      field: description
+      function: truthy
+  
+  # UUIDフォーマットの強制
+  uuid-format-required:
+    description: "ID parameters should use UUID format"
+    message: "Parameter '{{value}}' should have format: uuid"
+    given: "$.paths[*][*].parameters[?(@.name =~ /.*_id$/)].schema"
+    severity: warn
+    then:
+      field: format
+      function: pattern
+      functionOptions:
+        match: "uuid"
+  
+  # ページネーションパラメータの標準化
+  pagination-parameters:
+    description: "Pagination should use skip and limit parameters"
+    message: "Use 'skip' and 'limit' for pagination instead of page/per_page"
+    given: "$.paths[*][get].parameters[?(@.name =~ /page|per_page/)]"
+    severity: warn
+    then:
+      function: undefined
+  
+  # レスポンスの一貫性
+  list-response-structure:
+    description: "List endpoints should return consistent structure with items and total"
+    message: "List response should have 'items' array and 'total' count"
+    given: "$.paths[*][get].responses[200].content.application~json.schema.properties"
+    severity: warn
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: ["items"]
+  
+  # セキュリティ定義の必須化
+  security-defined:
+    description: "All operations must have security requirements"
+    message: "Operation must have security requirements defined"
+    given: "$.paths[*][*]"
+    severity: error
+    then:
+      field: security
+      function: truthy
+  
+  # タグの必須化と一貫性
+  operation-tag-defined:
+    description: "Operations must have at least one tag"
+    message: "Operation must have at least one tag for documentation organization"
+    given: "$.paths[*][*]"
+    severity: error
+    then:
+      field: tags
+      function: truthy
+  
+  # デフォルトレスポンスの推奨
+  default-response-recommended:
+    description: "Consider adding a default response for unexpected errors"
+    message: "Adding a 'default' response is recommended for robustness"
+    given: "$.paths[*][*].responses"
+    severity: hint
+    then:
+      field: default
+      function: truthy
+
+# ====================
+# 無効化するルール
+# ====================
+# （プロジェクト固有の理由で無効化する場合）
+
+# パス末尾のスラッシュは許容
+no-$ref-siblings: warn
+
+# 複数のサーバー定義は開発・本番で使用
+oas3-valid-server-url: warn

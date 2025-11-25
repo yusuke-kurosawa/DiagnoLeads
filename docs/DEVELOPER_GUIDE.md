@@ -646,6 +646,221 @@ SECRET_KEY=生成されたキー
 
 ---
 
+## Spectralによる仕様検証
+
+DiagnoLeadsでは、**Spectral**を使用してOpenAPI仕様の品質を自動検証しています。
+
+### Spectralのインストール
+
+```bash
+# グローバルインストール
+npm install -g @stoplight/spectral-cli
+
+# インストール確認
+spectral --version
+```
+
+### 検証コマンド
+
+#### 基本的な検証
+
+```bash
+cd /path/to/DiagnoLeads
+
+# OpenAPI仕様を検証
+spectral lint openapi.json
+```
+
+#### フロントエンドからの実行
+
+```bash
+cd frontend
+
+# Spectral厳格検証（推奨）
+npm run validate:openapi:strict
+
+# Breaking Change検出
+npm run openapi:diff
+
+# 包括的検証（型チェック + OpenAPI）
+npm run validate
+```
+
+### Spectralルールの概要
+
+#### エラーレベル（マージブロック）
+
+| ルール | 説明 | 例 |
+|--------|------|-----|
+| `multi-tenant-path` | すべてのパスに `/tenants/{tenant_id}/` を含む | ✅ `/api/v1/tenants/{tenant_id}/leads` |
+| `operation-id-naming` | operationIdはcamelCase | ✅ `createLead` ❌ `Create_Lead` |
+| `operation-id-required` | すべての操作にoperationId必須 | - |
+| `response-schema-required` | 成功レスポンスにスキーマ必須 | - |
+| `security-required` | すべての操作にセキュリティ要件必須 | - |
+| `tag-required` | すべての操作にタグ必須 | - |
+
+#### 警告レベル（修正推奨）
+
+| ルール | 説明 |
+|--------|------|
+| `error-response-format` | ErrorResponseスキーマの使用 |
+| `path-parameter-description` | パラメータ説明の記載 |
+| `uuid-format` | ID系パラメータはUUIDフォーマット |
+| `list-response-structure` | リストレスポンスにitemsとtotal |
+
+### Spectralエラーの修正例
+
+#### エラー1: Multi-tenant対応漏れ
+
+**エラーメッセージ**:
+```
+multi-tenant-path: Path '/api/v1/leads' must include /tenants/{tenant_id}/
+```
+
+**修正**:
+```yaml
+# 修正前
+/api/v1/leads:
+  get:
+    operationId: listLeads
+
+# 修正後
+/api/v1/tenants/{tenant_id}/leads:
+  get:
+    operationId: listLeads
+```
+
+#### エラー2: operationId命名規則違反
+
+**エラーメッセージ**:
+```
+operation-id-naming: operationId 'Create_Lead' must be camelCase
+```
+
+**修正**:
+```yaml
+# 修正前
+operationId: Create_Lead
+
+# 修正後
+operationId: createLead
+```
+
+#### エラー3: レスポンススキーマ欠落
+
+**エラーメッセージ**:
+```
+response-schema-required: Success response (2xx) must have a schema
+```
+
+**修正**:
+```yaml
+# 修正前
+responses:
+  200:
+    description: Success
+
+# 修正後
+responses:
+  200:
+    description: Success
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/Lead'
+```
+
+### Breaking Change検出
+
+#### oasdiffのインストール
+
+```bash
+# 方法1: npm
+npm install -g oasdiff
+
+# 方法2: Homebrew (macOS)
+brew install oasdiff
+
+# 確認
+oasdiff version
+```
+
+#### Breaking Changeのチェック
+
+```bash
+cd frontend
+
+# mainブランチとの差分を確認
+npm run openapi:diff
+
+# 手動実行
+oasdiff breaking <(git show main:../openapi.json) ../openapi.json
+```
+
+#### Breaking Changeの例
+
+**Breaking Change（マージ注意）**:
+```
+- エンドポイントの削除
+- パスの変更
+- HTTPメソッドの変更
+- 必須パラメータの追加
+- レスポンス型の変更（string → number等）
+- Enumの値削除
+```
+
+**Non-Breaking Change（安全）**:
+```
+- 新しいエンドポイントの追加
+- オプショナルパラメータの追加
+- レスポンスフィールドの追加
+- Enumの値追加
+```
+
+### CI/CDでの自動検証
+
+PRを作成すると、以下が自動実行されます：
+
+1. **Spectral検証** - OpenAPI仕様の品質チェック
+2. **oasdiff検証** - Breaking Change検出
+3. **Multi-tenant準拠チェック** - すべてのパスに`tenant_id`があるか
+4. **スキーマ制約チェック** - データベース制約との整合性
+
+詳細: [`.github/workflows/spec-validation.yml`](../.github/workflows/spec-validation.yml)
+
+### トラブルシューティング
+
+#### エラー: Spectral not found
+
+```bash
+# Spectral CLIをインストール
+npm install -g @stoplight/spectral-cli
+
+# パスを確認
+which spectral
+```
+
+#### エラー: oasdiff not found
+
+```bash
+# oasdiffをインストール
+npm install -g oasdiff
+# または
+brew install oasdiff
+```
+
+#### 警告が多すぎる場合
+
+既存のOpenAPI仕様に多数の警告が出る場合は、段階的に修正してください：
+
+1. **エラーレベルから修正** - マージブロックを解除
+2. **警告レベルを修正** - 品質向上
+3. **ヒントレベルを確認** - ベストプラクティス適用
+
+詳細: [OpenAPI Validation Enhancement Proposal](../openspec/changes/openapi-validation-enhancement/proposal.md)
+
+---
+
 ## 追加リソース
 
 ### 内部ドキュメント

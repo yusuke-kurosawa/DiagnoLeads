@@ -1,0 +1,310 @@
+name: OpenAPI Specification Validation
+
+on:
+  pull_request:
+    paths:
+      - 'openapi.json'
+      - 'openspec/**'
+      - '.spectral.yml'
+      - 'backend/app/models/**'
+      - 'frontend/src/schemas/**'
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-openapi:
+    name: Validate OpenAPI Specification
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for oasdiff to compare with base branch
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install Spectral CLI
+        run: npm install -g @stoplight/spectral-cli
+      
+      - name: Install oasdiff
+        run: npm install -g oasdiff
+      
+      - name: Validate OpenSpec structure
+        run: |
+          echo "::group::Validating OpenSpec directory structure"
+          
+          # Check required directories exist
+          REQUIRED_DIRS=(
+            "openspec/changes"
+            "openspec/specs"
+          )
+          
+          for dir in "${REQUIRED_DIRS[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "::error::Required directory $dir not found"
+              exit 1
+            fi
+          done
+          
+          # Check OpenAPI file exists
+          if [ ! -f "openapi.json" ]; then
+            echo "::error::openapi.json not found in root directory"
+            exit 1
+          fi
+          
+          echo "✅ OpenSpec structure validated successfully"
+          echo "::endgroup::"
+      
+      - name: Run Spectral validation
+        id: spectral
+        run: |
+          echo "::group::Running Spectral OpenAPI validation"
+          
+          # Run Spectral and capture output
+          if spectral lint openapi.json --format stylish > spectral-output.txt 2>&1; then
+            SPECTRAL_EXIT=0
+          else
+            SPECTRAL_EXIT=$?
+          fi
+          
+          # Display results
+          cat spectral-output.txt
+          
+          # Count errors and warnings
+          ERRORS=$(grep -c "error" spectral-output.txt || echo "0")
+          WARNINGS=$(grep -c "warning" spectral-output.txt || echo "0")
+          
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+          
+          if [ $SPECTRAL_EXIT -ne 0 ]; then
+            echo "::error::Spectral validation failed with $ERRORS errors and $WARNINGS warnings"
+            exit 1
+          fi
+          
+          echo "✅ Spectral validation passed ($WARNINGS warnings)"
+          echo "::endgroup::"
+      
+      - name: Check for breaking changes
+        id: breaking-changes
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          echo "::group::Checking for breaking changes"
+          
+          # Fetch base branch OpenAPI spec
+          git fetch origin ${{ github.base_ref }}
+          
+          # Check if openapi.json exists in base branch
+          if ! git show origin/${{ github.base_ref }}:openapi.json > base-openapi.json 2>/dev/null; then
+            echo "⚠️  No openapi.json in base branch - skipping breaking change detection"
+            echo "breaking=false" >> $GITHUB_OUTPUT
+            echo "::endgroup::"
+            exit 0
+          fi
+          
+          # Run oasdiff
+          if oasdiff breaking base-openapi.json openapi.json --format text > oasdiff-output.txt 2>&1; then
+            echo "✅ No breaking changes detected"
+            echo "breaking=false" >> $GITHUB_OUTPUT
+          else
+            BREAKING_EXIT=$?
+            if [ $BREAKING_EXIT -eq 1 ]; then
+              echo "⚠️  Breaking changes detected:"
+              cat oasdiff-output.txt
+              echo "breaking=true" >> $GITHUB_OUTPUT
+            else
+              echo "::error::oasdiff failed with exit code $BREAKING_EXIT"
+              cat oasdiff-output.txt
+              exit $BREAKING_EXIT
+            fi
+          fi
+          
+          # Save breaking changes summary
+          if [ -f oasdiff-output.txt ]; then
+            cat oasdiff-output.txt > breaking-changes.txt
+          fi
+          
+          echo "::endgroup::"
+      
+      - name: Validate multi-tenant compliance
+        run: |
+          echo "::group::Validating multi-tenant compliance"
+          
+          # Check all paths include tenant_id (except health/auth endpoints)
+          python3 << 'EOF'
+          import json
+          import sys
+          
+          with open('openapi.json', 'r') as f:
+              spec = json.load(f)
+          
+          violations = []
+          allowed_prefixes = ['/api/v1/health', '/api/v1/auth', '/api/v1/docs']
+          
+          for path in spec.get('paths', {}):
+              # Skip allowed endpoints
+              if any(path.startswith(prefix) for prefix in allowed_prefixes):
+                  continue
+              
+              # Check if path contains tenant_id
+              if '{tenant_id}' not in path and '/tenants/' not in path:
+                  violations.append(path)
+          
+          if violations:
+              print(f"::error::Found {len(violations)} paths without tenant_id:")
+              for path in violations:
+                  print(f"  - {path}")
+              sys.exit(1)
+          else:
+              print("✅ All paths follow multi-tenant pattern")
+          EOF
+          
+          echo "::endgroup::"
+      
+      - name: Check schema constraints consistency
+        run: |
+          echo "::group::Checking schema constraints consistency"
+          
+          # Verify schema-constraints.yml exists and is valid YAML
+          if [ ! -f "openspec/specs/database/schema-constraints.yml" ]; then
+            echo "⚠️  schema-constraints.yml not found - skipping consistency check"
+            echo "::endgroup::"
+            exit 0
+          fi
+          
+          # Validate YAML syntax
+          python3 << 'EOF'
+          import yaml
+          import sys
+          
+          try:
+              with open('openspec/specs/database/schema-constraints.yml', 'r') as f:
+                  constraints = yaml.safe_load(f)
+              
+              # Check required sections exist
+              required_sections = ['foreign_key_rules', 'unique_constraints', 'check_constraints', 'indexes']
+              missing = [s for s in required_sections if s not in constraints]
+              
+              if missing:
+                  print(f"::error::Missing required sections: {', '.join(missing)}")
+                  sys.exit(1)
+              
+              print(f"✅ Schema constraints validated")
+              print(f"  - {len(constraints['foreign_key_rules'])} foreign key rules")
+              print(f"  - {len(constraints['unique_constraints'])} unique constraints")
+              print(f"  - {len(constraints['check_constraints'])} check constraints")
+              print(f"  - {len(constraints['indexes'])} indexes")
+              
+          except Exception as e:
+              print(f"::error::Failed to parse schema-constraints.yml: {e}")
+              sys.exit(1)
+          EOF
+          
+          echo "::endgroup::"
+      
+      - name: Generate validation summary
+        if: always()
+        run: |
+          echo "::group::Validation Summary"
+          
+          echo "## OpenAPI Validation Results" > validation-summary.md
+          echo "" >> validation-summary.md
+          
+          # Spectral results
+          if [ "${{ steps.spectral.outcome }}" = "success" ]; then
+            echo "✅ **Spectral Validation**: PASSED" >> validation-summary.md
+            echo "  - Errors: ${{ steps.spectral.outputs.errors || 0 }}" >> validation-summary.md
+            echo "  - Warnings: ${{ steps.spectral.outputs.warnings || 0 }}" >> validation-summary.md
+          else
+            echo "❌ **Spectral Validation**: FAILED" >> validation-summary.md
+            echo "  - Errors: ${{ steps.spectral.outputs.errors || 0 }}" >> validation-summary.md
+            echo "  - Warnings: ${{ steps.spectral.outputs.warnings || 0 }}" >> validation-summary.md
+          fi
+          echo "" >> validation-summary.md
+          
+          # Breaking changes
+          if [ "${{ steps.breaking-changes.outputs.breaking }}" = "true" ]; then
+            echo "⚠️  **Breaking Changes**: DETECTED" >> validation-summary.md
+            echo "" >> validation-summary.md
+            echo "\`\`\`" >> validation-summary.md
+            cat breaking-changes.txt >> validation-summary.md || echo "See workflow logs for details"
+            echo "\`\`\`" >> validation-summary.md
+            echo "" >> validation-summary.md
+            echo "**Action Required**:" >> validation-summary.md
+            echo "- Review breaking changes carefully" >> validation-summary.md
+            echo "- Update API version if needed" >> validation-summary.md
+            echo "- Provide migration guide for clients" >> validation-summary.md
+            echo "- Get approval from Tech Lead" >> validation-summary.md
+          else
+            echo "✅ **Breaking Changes**: None detected" >> validation-summary.md
+          fi
+          echo "" >> validation-summary.md
+          
+          # Display summary
+          cat validation-summary.md
+          echo "::endgroup::"
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read validation summary
+            let summary = '## 🔍 OpenAPI Validation Results\n\n';
+            
+            try {
+              if (fs.existsSync('validation-summary.md')) {
+                summary += fs.readFileSync('validation-summary.md', 'utf8');
+              }
+            } catch (err) {
+              summary += '⚠️  Could not read validation summary\n';
+            }
+            
+            // Add Spectral details if available
+            if (fs.existsSync('spectral-output.txt')) {
+              const spectralOutput = fs.readFileSync('spectral-output.txt', 'utf8');
+              if (spectralOutput.includes('error') || spectralOutput.includes('warning')) {
+                summary += '\n### Spectral Details\n\n```\n' + spectralOutput.slice(0, 2000) + '\n```\n';
+              }
+            }
+            
+            // Add footer
+            summary += '\n---\n';
+            summary += '*Validation performed by [OpenAPI Validation Workflow](.github/workflows/spec-validation.yml)*\n';
+            
+            // Post comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+      
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-validation-results
+          path: |
+            spectral-output.txt
+            oasdiff-output.txt
+            breaking-changes.txt
+            validation-summary.md
+          retention-days: 30
+      
+      - name: Fail if critical issues found
+        if: steps.spectral.outcome == 'failure'
+        run: |
+          echo "::error::OpenAPI validation failed - see details above"
+          exit 1
