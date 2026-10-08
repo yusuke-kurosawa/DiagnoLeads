@@ -131,11 +131,11 @@ export async function batchSet<T>(
  * Decorator-style caching for class methods
  */
 export function cached(options?: CacheOptions) {
-  return function (
+  return (
     _target: unknown,
     propertyKey: string,
     descriptor: PropertyDescriptor
-  ): PropertyDescriptor {
+  ): PropertyDescriptor => {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: unknown[]) {

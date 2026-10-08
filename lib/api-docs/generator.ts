@@ -6,12 +6,12 @@
 
 import type {
   OpenAPIObject,
-  PathItemObject,
   OperationObject,
+  PathItemObject,
   SchemaObject,
 } from 'openapi3-ts/oas30';
 import type { ApiEndpoint, ApiModule, DocConfig } from './types';
-import { DEFAULT_DOC_CONFIG, COMMON_SCHEMAS, API_TAGS } from './types';
+import { API_TAGS, COMMON_SCHEMAS, DEFAULT_DOC_CONFIG } from './types';
 
 /**
  * OpenAPI Generator class

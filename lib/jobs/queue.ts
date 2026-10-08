@@ -6,16 +6,16 @@
  */
 
 import type {
+  EnqueueOptions,
   Job,
   JobContext,
   JobDefinition,
   JobEvent,
   JobEventType,
   JobPriority,
+  JobQueueOptions,
   JobStats,
   JobStatus,
-  EnqueueOptions,
-  JobQueueOptions,
 } from './types';
 import { DEFAULT_JOB_CONFIG } from './types';
 

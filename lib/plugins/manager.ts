@@ -5,20 +5,20 @@
  */
 
 import { getEventBus } from '@/lib/events/bus';
-import type { EventType, EventHandler } from '@/lib/events/types';
+import type { EventHandler, EventType } from '@/lib/events/types';
 import type {
+  HookHandler,
+  HookType,
   Plugin,
   PluginContext,
   PluginInfo,
   PluginInstance,
   PluginLogger,
   PluginManagerConfig,
-  PluginRoute,
-  PluginStatus,
-  HookType,
-  HookHandler,
   PluginRequest,
   PluginResponse,
+  PluginRoute,
+  PluginStatus,
 } from './types';
 
 /**

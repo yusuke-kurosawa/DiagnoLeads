@@ -4,7 +4,7 @@ import { useCreateLead, useDeleteLead, useListLeads, useUpdateLead } from '@/hoo
 import { useOrganization } from '@/hooks/use-organization';
 import { useLocale, useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
-import { useMemo, useState, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

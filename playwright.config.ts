@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * DiagnoLeads v2 E2E Test Configuration
- * 
+ *
  * Run E2E tests: bun run test:e2e
  * Run with UI: bunx playwright test --ui
- * 
+ *
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
@@ -37,25 +37,27 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     // CI環境では主要ブラウザのみ
-    ...(process.env.CI ? [] : [
-      {
-        name: 'firefox',
-        use: { ...devices['Desktop Firefox'] },
-      },
-      {
-        name: 'webkit',
-        use: { ...devices['Desktop Safari'] },
-      },
-      // Mobile viewports
-      {
-        name: 'Mobile Chrome',
-        use: { ...devices['Pixel 5'] },
-      },
-      {
-        name: 'Mobile Safari',
-        use: { ...devices['iPhone 12'] },
-      },
-    ]),
+    ...(process.env.CI
+      ? []
+      : [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+          // Mobile viewports
+          {
+            name: 'Mobile Chrome',
+            use: { ...devices['Pixel 5'] },
+          },
+          {
+            name: 'Mobile Safari',
+            use: { ...devices['iPhone 12'] },
+          },
+        ]),
   ],
 
   webServer: {
