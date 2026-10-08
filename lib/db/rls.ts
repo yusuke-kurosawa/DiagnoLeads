@@ -28,12 +28,9 @@ export interface RLSContext {
  * すべてのクエリ実行前に呼び出す必要があります
  */
 export async function setCurrentUser(db: Database, userId: string | null) {
-  if (!userId) {
-    await db.execute(sql`SET LOCAL app.current_user_id = ''`);
-    return;
-  }
-
-  await db.execute(sql`SET LOCAL app.current_user_id = ${userId}`);
+  // SET does not accept bind parameters ("syntax error at or near $1"), so use
+  // set_config(..., is_local = true), which is the parameterizable equivalent of SET LOCAL
+  await db.execute(sql`SELECT set_config('app.current_user_id', ${userId ?? ''}, true)`);
 }
 
 /**
