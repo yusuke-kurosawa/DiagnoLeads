@@ -11,12 +11,12 @@ import {
 /**
  * Public routes that don't require authentication
  */
-const publicRoutes = ['/', '/api/auth'];
+const publicRoutes = ['/', '/api/auth', '/ax-diagnosis'];
 
 /**
  * API routes that should always be accessible
  */
-const publicApiRoutes = ['/api/auth', '/api/trpc'];
+const publicApiRoutes = ['/api/auth', '/api/trpc', '/api/diagnostics'];
 
 /**
  * Cache control headers for static assets
