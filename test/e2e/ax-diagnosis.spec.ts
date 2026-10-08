@@ -7,6 +7,11 @@ import { type Page, expect, test } from '@playwright/test';
  * with the drizzle migrations applied.
  */
 
+/** Submissions need a receiving organization; without it the API answers 503 */
+const canSubmit = Boolean(
+  process.env.AX_DIAGNOSIS_ORGANIZATION_ID || process.env.DEFAULT_ORGANIZATION_ID
+);
+
 const answerTypicalAs400 = async (page: Page) => {
   // Step 1: company
   await page.getByLabel('製造業').check();
@@ -75,6 +80,7 @@ test.describe('AX migration diagnosis', () => {
   });
 
   test('completes the diagnosis and requests a consultation from the result', async ({ page }) => {
+    test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');
     await page.goto('/ja/ax-diagnosis?utm_source=google&utm_medium=cpc&utm_campaign=ax-hito');
     await page.getByRole('button', { name: '診断をはじめる' }).click();
     await answerTypicalAs400(page);
@@ -106,6 +112,7 @@ test.describe('AX migration diagnosis', () => {
   test('shows the accepted message right away when consultation is checked in the form', async ({
     page,
   }) => {
+    test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');
     await page.goto('/ja/ax-diagnosis');
     await page.getByRole('button', { name: '診断をはじめる' }).click();
     await answerTypicalAs400(page);
