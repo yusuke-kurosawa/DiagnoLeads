@@ -294,7 +294,17 @@
     "yes": "Yes",
     "no": "No",
     "columns": "Columns",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "saving": "Saving...",
+    "weekdays": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    }
   },
   "pipeline": {
     "inflowSource": {
@@ -1308,18 +1318,6 @@
     "runSuccess": "Report is being generated",
     "runError": "Failed to run report",
     "deleteConfirm": "Are you sure you want to delete this report? This action cannot be undone."
-  },
-  "common": {
-    "weekdays": {
-      "sunday": "Sunday",
-      "monday": "Monday",
-      "tuesday": "Tuesday",
-      "wednesday": "Wednesday",
-      "thursday": "Thursday",
-      "friday": "Friday",
-      "saturday": "Saturday"
-    },
-    "saving": "Saving..."
   },
   "notifications": {
     "title": "Notifications",
