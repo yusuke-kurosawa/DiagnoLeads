@@ -306,6 +306,132 @@
       "saturday": "Saturday"
     }
   },
+  "axDiagnosis": {
+    "meta": {
+      "title": "AX Migration Core System Check",
+      "description": "A free self-check: answer 12 questions to see an estimate of your core-system migration difficulty and the challenges to tackle first."
+    },
+    "intro": {
+      "eyebrow": "Free self-check",
+      "headline": "Can your current core system support decisions in the AI era?",
+      "lead": "In about 5 minutes, see the risks of staying on a legacy system such as AS/400 and how a migration could look.",
+      "points": {
+        "time": "12 questions, about 5 minutes",
+        "difficulty": "Migration difficulty",
+        "challenge": "Top-priority challenge"
+      },
+      "start": "Start the check",
+      "note": "Your answers are used only to create the result and, if you wish, to contact you."
+    },
+    "progress": "Step {current} of {total}",
+    "contactStep": "Where to send your result",
+    "required": "Required",
+    "optional": "Optional",
+    "multipleHint": "Select all that apply",
+    "back": "Back",
+    "next": "Next",
+    "submit": "See my result",
+    "submitting": "Analyzing...",
+    "errors": {
+      "required": "Please choose an answer",
+      "contactRequired": "This field is required",
+      "email": "Please enter a valid email address",
+      "consent": "Please agree to the handling of personal information",
+      "submit": "Could not submit. Please try again later.",
+      "rateLimited": "Too many submissions. Please wait a minute and try again."
+    },
+    "contact": {
+      "description": "Your result appears on screen. If you wish, our team will walk you through it.",
+      "company": "Company",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "department": "Department / title",
+      "consultation": "I would like a free consultation about my result",
+      "consultationHint": "We will contact you within {days} business days.",
+      "consent": "I agree to the handling of personal information",
+      "consentNotice": "We use the information only to send your result and to contact you about AX migration.",
+      "privacyPolicy": "Privacy policy"
+    },
+    "result": {
+      "title": "Your result",
+      "subtitle": "An estimate based on the answers from {company}",
+      "difficulty": "Migration difficulty (estimate)",
+      "urgency": "Urgency to modernize",
+      "levels": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "difficultyText": {
+        "low": "Relatively small and simple; a short migration is likely.",
+        "medium": "A typical size. Clarify the current specification before choosing the migration approach.",
+        "high": "Large or highly integrated. Start by making the specification visible and proceed in stages."
+      },
+      "urgencyText": {
+        "low": "No immediate trouble, but planned preparation is recommended.",
+        "medium": "Staffing or end of support will likely require a decision within a few years.",
+        "high": "Business continuity risk is rising. We recommend assessing the current state soon."
+      },
+      "primaryChallenge": "The challenge to tackle first",
+      "challenges": {
+        "people": {
+          "title": "People: a system that depends on a few individuals",
+          "problem": "Years of changes have turned the specification into a black box, and fewer engineers can maintain it.",
+          "solution": "Move to a web system the next generation can work with and remove the continuity risk."
+        },
+        "cost": {
+          "title": "Cost: maintenance that limits growth",
+          "problem": "Rising maintenance costs leave little budget for growth initiatives.",
+          "solution": "Keep the initial investment low with a staged approach and shift budget to growth."
+        },
+        "agility": {
+          "title": "Agility: a system that cannot keep up with the market",
+          "problem": "Every change for new customers or markets is held back by the current system.",
+          "solution": "Add features in short cycles and respond quickly to market changes."
+        },
+        "data": {
+          "title": "Data: data that cannot support decisions",
+          "problem": "Data is locked in proprietary formats, so management metrics are not available in real time.",
+          "solution": "Use AI agents to organize data and get the information needed for proactive decisions."
+        }
+      },
+      "selectedChallenges": "Challenges you selected",
+      "stepsTitle": "Start small, then go beyond migration to AX",
+      "steps": {
+        "simple": {
+          "title": "Free simple assessment",
+          "body": "An inventory of your assets gives a detailed estimate of migration difficulty.",
+          "badge": "Free"
+        },
+        "survey": {
+          "title": "Current-system survey",
+          "body": "AI analyzes source code, forms and data structures to make the specification visible."
+        },
+        "migration": {
+          "title": "Migration",
+          "body": "Move to a modern web system while preserving the current specification."
+        },
+        "ax": {
+          "title": "AX",
+          "body": "Extend features with AI agents and put your data to work."
+        }
+      },
+      "cta": {
+        "consultationTitle": "Let us explain your result and how to proceed",
+        "informationTitle": "Why not start by gathering information?",
+        "body": "Our team will explain an approach that fits your situation, based on your result. No pushy sales.",
+        "button": "Request a free consultation",
+        "sending": "Sending...",
+        "accepted": "Your consultation request has been received",
+        "acceptedBody": "Our team will contact you within {days} business days.",
+        "failed": "Could not send your request. Please try again later."
+      },
+      "disclaimer": "This result is an estimate based on your answers. The exact approach, schedule and cost are determined in the current-system survey.",
+      "restart": "Check again"
+    },
+    "operator": "Provided by Software Agency System Co., Ltd., DX Services Division"
+  },
   "pipeline": {
     "inflowSource": {
       "existing_customer": "Existing Customer",
