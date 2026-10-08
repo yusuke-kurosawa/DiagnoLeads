@@ -134,7 +134,7 @@ export function exportLeadsToPDF(leads: ExportLead[], options: PDFExportOptions 
   // Summary KPIs
   const totalLeads = leads.length;
   const newLeads = leads.filter((l) => l.status === 'new').length;
-  const convertedLeads = leads.filter((l) => l.status === 'converted').length;
+  const convertedLeads = leads.filter((l) => l.status === 'won').length;
   const avgScore = leads.reduce((sum, l) => sum + (l.score || 0), 0) / totalLeads || 0;
 
   yPos = addSectionTitle(doc, 'Summary', yPos);

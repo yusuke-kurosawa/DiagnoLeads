@@ -75,6 +75,15 @@ describe('Leads Router', () => {
     source: 'website',
     responses: {},
     customFields: {},
+    inflowSource: null,
+    conversionPoint: null,
+    dealPhase: null,
+    targetSystem: null,
+    referrerName: null,
+    lostReason: null,
+    hasNegotiated: false,
+    mqlQualifiedAt: null,
+    sqlQualifiedAt: null,
     embedding: null,
     searchVector: null,
     createdAt: new Date(),
@@ -303,15 +312,78 @@ describe('Leads Router', () => {
       await caller.leads.update({
         organizationId: TEST_ORG_ID,
         id: TEST_LEAD_ID,
-        status: 'contacted',
+        status: 'nurturing',
       });
 
       expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'contacted',
+          status: 'nurturing',
           updatedAt: expect.any(Date),
         })
       );
+    });
+  });
+
+  describe('update (sales pipeline)', () => {
+    it('sets the negotiated flag and SQL date when moving to negotiating', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+
+      const caller = appRouter.createCaller(mockContext);
+      await caller.leads.update({
+        organizationId: TEST_ORG_ID,
+        id: TEST_LEAD_ID,
+        status: 'negotiating',
+        dealPhase: 'initial_hearing',
+      });
+
+      expect(mockDb.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'negotiating',
+          hasNegotiated: true,
+          sqlQualifiedAt: expect.any(Date),
+          dealPhase: 'initial_hearing',
+        })
+      );
+    });
+
+    it('marks and unmarks MQL', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+      const caller = appRouter.createCaller(mockContext);
+
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, mqlQualified: true });
+      expect(mockDb.set).toHaveBeenLastCalledWith(
+        expect.objectContaining({ mqlQualifiedAt: expect.any(Date) })
+      );
+
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, mqlQualified: false });
+      expect(mockDb.set).toHaveBeenLastCalledWith(expect.objectContaining({ mqlQualifiedAt: null }));
+    });
+
+    it('does not touch pipeline fields that were not provided', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+
+      const caller = appRouter.createCaller(mockContext);
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, name: 'Renamed' });
+
+      const setArg = mockDb.set.mock.calls[0][0];
+      expect(setArg).not.toHaveProperty('dealPhase');
+      expect(setArg).not.toHaveProperty('hasNegotiated');
+      expect(setArg).not.toHaveProperty('mqlQualifiedAt');
+    });
+
+    it('rejects unknown pipeline values', async () => {
+      const caller = appRouter.createCaller(mockContext);
+      await expect(
+        caller.leads.update({
+          organizationId: TEST_ORG_ID,
+          id: TEST_LEAD_ID,
+          // @ts-expect-error invalid value on purpose
+          dealPhase: 'closing',
+        })
+      ).rejects.toThrow();
     });
   });
 
@@ -431,7 +503,7 @@ describe('Leads Router', () => {
       const result = await caller.leads.bulkUpdateStatus({
         organizationId: TEST_ORG_ID,
         ids: [TEST_LEAD_ID, TEST_LEAD_ID_2],
-        status: 'contacted',
+        status: 'nurturing',
       });
 
       expect(result.success).toBe(true);
@@ -446,7 +518,7 @@ describe('Leads Router', () => {
       const result = await caller.leads.bulkUpdateStatus({
         organizationId: TEST_ORG_ID,
         ids: [TEST_LEAD_ID],
-        status: 'contacted',
+        status: 'nurturing',
       });
 
       expect(result.success).toBe(true);

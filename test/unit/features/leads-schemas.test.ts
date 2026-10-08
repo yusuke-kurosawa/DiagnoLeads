@@ -25,13 +25,16 @@ import {
 describe('leadStatusEnum', () => {
   it('should accept valid statuses', () => {
     expect(leadStatusEnum.parse('new')).toBe('new');
-    expect(leadStatusEnum.parse('contacted')).toBe('contacted');
-    expect(leadStatusEnum.parse('qualified')).toBe('qualified');
-    expect(leadStatusEnum.parse('converted')).toBe('converted');
+    expect(leadStatusEnum.parse('nurturing')).toBe('nurturing');
+    expect(leadStatusEnum.parse('negotiating')).toBe('negotiating');
+    expect(leadStatusEnum.parse('won')).toBe('won');
+    expect(leadStatusEnum.parse('lost')).toBe('lost');
   });
 
   it('should reject invalid status', () => {
     expect(() => leadStatusEnum.parse('invalid')).toThrow();
+    // Legacy values are no longer accepted directly
+    expect(() => leadStatusEnum.parse('contacted')).toThrow();
     expect(() => leadStatusEnum.parse('')).toThrow();
   });
 });
@@ -130,7 +133,7 @@ describe('createLeadSchema', () => {
       name: 'John Doe',
       company: 'Acme Corp',
       phone: '+81-90-1234-5678',
-      status: 'qualified',
+      status: 'negotiating',
       score: 85,
       source: 'website',
       responses: { question1: 'answer1' },
@@ -178,11 +181,11 @@ describe('updateLeadSchema', () => {
     const input = {
       organizationId: '123e4567-e89b-12d3-a456-426614174000',
       id: '123e4567-e89b-12d3-a456-426614174001',
-      status: 'converted' as const,
+      status: 'won' as const,
     };
 
     const result = updateLeadSchema.parse(input);
-    expect(result.status).toBe('converted');
+    expect(result.status).toBe('won');
     expect(result.email).toBeUndefined();
   });
 
@@ -238,13 +241,13 @@ describe('listLeadsSchema', () => {
   it('should accept filter options', () => {
     const input = {
       organizationId: '123e4567-e89b-12d3-a456-426614174000',
-      status: 'qualified' as const,
+      status: 'negotiating' as const,
       source: 'website' as const,
       search: 'john',
     };
 
     const result = listLeadsSchema.parse(input);
-    expect(result.status).toBe('qualified');
+    expect(result.status).toBe('negotiating');
     expect(result.search).toBe('john');
   });
 
@@ -327,12 +330,12 @@ describe('bulkUpdateStatusSchema', () => {
         '123e4567-e89b-12d3-a456-426614174001',
         '123e4567-e89b-12d3-a456-426614174002',
       ],
-      status: 'qualified' as const,
+      status: 'negotiating' as const,
     };
 
     const result = bulkUpdateStatusSchema.parse(input);
     expect(result.ids).toHaveLength(2);
-    expect(result.status).toBe('qualified');
+    expect(result.status).toBe('negotiating');
   });
 
   it('should require at least one id', () => {

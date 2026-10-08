@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Lead } from '@/lib/db/schema';
-import type { LeadStatus } from '@/lib/features/leads/types/schemas';
+import { LEAD_STATUSES, type LeadStatus } from '@/lib/features/leads/types';
 import { trpc } from '@/lib/trpc/client';
 import {
   CheckCircle,
@@ -58,7 +58,7 @@ interface BulkActionsProps {
   onExportPDF: (leads: Lead[]) => void;
 }
 
-const statusOptions: LeadStatus[] = ['new', 'contacted', 'qualified', 'converted'];
+const statusOptions: readonly LeadStatus[] = LEAD_STATUSES;
 
 export function BulkActions({
   selectedLeads,

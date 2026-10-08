@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate conversion rate
     const totalLeads = Number(overviewStats?.totalLeads ?? 0);
-    const convertedLeads = statusBreakdown.find((s) => s.status === 'converted')?.count ?? 0;
+    const convertedLeads = statusBreakdown.find((s) => s.status === 'won')?.count ?? 0;
     const conversionRate = totalLeads > 0 ? (Number(convertedLeads) / totalLeads) * 100 : 0;
 
     return NextResponse.json({

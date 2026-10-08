@@ -296,11 +296,49 @@
     "columns": "Columns",
     "openMenu": "Open menu"
   },
+  "pipeline": {
+    "inflowSource": {
+      "existing_customer": "Existing Customer",
+      "referral_partner": "Referral / Partner",
+      "executive_network": "Executive Network",
+      "lp_organic": "LP (Organic)",
+      "seminar": "Seminar",
+      "advertising": "Advertising"
+    },
+    "conversionPoint": {
+      "consultation": "Consultation Request",
+      "document_download": "Document Download",
+      "demo_view": "Demo View",
+      "seminar": "Seminar Attendance",
+      "via_sales": "Via Sales",
+      "web_diagnosis": "Web Diagnosis"
+    },
+    "dealPhase": {
+      "initial_hearing": "Initial Hearing",
+      "simple_diagnosis": "Simple Diagnosis",
+      "proposal": "Proposal",
+      "survey_won": "Survey Won",
+      "migration_won": "Migration Won",
+      "ax": "AX Expansion"
+    },
+    "targetSystem": {
+      "as400": "AS/400",
+      "other_legacy": "Other Office Computer / Mainframe",
+      "other": "Other"
+    },
+    "lostReason": {
+      "budget": "Budget",
+      "timing": "Timing",
+      "competitor": "Competitor Chosen",
+      "internal_structure": "Internal Structure",
+      "other": "Other"
+    }
+  },
   "status": {
     "new": "New",
-    "contacted": "Contacted",
-    "qualified": "Qualified",
-    "converted": "Converted",
+    "nurturing": "Nurturing",
+    "negotiating": "Negotiating",
+    "won": "Won",
     "lost": "Lost"
   },
   "leadSource": {
@@ -412,6 +450,20 @@
     }
   },
   "leads": {
+    "pipeline": "Sales Pipeline",
+    "inflowSource": "Inflow Source",
+    "conversionPoint": "Conversion Point",
+    "dealPhase": "Deal Phase",
+    "targetSystem": "Target System",
+    "referrerName": "Referrer",
+    "lostReason": "Lost / On-hold Reason",
+    "hasNegotiated": "Negotiated",
+    "mqlQualifiedAt": "MQL Date",
+    "sqlQualifiedAt": "SQL Date",
+    "mqlQualified": "Mark as MQL",
+    "notSet": "Not set",
+    "allInflowSources": "All Inflow Sources",
+    "allDealPhases": "All Deal Phases",
     "title": "Lead Management",
     "description": "Manage leads captured from diagnostic forms",
     "totalLeads": "Total Leads",

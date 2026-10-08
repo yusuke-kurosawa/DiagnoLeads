@@ -77,6 +77,52 @@ describe('Analytics Router', () => {
     };
   });
 
+  describe('getConversionFunnel', () => {
+    it('counts lost leads up to the stage they reached', async () => {
+      mockDb.query.organizationMembers.findFirst.mockResolvedValue(mockMembership);
+
+      // Status counts
+      mockDb.select.mockReturnValueOnce(mockDb);
+      mockDb.from.mockReturnValueOnce(mockDb);
+      mockDb.where.mockReturnValueOnce(mockDb);
+      mockDb.groupBy.mockResolvedValueOnce([
+        { status: 'new', count: 40 },
+        { status: 'nurturing', count: 30 },
+        { status: 'negotiating', count: 10 },
+        { status: 'won', count: 10 },
+        { status: 'lost', count: 10 },
+      ]);
+
+      // Leads that reached negotiation (negotiating + won + 5 lost after negotiation)
+      mockDb.select.mockReturnValueOnce(mockDb);
+      mockDb.from.mockReturnValueOnce(mockDb);
+      mockDb.where.mockResolvedValueOnce([{ count: 25 }]);
+
+      // Average conversion days
+      mockDb.select.mockReturnValueOnce(mockDb);
+      mockDb.from.mockReturnValueOnce(mockDb);
+      mockDb.where.mockResolvedValueOnce([{ avgDays: 12 }]);
+
+      const caller = appRouter.createCaller(mockContext);
+      const result = await caller.analytics.getConversionFunnel({
+        organizationId: TEST_ORG_ID,
+        dateRange: '30d',
+      });
+
+      expect(result.totalLeads).toBe(100);
+      expect(result.stages.map((stage) => [stage.name, stage.cumulativeCount])).toEqual([
+        ['new', 100],
+        ['nurturing', 60],
+        ['negotiating', 25],
+        ['won', 10],
+      ]);
+      expect(result.stages[2].conversionRate).toBeCloseTo(41.67, 1); // 25 / 60
+      expect(result.stages[3].conversionRate).toBe(40); // 10 / 25
+      expect(result.overallConversionRate).toBe(10);
+      expect(result.averageConversionDays).toBe(12);
+    });
+  });
+
   describe('getOverview', () => {
     it('should return overview statistics', async () => {
       // Mock membership check
@@ -108,9 +154,9 @@ describe('Analytics Router', () => {
       mockDb.where.mockReturnValueOnce(mockDb);
       mockDb.groupBy.mockResolvedValueOnce([
         { status: 'new', count: 40 },
-        { status: 'contacted', count: 30 },
-        { status: 'qualified', count: 10 },
-        { status: 'converted', count: 20 },
+        { status: 'nurturing', count: 30 },
+        { status: 'negotiating', count: 10 },
+        { status: 'won', count: 20 },
       ]);
 
       const caller = appRouter.createCaller(mockContext);
@@ -126,9 +172,10 @@ describe('Analytics Router', () => {
         averageScore: expect.any(Number),
         leadsByStatus: {
           new: 40,
-          contacted: 30,
-          qualified: 10,
-          converted: 20,
+          nurturing: 30,
+          negotiating: 10,
+          won: 20,
+          lost: 0,
         },
       });
 
@@ -376,9 +423,9 @@ describe('Analytics Router', () => {
       // Mock status breakdown
       const mockStatusData = [
         { status: 'new', count: 40 },
-        { status: 'contacted', count: 30 },
-        { status: 'qualified', count: 20 },
-        { status: 'converted', count: 10 },
+        { status: 'nurturing', count: 30 },
+        { status: 'negotiating', count: 20 },
+        { status: 'won', count: 10 },
       ];
 
       mockDb.select.mockReturnValueOnce(mockDb);
@@ -410,7 +457,7 @@ describe('Analytics Router', () => {
 
       const mockStatusData = [
         { status: 'new', count: 100 },
-        { status: 'contacted', count: 50 },
+        { status: 'nurturing', count: 50 },
       ];
 
       mockDb.select.mockReturnValueOnce(mockDb);

@@ -146,8 +146,18 @@ describe('leads-import-service', () => {
       expect(result.success).toBe(false);
     });
 
+    it('should map legacy status values to the 5-stage pipeline', () => {
+      const legacy = { contacted: 'nurturing', qualified: 'negotiating', converted: 'won' };
+
+      for (const [from, to] of Object.entries(legacy)) {
+        const result = validateRow({ email: 'test@example.com', status: from }, mapping, 1);
+        expect(result.success).toBe(true);
+        expect(result.data?.status).toBe(to);
+      }
+    });
+
     it('should validate status field', () => {
-      const validStatuses = ['new', 'contacted', 'qualified', 'converted'];
+      const validStatuses = ['new', 'nurturing', 'negotiating', 'won', 'lost'];
 
       for (const status of validStatuses) {
         const row = {

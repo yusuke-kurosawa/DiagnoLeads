@@ -224,14 +224,14 @@ export function generateZapierSampleData(triggerType: string): Record<string, un
       name: 'John Doe',
       company: 'Sample Corp',
       previousStatus: 'new',
-      newStatus: 'contacted',
+      newStatus: 'nurturing',
       updatedAt: new Date().toISOString(),
     },
     'lead.status_changed': {
       id: 'sample-lead-id',
       email: 'sample@example.com',
       previousStatus: 'new',
-      newStatus: 'qualified',
+      newStatus: 'negotiating',
       changedAt: new Date().toISOString(),
     },
     'diagnostic.submitted': {

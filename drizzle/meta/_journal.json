@@ -22,6 +22,20 @@
       "when": 1769138107005,
       "tag": "0002_quick_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791474422656,
+      "tag": "0003_missing_audit_logs_feature_flags",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791474423075,
+      "tag": "0004_ax_lead_pipeline",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,8 @@
 import { z } from 'zod';
+import { type LeadStatus, leadPipelineFieldsSchema, leadStatusEnum } from './pipeline';
 
-/**
- * Lead status enum
- */
-export const leadStatusEnum = z.enum(['new', 'contacted', 'qualified', 'converted']);
-export type LeadStatus = z.infer<typeof leadStatusEnum>;
+export { leadStatusEnum };
+export type { LeadStatus };
 
 /**
  * Lead source enum
@@ -65,34 +63,40 @@ export type FilterGroup = {
 /**
  * Lead creation schema
  */
-export const createLeadSchema = z.object({
-  organizationId: z.string().uuid(),
-  email: z.string().email('有効なメールアドレスを入力してください'),
-  name: z.string().optional(),
-  company: z.string().optional(),
-  phone: z.string().optional(),
-  status: leadStatusEnum.default('new'),
-  score: z.number().int().min(0).max(100).optional(),
-  source: leadSourceEnum.optional(),
-  responses: z.record(z.unknown()).default({}),
-});
+export const createLeadSchema = z
+  .object({
+    organizationId: z.string().uuid(),
+    email: z.string().email('有効なメールアドレスを入力してください'),
+    name: z.string().optional(),
+    company: z.string().optional(),
+    phone: z.string().optional(),
+    status: leadStatusEnum.default('new'),
+    score: z.number().int().min(0).max(100).optional(),
+    source: leadSourceEnum.optional(),
+    responses: z.record(z.unknown()).default({}),
+  })
+  .merge(leadPipelineFieldsSchema);
 export type CreateLeadInput = z.infer<typeof createLeadSchema>;
 
 /**
  * Lead update schema
  */
-export const updateLeadSchema = z.object({
-  organizationId: z.string().uuid(),
-  id: z.string().uuid(),
-  email: z.string().email('有効なメールアドレスを入力してください').optional(),
-  name: z.string().optional(),
-  company: z.string().optional(),
-  phone: z.string().optional(),
-  status: leadStatusEnum.optional(),
-  score: z.number().int().min(0).max(100).optional(),
-  source: leadSourceEnum.optional(),
-  responses: z.record(z.unknown()).optional(),
-});
+export const updateLeadSchema = z
+  .object({
+    organizationId: z.string().uuid(),
+    id: z.string().uuid(),
+    email: z.string().email('有効なメールアドレスを入力してください').optional(),
+    name: z.string().optional(),
+    company: z.string().optional(),
+    phone: z.string().optional(),
+    status: leadStatusEnum.optional(),
+    score: z.number().int().min(0).max(100).optional(),
+    source: leadSourceEnum.optional(),
+    responses: z.record(z.unknown()).optional(),
+    /** Manually mark / unmark the lead as MQL */
+    mqlQualified: z.boolean().optional(),
+  })
+  .merge(leadPipelineFieldsSchema);
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>;
 
 /**
@@ -113,6 +117,8 @@ export const listLeadsSchema = z.object({
   offset: z.number().int().min(0).default(0),
   status: leadStatusEnum.optional(),
   source: leadSourceEnum.optional(),
+  inflowSource: leadPipelineFieldsSchema.shape.inflowSource,
+  dealPhase: leadPipelineFieldsSchema.shape.dealPhase,
   search: z.string().optional(), // Search in name, email, company
   // Advanced filtering
   advancedFilter: filterGroupSchema.optional(),

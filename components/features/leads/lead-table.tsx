@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Lead, Tag } from '@/lib/db/schema';
+import { LEAD_STATUSES, type LeadStatus } from '@/lib/features/leads/types';
 import {
   downloadPDF,
   exportLeadsToPDF,
@@ -73,6 +74,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { TagBadgeList } from '../tags/tag-badge';
 import { BulkActions } from './bulk-actions';
+import { LEAD_STATUS_COLORS } from './lead-status-styles';
 
 // Extended lead type with tags
 type LeadWithTags = Lead & { tags?: Tag[] };
@@ -87,16 +89,13 @@ interface LeadTableProps {
   onRefresh?: () => void;
 }
 
-type StatusKey = 'new' | 'contacted' | 'qualified' | 'converted';
-
-const statusConfig: Record<
-  StatusKey,
-  { color: 'blue' | 'yellow' | 'emerald' | 'violet'; icon: string }
-> = {
-  new: { color: 'blue', icon: '●' },
-  contacted: { color: 'yellow', icon: '●' },
-  qualified: { color: 'emerald', icon: '●' },
-  converted: { color: 'violet', icon: '●' },
+/** Dot colors for the status filter */
+const STATUS_DOT_CLASSES: Record<LeadStatus, string> = {
+  new: 'bg-blue-500',
+  nurturing: 'bg-yellow-500',
+  negotiating: 'bg-emerald-500',
+  won: 'bg-violet-500',
+  lost: 'bg-gray-400',
 };
 
 /**
@@ -114,22 +113,17 @@ export function LeadTable({
 }: LeadTableProps) {
   const t = useTranslations('leads');
   const tStatus = useTranslations('status');
+  const tPipeline = useTranslations('pipeline');
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const dateLocale = locale === 'ja' ? ja : enUS;
-
-  const statusLabels: Record<StatusKey, string> = {
-    new: tStatus('new'),
-    contacted: tStatus('contacted'),
-    qualified: tStatus('qualified'),
-    converted: tStatus('converted'),
-  };
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     phone: false,
     source: false,
+    inflowSource: false,
     tags: true,
   });
   const [globalFilter, setGlobalFilter] = useState('');
@@ -343,12 +337,32 @@ export function LeadTable({
         </button>
       ),
       cell: ({ row }) => {
-        const status = row.getValue('status') as StatusKey;
-        const config = statusConfig[status];
-        return <Badge color={config.color}>{statusLabels[status]}</Badge>;
+        const status = row.getValue('status') as LeadStatus;
+        return <Badge color={LEAD_STATUS_COLORS[status] ?? 'gray'}>{tStatus(status)}</Badge>;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: 'dealPhase',
+      header: t('dealPhase'),
+      cell: ({ row }) => {
+        const phase = row.getValue('dealPhase') as string | null;
+        if (!phase) return <span className="text-gray-400">-</span>;
+        return <Badge color="amber">{tPipeline(`dealPhase.${phase}`)}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'inflowSource',
+      header: t('inflowSource'),
+      cell: ({ row }) => {
+        const inflow = row.getValue('inflowSource') as string | null;
+        return (
+          <span className="text-gray-600 dark:text-gray-300">
+            {inflow ? tPipeline(`inflowSource.${inflow}`) : '-'}
+          </span>
+        );
       },
     },
     {
@@ -656,30 +670,14 @@ export function LeadTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('allStatuses')}</SelectItem>
-                <SelectItem value="new">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-500" />
-                    {tStatus('new')}
-                  </span>
-                </SelectItem>
-                <SelectItem value="contacted">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                    {tStatus('contacted')}
-                  </span>
-                </SelectItem>
-                <SelectItem value="qualified">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    {tStatus('qualified')}
-                  </span>
-                </SelectItem>
-                <SelectItem value="converted">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-violet-500" />
-                    {tStatus('converted')}
-                  </span>
-                </SelectItem>
+                {LEAD_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    <span className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${STATUS_DOT_CLASSES[status]}`} />
+                      {tStatus(status)}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

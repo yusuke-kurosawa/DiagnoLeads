@@ -184,9 +184,9 @@ export abstract class BaseCRMClient implements ICRMClient {
   protected mapLeadStatus(status: string): string {
     const statusMap: Record<string, string> = {
       new: 'Open - Not Contacted',
-      contacted: 'Working - Contacted',
-      qualified: 'Qualified',
-      converted: 'Converted',
+      nurturing: 'Working - Contacted',
+      negotiating: 'Qualified',
+      won: 'Converted',
       lost: 'Closed - Not Converted',
     };
     return statusMap[status] || status;

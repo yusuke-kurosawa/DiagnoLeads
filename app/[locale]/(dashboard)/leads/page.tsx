@@ -116,18 +116,18 @@ export default function LeadsPage() {
   const stats = useMemo(() => {
     const total = leads.length;
     const newCount = leads.filter((l) => l.status === 'new').length;
-    const contacted = leads.filter((l) => l.status === 'contacted').length;
-    const qualified = leads.filter((l) => l.status === 'qualified').length;
-    const converted = leads.filter((l) => l.status === 'converted').length;
-    const conversionRate = total > 0 ? (converted / total) * 100 : 0;
+    const nurturing = leads.filter((l) => l.status === 'nurturing').length;
+    const negotiating = leads.filter((l) => l.status === 'negotiating').length;
+    const won = leads.filter((l) => l.status === 'won').length;
+    const conversionRate = total > 0 ? (won / total) * 100 : 0;
     const avgScore = total > 0 ? leads.reduce((acc, l) => acc + (l.score || 0), 0) / total : 0;
 
     return {
       totalLeads: total,
       newLeads: newCount,
-      contactedLeads: contacted,
-      qualifiedLeads: qualified,
-      convertedLeads: converted,
+      nurturingLeads: nurturing,
+      negotiatingLeads: negotiating,
+      wonLeads: won,
       conversionRate,
       averageScore: avgScore,
     };
@@ -136,9 +136,9 @@ export default function LeadsPage() {
   const {
     totalLeads,
     newLeads,
-    contactedLeads,
-    qualifiedLeads,
-    convertedLeads,
+    nurturingLeads,
+    negotiatingLeads,
+    wonLeads,
     conversionRate,
     averageScore,
   } = stats;
@@ -244,7 +244,7 @@ export default function LeadsPage() {
             <div>
               <Text>{t('activeLeads') || 'Active Leads'}</Text>
               <Metric className="mt-2">
-                {(contactedLeads + qualifiedLeads).toLocaleString(
+                {(nurturingLeads + negotiatingLeads).toLocaleString(
                   locale === 'ja' ? 'ja-JP' : 'en-US'
                 )}
               </Metric>
@@ -255,12 +255,12 @@ export default function LeadsPage() {
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between">
-              <Badge color="yellow">{tStatus('contacted')}</Badge>
-              <Text>{contactedLeads}</Text>
+              <Badge color="yellow">{tStatus('nurturing')}</Badge>
+              <Text>{nurturingLeads}</Text>
             </div>
             <div className="flex items-center justify-between">
-              <Badge color="emerald">{tStatus('qualified')}</Badge>
-              <Text>{qualifiedLeads}</Text>
+              <Badge color="emerald">{tStatus('negotiating')}</Badge>
+              <Text>{negotiatingLeads}</Text>
             </div>
           </div>
         </Card>
@@ -279,8 +279,8 @@ export default function LeadsPage() {
           <div className="mt-4">
             <ProgressBar value={conversionRate} color="violet" />
             <div className="mt-2 flex items-center justify-between">
-              <Badge color="violet">{tStatus('converted')}</Badge>
-              <Text>{convertedLeads}</Text>
+              <Badge color="violet">{tStatus('won')}</Badge>
+              <Text>{wonLeads}</Text>
             </div>
           </div>
         </Card>

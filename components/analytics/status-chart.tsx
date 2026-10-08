@@ -2,6 +2,7 @@
 
 import { BarChart } from '@/components/charts/bar-chart';
 import type { StatusBreakdown } from '@/lib/features/analytics/types/schemas';
+import { LEAD_STATUSES } from '@/lib/features/leads/types';
 import { useLocale, useTranslations } from 'next-intl';
 
 interface StatusChartProps {
@@ -49,8 +50,7 @@ export function StatusChart({ data, isLoading = false }: StatusChartProps) {
   }
 
   // Ensure all statuses are present in the correct order with localized labels
-  const statusOrder = ['new', 'contacted', 'qualified', 'converted'];
-  const chartData = statusOrder.map((status) => {
+  const chartData = LEAD_STATUSES.map((status) => {
     const found = data.find((d) => d.status === status);
     return {
       status: getStatusLabel(status),

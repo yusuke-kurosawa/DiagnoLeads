@@ -15,8 +15,10 @@ import {
   WidgetSettings,
   useWidgetConfig,
 } from '@/components/dashboard/widget-settings';
+import { LEAD_STATUS_COLORS } from '@/components/features/leads/lead-status-styles';
 import { Card } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
+import { LEAD_STATUSES } from '@/lib/features/leads/types/pipeline';
 
 import type { DateRange } from '@/lib/features/analytics/types/schemas';
 import {
@@ -55,6 +57,14 @@ const WIDGET_IDS = [
   'recentActivity',
 ] as const;
 
+const STATUS_DOT_HEX: Record<(typeof LEAD_STATUS_COLORS)[keyof typeof LEAD_STATUS_COLORS], string> =
+  {
+    blue: '#3b82f6',
+    yellow: '#eab308',
+    emerald: '#10b981',
+    violet: '#8b5cf6',
+    gray: '#9ca3af',
+  };
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
   const tStatus = useTranslations('status');
@@ -268,25 +278,12 @@ export default function DashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
               {t('leadStatusBreakdown')}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {[
-                { key: 'new', color: 'blue' as const, value: overview.leadsByStatus.new },
-                {
-                  key: 'contacted',
-                  color: 'yellow' as const,
-                  value: overview.leadsByStatus.contacted,
-                },
-                {
-                  key: 'qualified',
-                  color: 'emerald' as const,
-                  value: overview.leadsByStatus.qualified,
-                },
-                {
-                  key: 'converted',
-                  color: 'violet' as const,
-                  value: overview.leadsByStatus.converted,
-                },
-              ].map((status) => {
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+              {LEAD_STATUSES.map((key) => ({
+                key,
+                color: LEAD_STATUS_COLORS[key],
+                value: overview.leadsByStatus[key],
+              })).map((status) => {
                 const percentage =
                   overview.totalLeads > 0 ? (status.value / overview.totalLeads) * 100 : 0;
                 return (
@@ -295,16 +292,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2">
                         <span
                           className="w-3 h-3 rounded-full"
-                          style={{
-                            backgroundColor:
-                              status.color === 'blue'
-                                ? '#3b82f6'
-                                : status.color === 'yellow'
-                                  ? '#eab308'
-                                  : status.color === 'emerald'
-                                    ? '#10b981'
-                                    : '#8b5cf6',
-                          }}
+                          style={{ backgroundColor: STATUS_DOT_HEX[status.color] }}
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {tStatus(status.key)}

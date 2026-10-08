@@ -92,9 +92,10 @@ export function overviewToCSV(overview: OverviewStats, dateRange: string): strin
     ['Conversion Rate (%)', overview.conversionRate.toFixed(2)],
     ['Average Score', overview.averageScore.toString()],
     ['New Status', overview.leadsByStatus.new.toString()],
-    ['Contacted Status', overview.leadsByStatus.contacted.toString()],
-    ['Qualified Status', overview.leadsByStatus.qualified.toString()],
-    ['Converted Status', overview.leadsByStatus.converted.toString()],
+    ['Nurturing Status', overview.leadsByStatus.nurturing.toString()],
+    ['Negotiating Status', overview.leadsByStatus.negotiating.toString()],
+    ['Won Status', overview.leadsByStatus.won.toString()],
+    ['Lost Status', overview.leadsByStatus.lost.toString()],
   ];
 
   return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
