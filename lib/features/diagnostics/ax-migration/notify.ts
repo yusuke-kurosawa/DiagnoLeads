@@ -2,7 +2,7 @@ import { env } from '@/lib/env';
 import { isEmailConfigured, sendEmail } from '@/lib/features/email';
 import { notifyOrganizationMembers } from '@/lib/features/notifications/notification-service';
 import { triggerWebhooks } from '@/lib/features/webhooks/services/webhook-service';
-import { addBusinessDays, format } from 'date-fns';
+import { addBusinessDays } from 'date-fns';
 import { AX_MIGRATION_CONFIG } from './config';
 import type { AxMigrationResult } from './evaluate';
 
@@ -37,12 +37,25 @@ export interface AxMigrationNotification {
 
 /**
  * 相談申込への連絡期限（土日を除く営業日。祝日は考慮しない）
+ * Counted on the Japan calendar regardless of the server time zone (Vercel runs in UTC).
+ * Returns the deadline as a JST calendar date in yyyy/MM/dd.
  */
 export function consultationDeadline(
   requestedAt: Date,
   businessDays = AX_MIGRATION_CONFIG.consultationResponseBusinessDays
-): Date {
-  return addBusinessDays(requestedAt, businessDays);
+): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(requestedAt);
+  const part = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  // Build a UTC-noon date for the JST calendar day so weekday math is time-zone independent
+  const jstDay = new Date(Date.UTC(part('year'), part('month') - 1, part('day'), 12));
+  const deadline = addBusinessDays(jstDay, businessDays);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${deadline.getUTCFullYear()}/${pad(deadline.getUTCMonth() + 1)}/${pad(deadline.getUTCDate())}`;
 }
 
 export function buildSalesMessage(n: AxMigrationNotification): { title: string; message: string } {
@@ -62,7 +75,7 @@ export function buildSalesMessage(n: AxMigrationNotification): { title: string; 
     : '';
 
   if (n.consultationRequested) {
-    const deadline = format(consultationDeadline(n.requestedAt), 'yyyy/MM/dd');
+    const deadline = consultationDeadline(n.requestedAt);
     return {
       title: `【相談申込${n.identityUnverified ? '・本人未確認' : ''}】${n.company} ${n.name} 様（${deadline} までに連絡）`,
       message: `AXマイグレーション診断から相談申込がありました。MQL判定を経ずに営業へ引き渡します。${unverified}${summary}`,

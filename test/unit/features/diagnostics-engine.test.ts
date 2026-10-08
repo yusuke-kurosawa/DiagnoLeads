@@ -147,11 +147,17 @@ describe('inferInflowSource（流入元の推定）', () => {
 
 describe('sales notification', () => {
   it('sets the consultation deadline in business days (skipping the weekend)', () => {
-    // Friday 2026-10-09 + 2 business days = Tuesday 2026-10-13
-    const deadline = consultationDeadline(new Date(2026, 9, 9, 10, 0), 2);
-    expect(deadline.getFullYear()).toBe(2026);
-    expect(deadline.getMonth()).toBe(9);
-    expect(deadline.getDate()).toBe(13);
+    // Friday 2026-10-09 10:00 JST + 2 business days = Tuesday 2026-10-13
+    expect(consultationDeadline(new Date('2026-10-09T01:00:00Z'), 2)).toBe('2026/10/13');
+  });
+
+  it('counts on the Japan calendar even when the server runs in UTC', () => {
+    // Saturday 2026-10-10 00:30 JST is still Friday in UTC; the deadline is Tuesday, not Monday
+    expect(consultationDeadline(new Date('2026-10-09T15:30:00Z'), 2)).toBe('2026/10/13');
+    // Friday 2026-10-09 23:30 JST
+    expect(consultationDeadline(new Date('2026-10-09T14:30:00Z'), 2)).toBe('2026/10/13');
+    // Monday 2026-10-12 09:00 JST
+    expect(consultationDeadline(new Date('2026-10-12T00:00:00Z'), 2)).toBe('2026/10/14');
   });
 
   it('puts the deadline in the title of a consultation request', () => {
@@ -179,7 +185,7 @@ describe('sales notification', () => {
       result,
       leadCreated: true,
       identityUnverified: false,
-      requestedAt: new Date(2026, 9, 9, 10, 0),
+      requestedAt: new Date('2026-10-09T01:00:00Z'),
     };
 
     const consultation = buildSalesMessage({ ...base, consultationRequested: true });
