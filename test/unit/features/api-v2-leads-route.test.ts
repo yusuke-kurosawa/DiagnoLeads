@@ -22,9 +22,10 @@ chain.set.mockReturnValue(chain);
 chain.values.mockReturnValue(chain);
 chain.where.mockReturnValue(chain);
 
+const getAuthenticatedOrganization = vi.fn();
+
 vi.mock('@/lib/db', () => ({ db }));
-vi.mock('@/lib/auth', () => ({ auth: { api: { getSession: vi.fn().mockResolvedValue(null) } } }));
-vi.mock('next/headers', () => ({ headers: vi.fn().mockResolvedValue(new Headers()) }));
+vi.mock('@/lib/api/v2-auth', () => ({ getAuthenticatedOrganization }));
 
 const { PATCH } = await import('@/app/api/v2/leads/[id]/route');
 
@@ -33,7 +34,7 @@ const patch = (body: unknown) =>
     new NextRequest(`http://localhost/api/v2/leads/${LEAD_ID}`, {
       method: 'PATCH',
       body: JSON.stringify(body),
-      headers: { authorization: `Bearer org_${ORG_ID}`, 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json' },
     }),
     { params: Promise.resolve({ id: LEAD_ID }) }
   );
@@ -41,6 +42,7 @@ const patch = (body: unknown) =>
 describe('PATCH /api/v2/leads/[id]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAuthenticatedOrganization.mockResolvedValue({ organizationId: ORG_ID, userId: 'user-1' });
     chain.set.mockReturnValue(chain);
     chain.where.mockReturnValue(chain);
     db.query.leads.findFirst.mockResolvedValue({ id: LEAD_ID, organizationId: ORG_ID, hasNegotiated: false });
