@@ -28,6 +28,11 @@ export const env = createEnv({
 
     // Public diagnostic form
     DEFAULT_ORGANIZATION_ID: z.string().uuid().optional(),
+
+    // AX migration diagnosis: organization that receives the leads (falls back to DEFAULT_ORGANIZATION_ID)
+    AX_DIAGNOSIS_ORGANIZATION_ID: z.string().uuid().optional(),
+    // Comma-separated sales addresses notified on consultation requests
+    AX_DIAGNOSIS_SALES_EMAIL: z.string().optional(),
   },
 
   /**
@@ -53,6 +58,8 @@ export const env = createEnv({
     TRIGGER_API_URL: process.env.TRIGGER_API_URL,
     NODE_ENV: process.env.NODE_ENV,
     DEFAULT_ORGANIZATION_ID: process.env.DEFAULT_ORGANIZATION_ID,
+    AX_DIAGNOSIS_ORGANIZATION_ID: process.env.AX_DIAGNOSIS_ORGANIZATION_ID,
+    AX_DIAGNOSIS_SALES_EMAIL: process.env.AX_DIAGNOSIS_SALES_EMAIL,
 
     // Client
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,

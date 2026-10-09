@@ -1,0 +1,136 @@
+/**
+ * notifyAxMigrationSubmission: which channels fire for which events.
+ */
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const webhookMock = vi.fn();
+const inAppMock = vi.fn();
+const sendEmailMock = vi.fn();
+const isEmailConfiguredMock = vi.fn();
+const env: { AX_DIAGNOSIS_SALES_EMAIL?: string } = {};
+
+vi.mock('@/lib/env', () => ({ env }));
+vi.mock('@/lib/features/webhooks/services/webhook-service', () => ({
+  triggerWebhooks: (...args: unknown[]) => webhookMock(...args),
+}));
+vi.mock('@/lib/features/notifications/notification-service', () => ({
+  notifyOrganizationMembers: (...args: unknown[]) => inAppMock(...args),
+}));
+vi.mock('@/lib/features/email', () => ({
+  sendEmail: (...args: unknown[]) => sendEmailMock(...args),
+  isEmailConfigured: () => isEmailConfiguredMock(),
+}));
+
+const { notifyAxMigrationSubmission } = await import('@/lib/features/diagnostics/ax-migration/notify');
+const { evaluateAxMigration } = await import('@/lib/features/diagnostics/ax-migration/evaluate');
+
+const result = evaluateAxMigration({
+  industry: 'manufacturing',
+  revenue: '10b_30b',
+  system: 'as400',
+  languages: ['rpg'],
+  years: 'gte20',
+  programs: '500_2000',
+  integrations: 'some',
+  maintenance: 'few',
+  documents: 'partial',
+  challenges: ['people'],
+  timeline: '1_2y',
+  role: 'it_manager',
+});
+
+const base = {
+  organizationId: 'org-1',
+  leadId: 'lead-1',
+  submissionId: 'sub-1',
+  company: 'テスト製作所',
+  name: '山田',
+  email: 'yamada@example.jp',
+  result,
+  consultationRequested: false,
+  leadCreated: true,
+  identityUnverified: false,
+  requestedAt: new Date('2026-10-09T01:00:00Z'),
+};
+
+describe('notifyAxMigrationSubmission', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    webhookMock.mockResolvedValue({ triggered: 1, failed: 0 });
+    inAppMock.mockResolvedValue(undefined);
+    sendEmailMock.mockResolvedValue({ id: 'mail-1' });
+    isEmailConfiguredMock.mockReturnValue(true);
+    env.AX_DIAGNOSIS_SALES_EMAIL = 'sales1@example.jp, sales2@example.jp';
+  });
+
+  it('always triggers the diagnostic.submitted webhook', async () => {
+    await notifyAxMigrationSubmission({ ...base, leadCreated: false });
+    expect(webhookMock).toHaveBeenCalledWith(
+      'org-1',
+      'diagnostic.submitted',
+      expect.objectContaining({ leadId: 'lead-1', mqlCandidate: true })
+    );
+  });
+
+  it('notifies members in-app about a new lead', async () => {
+    await notifyAxMigrationSubmission(base);
+    expect(inAppMock).toHaveBeenCalledWith(
+      'org-1',
+      'lead_created',
+      expect.stringContaining('【AX診断】'),
+      expect.any(String),
+      expect.objectContaining({ submissionId: 'sub-1' })
+    );
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it('does not ping members for a repeat answer without a consultation request', async () => {
+    await notifyAxMigrationSubmission({ ...base, leadCreated: false, identityUnverified: true });
+    expect(inAppMock).not.toHaveBeenCalled();
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it('sends a consultation request in-app and by email to every sales address', async () => {
+    await notifyAxMigrationSubmission({ ...base, consultationRequested: true });
+    expect(inAppMock).toHaveBeenCalledWith(
+      'org-1',
+      'consultation_requested',
+      expect.stringContaining('【相談申込】'),
+      expect.any(String),
+      expect.any(Object)
+    );
+    expect(sendEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({ to: ['sales1@example.jp', 'sales2@example.jp'] })
+    );
+  });
+
+  it('skips the email when no sales address or mail provider is configured', async () => {
+    env.AX_DIAGNOSIS_SALES_EMAIL = undefined;
+    await notifyAxMigrationSubmission({ ...base, consultationRequested: true });
+    isEmailConfiguredMock.mockReturnValue(false);
+    env.AX_DIAGNOSIS_SALES_EMAIL = 'sales@example.jp';
+    await notifyAxMigrationSubmission({ ...base, consultationRequested: true });
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it('escapes HTML in names put into the email body', async () => {
+    await notifyAxMigrationSubmission({
+      ...base,
+      consultationRequested: true,
+      company: '<script>alert(1)</script>',
+    });
+    const html: string = sendEmailMock.mock.calls[0][0].html;
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+
+  it('does not reject when one channel fails', async () => {
+    webhookMock.mockRejectedValue(new Error('webhook down'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(
+      notifyAxMigrationSubmission({ ...base, consultationRequested: true })
+    ).resolves.toBeUndefined();
+    expect(sendEmailMock).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+});

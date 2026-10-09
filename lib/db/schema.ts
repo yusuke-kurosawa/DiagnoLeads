@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm';
 import {
   boolean,
   customType,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -339,6 +340,43 @@ export type NewVerification = typeof verification.$inferInsert;
 export type Lead = typeof leads.$inferSelect;
 export type NewLead = typeof leads.$inferInsert;
 
+/**
+ * Diagnostic Submissions Table
+ * Stores answers and server-side evaluation of code-defined diagnostics
+ * (lib/features/diagnostics). One row per submission; linked to the lead it created or updated.
+ */
+export const diagnosticSubmissions = pgTable(
+  'diagnostic_submissions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    leadId: uuid('lead_id').references(() => leads.id, { onDelete: 'set null' }),
+    /** true when this submission created the lead; false when it matched an existing one */
+    leadCreated: boolean('lead_created').default(false).notNull(),
+    diagnosticKey: text('diagnostic_key').notNull(),
+    diagnosticVersion: integer('diagnostic_version').notNull(),
+    answers: jsonb('answers').$type<Record<string, string | string[]>>().notNull(),
+    result: jsonb('result').$type<Record<string, unknown>>().notNull(),
+    tracking: jsonb('tracking').$type<Record<string, string>>().default({}).notNull(),
+    locale: text('locale'),
+    consultationRequestedAt: timestamp('consultation_requested_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('diagnostic_submissions_org_key_created_idx').on(
+      table.organizationId,
+      table.diagnosticKey,
+      table.createdAt
+    ),
+    index('diagnostic_submissions_lead_idx').on(table.leadId),
+  ]
+);
+
+export type DiagnosticSubmission = typeof diagnosticSubmissions.$inferSelect;
+export type NewDiagnosticSubmission = typeof diagnosticSubmissions.$inferInsert;
+
 // Note: OrganizationType and DataSharingPolicy are already exported above at definition
 
 /**
@@ -474,6 +512,7 @@ export type NotificationType =
   | 'export_completed'
   | 'member_invited'
   | 'member_removed'
+  | 'consultation_requested'
   | 'system';
 
 /**
