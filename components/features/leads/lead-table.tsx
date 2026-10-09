@@ -222,6 +222,8 @@ export function LeadTable({
           company: false,
           phone: false,
           source: false,
+          dealPhase: false,
+          inflowSource: false,
           createdAt: false,
           tags: false,
         });
@@ -229,11 +231,13 @@ export function LeadTable({
         setColumnVisibility({
           phone: false,
           source: false,
+          inflowSource: false,
           tags: true,
         });
       } else {
         setColumnVisibility({
           phone: false,
+          inflowSource: false,
           tags: true,
         });
       }

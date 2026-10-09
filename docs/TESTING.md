@@ -215,6 +215,25 @@ describe('UserService', () => {
 
 ---
 
+### 実 DB テスト（`*.db.test.ts`）
+
+モックでは確かめられないもの（マイグレーション、SQL の構文、ロック、トランザクション）は、実際の PostgreSQL に対して確認する。
+
+- 置き場所: `test/unit/integration/*.db.test.ts`
+- `TEST_DATABASE_URL` が設定されているときだけ実行される（未設定ならスキップ）
+- CI では E2E ジョブの Postgres（マイグレーション適用済み）に対して実行し、**失敗したらジョブを落とす**
+- ローカルでの実行例:
+
+```bash
+docker run -d --name dl-test -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dl_test -p 55432:5432 pgvector/pgvector:pg16
+# drizzle/0000 は Supabase の auth スキーマを前提にしているため、先に作っておく
+docker exec dl-test psql -U postgres -d dl_test -c 'CREATE EXTENSION IF NOT EXISTS vector; CREATE EXTENSION IF NOT EXISTS ltree; CREATE SCHEMA IF NOT EXISTS auth;'
+DATABASE_URL=postgres://postgres:postgres@127.0.0.1:55432/dl_test SKIP_ENV_VALIDATION=1 bun run db:migrate
+TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:55432/dl_test bunx vitest --run test/unit/integration
+```
+
+- `.env.local` の `DATABASE_URL` は実環境（Supabase）を指していることがあるので、DB を使うコマンドでは必ず上書きする
+
 ## 3. E2E Tests
 
 ### 定義
