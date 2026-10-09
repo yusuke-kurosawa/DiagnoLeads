@@ -1,5 +1,5 @@
 {
-  "id": "681baea2-5c50-4727-a783-90d698662692",
+  "id": "f03216f6-67d7-46be-a221-9a419c46005c",
   "prevId": "2751b622-2b57-4fc3-9e17-9a87cdcc0ce7",
   "version": "7",
   "dialect": "postgresql",
@@ -1516,8 +1516,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "sql_qualified_at": {
-          "name": "sql_qualified_at",
+        "sql_decision": {
+          "name": "sql_decision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sql_decided_at": {
+          "name": "sql_decided_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false

@@ -78,30 +78,28 @@ describe('Analytics Router', () => {
   });
 
   describe('getConversionFunnel', () => {
-    it('counts lost leads up to the stage they reached', async () => {
-      mockDb.query.organizationMembers.findFirst.mockResolvedValue(mockMembership);
-
-      // Status counts
+    const mockCounts = (counts: Record<string, number>, avgDays = 12) => {
+      // Aggregate counts
       mockDb.select.mockReturnValueOnce(mockDb);
       mockDb.from.mockReturnValueOnce(mockDb);
-      mockDb.where.mockReturnValueOnce(mockDb);
-      mockDb.groupBy.mockResolvedValueOnce([
-        { status: 'new', count: 40 },
-        { status: 'nurturing', count: 30 },
-        { status: 'negotiating', count: 10 },
-        { status: 'won', count: 10 },
-        { status: 'lost', count: 10 },
-      ]);
-
-      // Leads that reached negotiation (negotiating + won + 5 lost after negotiation)
-      mockDb.select.mockReturnValueOnce(mockDb);
-      mockDb.from.mockReturnValueOnce(mockDb);
-      mockDb.where.mockResolvedValueOnce([{ count: 25 }]);
-
+      mockDb.where.mockResolvedValueOnce([counts]);
       // Average conversion days
       mockDb.select.mockReturnValueOnce(mockDb);
       mockDb.from.mockReturnValueOnce(mockDb);
-      mockDb.where.mockResolvedValueOnce([{ avgDays: 12 }]);
+      mockDb.where.mockResolvedValueOnce([{ avgDays }]);
+    };
+
+    it('uses nested "reached" counts so stage rates stay within 100%', async () => {
+      mockDb.query.organizationMembers.findFirst.mockResolvedValue(mockMembership);
+      mockCounts({
+        total: 100,
+        new: 40,
+        nurturing: 30,
+        negotiating: 10,
+        won: 10,
+        reachedNurturing: 55, // nurturing + negotiating + won + 5 lost after negotiation
+        reachedNegotiation: 25, // negotiating + won + 5 lost after negotiation
+      });
 
       const caller = appRouter.createCaller(mockContext);
       const result = await caller.analytics.getConversionFunnel({
@@ -112,14 +110,31 @@ describe('Analytics Router', () => {
       expect(result.totalLeads).toBe(100);
       expect(result.stages.map((stage) => [stage.name, stage.cumulativeCount])).toEqual([
         ['new', 100],
-        ['nurturing', 60],
+        ['nurturing', 55],
         ['negotiating', 25],
         ['won', 10],
       ]);
-      expect(result.stages[2].conversionRate).toBeCloseTo(41.67, 1); // 25 / 60
+      expect(result.stages[2].conversionRate).toBeCloseTo(45.45, 1); // 25 / 55
       expect(result.stages[3].conversionRate).toBe(40); // 10 / 25
       expect(result.overallConversionRate).toBe(10);
       expect(result.averageConversionDays).toBe(12);
+      for (const stage of result.stages) {
+        expect(stage.conversionRate).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it('returns zero rates without NaN when there are no leads', async () => {
+      mockDb.query.organizationMembers.findFirst.mockResolvedValue(mockMembership);
+      mockCounts({ total: 0, new: 0, nurturing: 0, negotiating: 0, won: 0, reachedNurturing: 0, reachedNegotiation: 0 }, 0);
+
+      const caller = appRouter.createCaller(mockContext);
+      const result = await caller.analytics.getConversionFunnel({
+        organizationId: TEST_ORG_ID,
+        dateRange: '30d',
+      });
+
+      expect(result.overallConversionRate).toBe(0);
+      expect(result.stages.slice(1).every((stage) => stage.conversionRate === 0)).toBe(true);
     });
   });
 

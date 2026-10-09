@@ -324,7 +324,13 @@
     "targetSystem": {
       "as400": "AS/400",
       "other_legacy": "Other Office Computer / Mainframe",
+      "client_server": "Client-server / EUC (VB, Access, etc.)",
+      "low_code": "Low-code (Notes, FileMaker, etc.)",
       "other": "Other"
+    },
+    "sqlDecision": {
+      "qualified": "SQL (sales opportunity)",
+      "not_qualified": "Not SQL (back to nurturing)"
     },
     "lostReason": {
       "budget": "Budget",
@@ -459,8 +465,10 @@
     "lostReason": "Lost / On-hold Reason",
     "hasNegotiated": "Negotiated",
     "mqlQualifiedAt": "MQL Date",
-    "sqlQualifiedAt": "SQL Date",
-    "mqlQualified": "Mark as MQL",
+    "sqlDecision": "SQL Decision",
+    "sqlDecidedAt": "SQL Decision Date",
+    "sqlUndecided": "Undecided",
+    "mqlQualified": "Mark as MQL (confirmed by marketing)",
     "notSet": "Not set",
     "allInflowSources": "All Inflow Sources",
     "allDealPhases": "All Deal Phases",

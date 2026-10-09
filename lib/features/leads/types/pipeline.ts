@@ -52,7 +52,15 @@ export const dealPhaseEnum = z.enum(DEAL_PHASES);
 export type DealPhase = z.infer<typeof dealPhaseEnum>;
 
 /** 対象システム */
-export const TARGET_SYSTEMS = ['as400', 'other_legacy', 'other'] as const;
+// AS/400 / other office computers & mainframes / client-server & EUC (VB, Access, Excel VBA) /
+// low-code platforms (Notes, FileMaker, ...) / other
+export const TARGET_SYSTEMS = [
+  'as400',
+  'other_legacy',
+  'client_server',
+  'low_code',
+  'other',
+] as const;
 export const targetSystemEnum = z.enum(TARGET_SYSTEMS);
 export type TargetSystem = z.infer<typeof targetSystemEnum>;
 
@@ -67,6 +75,11 @@ export const LOST_REASONS = [
 export const lostReasonEnum = z.enum(LOST_REASONS);
 export type LostReason = z.infer<typeof lostReasonEnum>;
 
+/** SQL判定: recorded by sales after the hearing（null = 未判定） */
+export const SQL_DECISIONS = ['qualified', 'not_qualified'] as const;
+export const sqlDecisionEnum = z.enum(SQL_DECISIONS);
+export type SqlDecision = z.infer<typeof sqlDecisionEnum>;
+
 /** Pipeline fields accepted on lead create / update */
 export const leadPipelineFieldsSchema = z.object({
   inflowSource: inflowSourceEnum.nullable().optional(),
@@ -75,33 +88,58 @@ export const leadPipelineFieldsSchema = z.object({
   targetSystem: targetSystemEnum.nullable().optional(),
   referrerName: z.string().max(200).nullable().optional(),
   lostReason: lostReasonEnum.nullable().optional(),
+  /** MQL判定 by marketing (true = MQL) */
+  mqlQualified: z.boolean().optional(),
+  /** SQL判定 by sales after the hearing */
+  sqlDecision: sqlDecisionEnum.nullable().optional(),
 });
 export type LeadPipelineFields = z.infer<typeof leadPipelineFieldsSchema>;
 
 /**
- * Derive the negotiated flag when the status changes.
- * The flag never goes back to false once set.
+ * Fields to write when the status changes.
+ * 商談済みフラグ is only ever turned on here (never written as false), so it is
+ * never cleared, not even by concurrent updates based on a stale read.
  */
-export function deriveHasNegotiated(status: LeadStatus, current = false): boolean {
-  return current || NEGOTIATED_STATUSES.includes(status);
+export function statusUpdateFields(status: LeadStatus): {
+  status: LeadStatus;
+  hasNegotiated?: true;
+} {
+  return NEGOTIATED_STATUSES.includes(status) ? { status, hasNegotiated: true } : { status };
 }
 
 /**
- * Fields to persist when a lead's status changes.
- * - 商談済みフラグ is set once the lead reaches negotiation and never cleared
- * - SQL qualification date is recorded the first time the lead reaches negotiation
+ * Fields to write for the MQL / SQL judgements.
+ * Dates are recorded only when someone records a judgement explicitly; changing
+ * the status never sets them (the sales flow decides SQL after the hearing).
  */
-export function buildStatusTransition(
-  existing: { hasNegotiated: boolean; sqlQualifiedAt: Date | null },
-  nextStatus: LeadStatus,
+export function qualificationUpdateFields(
+  input: Pick<LeadPipelineFields, 'mqlQualified' | 'sqlDecision'>,
+  existing: {
+    mqlQualifiedAt: Date | null;
+    sqlDecision: string | null;
+    sqlDecidedAt: Date | null;
+  } | null,
   now: Date = new Date()
-): { status: LeadStatus; hasNegotiated: boolean; sqlQualifiedAt: Date | null } {
-  const reachedNegotiation = NEGOTIATED_STATUSES.includes(nextStatus);
-  return {
-    status: nextStatus,
-    hasNegotiated: deriveHasNegotiated(nextStatus, existing.hasNegotiated),
-    sqlQualifiedAt: existing.sqlQualifiedAt ?? (reachedNegotiation ? now : null),
-  };
+): { mqlQualifiedAt?: Date | null; sqlDecision?: SqlDecision | null; sqlDecidedAt?: Date | null } {
+  const fields: {
+    mqlQualifiedAt?: Date | null;
+    sqlDecision?: SqlDecision | null;
+    sqlDecidedAt?: Date | null;
+  } = {};
+  if (input.mqlQualified !== undefined) {
+    fields.mqlQualifiedAt = input.mqlQualified ? (existing?.mqlQualifiedAt ?? now) : null;
+  }
+  if (input.sqlDecision !== undefined) {
+    fields.sqlDecision = input.sqlDecision;
+    if (input.sqlDecision === null) {
+      fields.sqlDecidedAt = null;
+    } else if (existing?.sqlDecision === input.sqlDecision) {
+      fields.sqlDecidedAt = existing.sqlDecidedAt ?? now;
+    } else {
+      fields.sqlDecidedAt = now;
+    }
+  }
+  return fields;
 }
 
 /** Legacy status values (before #54) mapped to the 5-stage pipeline */

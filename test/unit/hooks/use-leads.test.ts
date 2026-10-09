@@ -134,10 +134,10 @@ describe('Lead hooks types', () => {
     const input: UpdateLeadInput = {
       id: 'lead-123',
       organizationId: 'org-123',
-      status: 'qualified',
+      status: 'negotiating',
     };
     
-    expect(input.status).toBe('qualified');
+    expect(input.status).toBe('negotiating');
   });
 
   it('should define DeleteLeadInput type', () => {

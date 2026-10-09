@@ -235,44 +235,33 @@ export const analyticsRouter = router({
 
       const dateThreshold = getDateThreshold(dateRange);
 
-      // Get counts for each status
-      const statusCounts = await ctx.db
+      // One aggregate query. "Reached" counts are nested by construction
+      // (won ⊆ negotiation ⊆ nurturing ⊆ total), so stage rates never exceed 100%.
+      // Lost leads count toward negotiation only when has_negotiated is set; a lost
+      // lead that never negotiated is not counted as nurtured (it cannot be told apart
+      // from a lead lost straight from "new").
+      const [counts] = await ctx.db
         .select({
-          status: leads.status,
-          count: count().as('count'),
+          total: count(),
+          new: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'new')`,
+          nurturing: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'nurturing')`,
+          negotiating: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'negotiating')`,
+          won: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'won')`,
+          reachedNurturing: sql<number>`count(*) FILTER (WHERE ${leads.status} IN ('nurturing', 'negotiating', 'won') OR ${leads.hasNegotiated})`,
+          reachedNegotiation: sql<number>`count(*) FILTER (WHERE ${leads.status} IN ('negotiating', 'won') OR ${leads.hasNegotiated})`,
         })
         .from(leads)
-        .where(and(eq(leads.organizationId, organizationId), gte(leads.createdAt, dateThreshold)))
-        .groupBy(leads.status);
+        .where(and(eq(leads.organizationId, organizationId), gte(leads.createdAt, dateThreshold)));
 
-      // Build status map
-      const statusMap: Record<string, number> = {};
-      for (const row of statusCounts) {
-        statusMap[row.status] = row.count;
-      }
+      const totalLeads = Number(counts?.total) || 0;
+      const newCount = Number(counts?.new) || 0;
+      const nurturingCount = Number(counts?.nurturing) || 0;
+      const negotiatingCount = Number(counts?.negotiating) || 0;
+      const wonCount = Number(counts?.won) || 0;
 
-      const negotiatedResult = await ctx.db
-        .select({ count: count() })
-        .from(leads)
-        .where(
-          and(
-            eq(leads.organizationId, organizationId),
-            eq(leads.hasNegotiated, true),
-            gte(leads.createdAt, dateThreshold)
-          )
-        );
-
-      const totalLeads = Object.values(statusMap).reduce((sum, value) => sum + value, 0);
-      const newCount = statusMap.new || 0;
-      const nurturingCount = statusMap.nurturing || 0;
-      const negotiatingCount = statusMap.negotiating || 0;
-      const wonCount = statusMap.won || 0;
-
-      // Cumulative "reached this stage" counts. Lost leads are counted up to the
-      // stage they reached (has_negotiated tells whether they reached negotiation).
       const newTotal = totalLeads;
-      const nurturingTotal = totalLeads - newCount;
-      const negotiatingTotal = negotiatedResult[0]?.count || 0;
+      const nurturingTotal = Number(counts?.reachedNurturing) || 0;
+      const negotiatingTotal = Number(counts?.reachedNegotiation) || 0;
       const wonTotal = wonCount;
 
       const rate = (numerator: number, denominator: number) =>

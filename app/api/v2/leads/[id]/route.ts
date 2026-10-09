@@ -9,9 +9,9 @@ import { getAuthenticatedOrganization } from '@/lib/api/v2-auth';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
 import {
-  buildStatusTransition,
   leadStatusEnum,
   normalizeLeadStatus,
+  statusUpdateFields,
 } from '@/lib/features/leads/types/pipeline';
 import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -162,7 +162,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (company !== undefined) updateData.company = company;
     if (phone !== undefined) updateData.phone = phone;
     if (source !== undefined) updateData.source = source;
-    if (status !== undefined) Object.assign(updateData, buildStatusTransition(existing, status));
+    if (status !== undefined) Object.assign(updateData, statusUpdateFields(status));
     if (score !== undefined) updateData.score = score;
     if (responses !== undefined) updateData.responses = responses;
     if (customFields !== undefined) updateData.customFields = customFields;

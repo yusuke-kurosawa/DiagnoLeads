@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -26,6 +27,7 @@ import {
   LOST_REASONS,
   type LeadPipelineFields,
   type LeadStatus,
+  SQL_DECISIONS,
   TARGET_SYSTEMS,
   createLeadSchema,
 } from '@/lib/features/leads/types';
@@ -87,6 +89,8 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
       targetSystem: (lead?.targetSystem as FormValues['targetSystem']) ?? null,
       lostReason: (lead?.lostReason as FormValues['lostReason']) ?? null,
       referrerName: lead?.referrerName ?? null,
+      mqlQualified: Boolean(lead?.mqlQualifiedAt),
+      sqlDecision: (lead?.sqlDecision as FormValues['sqlDecision']) ?? null,
     },
   });
 
@@ -155,7 +159,7 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('status')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder={t('status')} />
@@ -211,7 +215,7 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
                     <FormLabel>{t(name)}</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value === NONE ? null : value)}
-                      defaultValue={field.value ?? NONE}
+                      value={field.value ?? NONE}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -245,6 +249,52 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
                       onChange={(e) => field.onChange(e.target.value || null)}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="mqlQualified"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value ?? false}
+                      onCheckedChange={(state) => field.onChange(state === true)}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">{t('mqlQualified')}</FormLabel>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sqlDecision"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('sqlDecision')}</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === NONE ? null : value)}
+                    value={field.value ?? NONE}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('sqlUndecided')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={NONE}>{t('sqlUndecided')}</SelectItem>
+                      {SQL_DECISIONS.map((decision) => (
+                        <SelectItem key={decision} value={decision}>
+                          {tPipeline(`sqlDecision.${decision}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

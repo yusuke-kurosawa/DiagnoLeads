@@ -163,8 +163,17 @@ export function LeadDetails({ lead, onEdit, onDelete, isDeleting }: LeadDetailsP
               <dd className="font-medium mt-1">{formatDate(lead.mqlQualifiedAt)}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-500">{t('sqlQualifiedAt')}</dt>
-              <dd className="font-medium mt-1">{formatDate(lead.sqlQualifiedAt)}</dd>
+              <dt className="text-sm text-gray-500">{t('sqlDecision')}</dt>
+              <dd className="font-medium mt-1">
+                {lead.sqlDecision
+                  ? tPipeline(`sqlDecision.${lead.sqlDecision}`)
+                  : t('sqlUndecided')}
+                {lead.sqlDecidedAt && (
+                  <span className="ml-2 text-sm text-gray-500">
+                    {formatDate(lead.sqlDecidedAt)}
+                  </span>
+                )}
+              </dd>
             </div>
           </dl>
         </Card>

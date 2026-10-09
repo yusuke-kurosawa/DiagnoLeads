@@ -8,9 +8,9 @@ import { getAuthenticatedOrganization } from '@/lib/api/v2-auth';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
 import {
-  buildStatusTransition,
   leadStatusEnum,
   normalizeLeadStatus,
+  statusUpdateFields,
 } from '@/lib/features/leads/types/pipeline';
 import { and, desc, eq, gte, ilike, lte, or, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
         company,
         phone,
         source,
-        ...buildStatusTransition({ hasNegotiated: false, sqlQualifiedAt: null }, status),
+        ...statusUpdateFields(status),
         score,
         responses: responses ?? {},
         customFields: customFields ?? {},

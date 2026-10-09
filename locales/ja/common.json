@@ -334,7 +334,13 @@
     "targetSystem": {
       "as400": "AS/400",
       "other_legacy": "その他オフコン・汎用機",
+      "client_server": "クライアントサーバー・EUC（VB・Access など）",
+      "low_code": "ローコード（Notes・FileMaker など）",
       "other": "その他"
+    },
+    "sqlDecision": {
+      "qualified": "SQL（商談対象）",
+      "not_qualified": "SQL外（育成に戻す）"
     },
     "lostReason": {
       "budget": "予算",
@@ -469,8 +475,10 @@
     "lostReason": "失注・保留理由",
     "hasNegotiated": "商談済み",
     "mqlQualifiedAt": "MQL判定日",
-    "sqlQualifiedAt": "SQL判定日",
-    "mqlQualified": "MQLとして判定",
+    "sqlDecision": "SQL判定",
+    "sqlDecidedAt": "SQL判定日",
+    "sqlUndecided": "未判定",
+    "mqlQualified": "MQLとして判定（マーケ確定）",
     "notSet": "未設定",
     "allInflowSources": "すべての流入元",
     "allDealPhases": "すべての商談フェーズ",

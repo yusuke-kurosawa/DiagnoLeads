@@ -612,6 +612,8 @@ export function LeadTable({
     company: t('company'),
     phone: t('phone'),
     status: t('status'),
+    dealPhase: t('dealPhase'),
+    inflowSource: t('inflowSource'),
     tags: locale === 'ja' ? 'タグ' : 'Tags',
     score: t('score'),
     source: t('source'),

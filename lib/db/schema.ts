@@ -248,7 +248,8 @@ export const leads = pgTable('leads', {
   lostReason: text('lost_reason'),
   hasNegotiated: boolean('has_negotiated').default(false).notNull(),
   mqlQualifiedAt: timestamp('mql_qualified_at'),
-  sqlQualifiedAt: timestamp('sql_qualified_at'),
+  sqlDecision: text('sql_decision'), // 'qualified' | 'not_qualified' | null（未判定）
+  sqlDecidedAt: timestamp('sql_decided_at'),
 
   // Assessment data
   responses: jsonb('responses').$type<Record<string, unknown>>().default({}),

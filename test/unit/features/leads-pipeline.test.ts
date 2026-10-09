@@ -1,9 +1,9 @@
 import {
   LEAD_STATUSES,
-  buildStatusTransition,
-  deriveHasNegotiated,
   leadPipelineFieldsSchema,
   normalizeLeadStatus,
+  qualificationUpdateFields,
+  statusUpdateFields,
 } from '@/lib/features/leads/types/pipeline';
 import { describe, expect, it } from 'vitest';
 
@@ -13,57 +13,66 @@ describe('LEAD_STATUSES', () => {
   });
 });
 
-describe('deriveHasNegotiated', () => {
-  it('turns on when the lead reaches negotiation or is won', () => {
-    expect(deriveHasNegotiated('negotiating')).toBe(true);
-    expect(deriveHasNegotiated('won')).toBe(true);
+describe('statusUpdateFields', () => {
+  it('turns the negotiated flag on for negotiating and won', () => {
+    expect(statusUpdateFields('negotiating')).toEqual({ status: 'negotiating', hasNegotiated: true });
+    expect(statusUpdateFields('won')).toEqual({ status: 'won', hasNegotiated: true });
   });
 
-  it('stays off for earlier stages', () => {
-    expect(deriveHasNegotiated('new')).toBe(false);
-    expect(deriveHasNegotiated('nurturing')).toBe(false);
+  it('never writes the flag as false (so it cannot be cleared)', () => {
+    expect(statusUpdateFields('new')).toEqual({ status: 'new' });
+    expect(statusUpdateFields('nurturing')).toEqual({ status: 'nurturing' });
+    expect(statusUpdateFields('lost')).toEqual({ status: 'lost' });
   });
 
-  it('never goes back to false once set', () => {
-    expect(deriveHasNegotiated('lost', true)).toBe(true);
-    expect(deriveHasNegotiated('nurturing', true)).toBe(true);
+  it('does not record any SQL judgement', () => {
+    expect(statusUpdateFields('negotiating')).not.toHaveProperty('sqlDecidedAt');
   });
 });
 
-describe('buildStatusTransition', () => {
+describe('qualificationUpdateFields', () => {
   const now = new Date('2026-10-09T00:00:00Z');
-  const fresh = { hasNegotiated: false, sqlQualifiedAt: null };
+  const earlier = new Date('2026-09-01T00:00:00Z');
+  const empty = { mqlQualifiedAt: null, sqlDecision: null, sqlDecidedAt: null };
 
-  it('records the SQL date the first time the lead reaches negotiation', () => {
-    expect(buildStatusTransition(fresh, 'negotiating', now)).toEqual({
-      status: 'negotiating',
-      hasNegotiated: true,
-      sqlQualifiedAt: now,
+  it('writes nothing when no judgement is given', () => {
+    expect(qualificationUpdateFields({}, empty, now)).toEqual({});
+  });
+
+  it('records the MQL date once and keeps it on re-confirmation', () => {
+    expect(qualificationUpdateFields({ mqlQualified: true }, empty, now)).toEqual({
+      mqlQualifiedAt: now,
+    });
+    expect(
+      qualificationUpdateFields({ mqlQualified: true }, { ...empty, mqlQualifiedAt: earlier }, now)
+    ).toEqual({ mqlQualifiedAt: earlier });
+    expect(qualificationUpdateFields({ mqlQualified: false }, { ...empty, mqlQualifiedAt: earlier }, now)).toEqual({
+      mqlQualifiedAt: null,
     });
   });
 
-  it('keeps the original SQL date on later transitions', () => {
-    const earlier = new Date('2026-09-01T00:00:00Z');
-    const result = buildStatusTransition(
-      { hasNegotiated: true, sqlQualifiedAt: earlier },
-      'won',
-      now
-    );
-    expect(result.sqlQualifiedAt).toBe(earlier);
-  });
-
-  it('does not set the SQL date for nurturing or lost before negotiation', () => {
-    expect(buildStatusTransition(fresh, 'nurturing', now).sqlQualifiedAt).toBeNull();
-    expect(buildStatusTransition(fresh, 'lost', now)).toEqual({
-      status: 'lost',
-      hasNegotiated: false,
-      sqlQualifiedAt: null,
+  it('records the SQL decision with its date', () => {
+    expect(qualificationUpdateFields({ sqlDecision: 'qualified' }, null, now)).toEqual({
+      sqlDecision: 'qualified',
+      sqlDecidedAt: now,
     });
   });
 
-  it('keeps the negotiated flag when a negotiated lead is lost', () => {
-    const result = buildStatusTransition({ hasNegotiated: true, sqlQualifiedAt: now }, 'lost');
-    expect(result.hasNegotiated).toBe(true);
+  it('keeps the date when the same decision is saved again', () => {
+    const existing = { ...empty, sqlDecision: 'qualified', sqlDecidedAt: earlier };
+    expect(qualificationUpdateFields({ sqlDecision: 'qualified' }, existing, now).sqlDecidedAt).toBe(earlier);
+  });
+
+  it('re-dates a changed decision and clears it when reset', () => {
+    const existing = { ...empty, sqlDecision: 'qualified', sqlDecidedAt: earlier };
+    expect(qualificationUpdateFields({ sqlDecision: 'not_qualified' }, existing, now)).toEqual({
+      sqlDecision: 'not_qualified',
+      sqlDecidedAt: now,
+    });
+    expect(qualificationUpdateFields({ sqlDecision: null }, existing, now)).toEqual({
+      sqlDecision: null,
+      sqlDecidedAt: null,
+    });
   });
 });
 
@@ -89,9 +98,10 @@ describe('leadPipelineFieldsSchema', () => {
       inflowSource: 'referral_partner',
       conversionPoint: 'web_diagnosis',
       dealPhase: 'simple_diagnosis',
-      targetSystem: 'as400',
+      targetSystem: 'client_server',
       referrerName: 'Partner Inc.',
       lostReason: null,
+      sqlDecision: 'not_qualified',
     });
     expect(result.dealPhase).toBe('simple_diagnosis');
     expect(result.lostReason).toBeNull();
@@ -100,5 +110,6 @@ describe('leadPipelineFieldsSchema', () => {
   it('rejects unknown values', () => {
     expect(() => leadPipelineFieldsSchema.parse({ dealPhase: 'closing' })).toThrow();
     expect(() => leadPipelineFieldsSchema.parse({ targetSystem: 'windows' })).toThrow();
+    expect(() => leadPipelineFieldsSchema.parse({ sqlDecision: 'maybe' })).toThrow();
   });
 });

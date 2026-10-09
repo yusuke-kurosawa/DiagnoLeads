@@ -11,7 +11,7 @@ import { z } from 'zod';
 const listLeadsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).optional(),
+  status: z.enum(['new', 'nurturing', 'negotiating', 'won', 'lost']).optional(),
   source: z.string().optional(),
   minScore: z.coerce.number().int().min(0).max(100).optional(),
   maxScore: z.coerce.number().int().min(0).max(100).optional(),
@@ -28,7 +28,7 @@ const createLeadSchema = z.object({
   company: z.string().optional(),
   phone: z.string().optional(),
   source: z.string().default('api'),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).default('new'),
+  status: z.enum(['new', 'nurturing', 'negotiating', 'won', 'lost']).default('new'),
   score: z.number().int().min(0).max(100).optional(),
   responses: z.record(z.unknown()).optional(),
   customFields: z.record(z.unknown()).optional(),
@@ -39,7 +39,7 @@ const updateLeadSchema = z.object({
   name: z.string().optional(),
   company: z.string().optional(),
   phone: z.string().optional(),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).optional(),
+  status: z.enum(['new', 'nurturing', 'negotiating', 'won', 'lost']).optional(),
   score: z.number().int().min(0).max(100).optional(),
   responses: z.record(z.unknown()).optional(),
   customFields: z.record(z.unknown()).optional(),
@@ -106,7 +106,7 @@ describe('REST API v2 - Leads Query Schema', () => {
     });
 
     it('should accept all valid status values', () => {
-      const statuses = ['new', 'contacted', 'qualified', 'converted'];
+      const statuses = ['new', 'nurturing', 'negotiating', 'won', 'lost'];
       for (const status of statuses) {
         const result = listLeadsQuerySchema.safeParse({ status });
         expect(result.success).toBe(true);
@@ -265,7 +265,7 @@ describe('REST API v2 - Update Lead Schema', () => {
     });
 
     it('should validate status when provided', () => {
-      const valid = updateLeadSchema.safeParse({ status: 'converted' });
+      const valid = updateLeadSchema.safeParse({ status: 'won' });
       const invalid = updateLeadSchema.safeParse({ status: 'invalid' });
 
       expect(valid.success).toBe(true);

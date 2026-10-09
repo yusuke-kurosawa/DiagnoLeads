@@ -93,8 +93,6 @@ export const updateLeadSchema = z
     score: z.number().int().min(0).max(100).optional(),
     source: leadSourceEnum.optional(),
     responses: z.record(z.unknown()).optional(),
-    /** Manually mark / unmark the lead as MQL */
-    mqlQualified: z.boolean().optional(),
   })
   .merge(leadPipelineFieldsSchema);
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>;

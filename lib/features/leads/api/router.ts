@@ -24,8 +24,8 @@ import {
 } from 'drizzle-orm';
 import {
   type LeadPipelineFields,
-  NEGOTIATED_STATUSES,
-  buildStatusTransition,
+  qualificationUpdateFields,
+  statusUpdateFields,
 } from '../types/pipeline';
 import {
   type FilterCondition,
@@ -183,11 +183,12 @@ export const leadsRouter = router({
         name: input.name,
         company: input.company,
         phone: input.phone,
-        ...buildStatusTransition({ hasNegotiated: false, sqlQualifiedAt: null }, input.status),
+        ...statusUpdateFields(input.status),
         score: input.score,
         source: input.source,
         responses: input.responses,
         ...pickPipelineFields(input),
+        ...qualificationUpdateFields(input, null),
       })
       .returning();
 
@@ -410,17 +411,13 @@ export const leadsRouter = router({
     if (input.company !== undefined) updateData.company = input.company;
     if (input.phone !== undefined) updateData.phone = input.phone;
     if (input.status !== undefined) {
-      Object.assign(updateData, buildStatusTransition(existing, input.status));
+      Object.assign(updateData, statusUpdateFields(input.status));
     }
     if (input.score !== undefined) updateData.score = input.score;
     if (input.source !== undefined) updateData.source = input.source;
     if (input.responses !== undefined) updateData.responses = input.responses;
     Object.assign(updateData, pickPipelineFields(input));
-    if (input.mqlQualified !== undefined) {
-      updateData.mqlQualifiedAt = input.mqlQualified
-        ? (existing.mqlQualifiedAt ?? new Date())
-        : null;
-    }
+    Object.assign(updateData, qualificationUpdateFields(input, existing));
     updateData.updatedAt = new Date();
 
     // Update lead
@@ -483,13 +480,7 @@ export const leadsRouter = router({
       const result = await ctx.db
         .update(leads)
         .set({
-          status: input.status,
-          ...(NEGOTIATED_STATUSES.includes(input.status)
-            ? {
-                hasNegotiated: true,
-                sqlQualifiedAt: sql`COALESCE(${leads.sqlQualifiedAt}, NOW())`,
-              }
-            : {}),
+          ...statusUpdateFields(input.status),
           updatedAt: new Date(),
         })
         .where(and(inArray(leads.id, input.ids), eq(leads.organizationId, input.organizationId)))
@@ -544,7 +535,7 @@ export const leadsRouter = router({
       name: lead.name,
       company: lead.company,
       phone: lead.phone,
-      ...buildStatusTransition({ hasNegotiated: false, sqlQualifiedAt: null }, lead.status),
+      ...statusUpdateFields(lead.status),
       source: lead.source,
       score: lead.score,
     }));

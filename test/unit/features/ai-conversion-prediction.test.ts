@@ -218,7 +218,7 @@ describe('Fallback prediction logic', () => {
       name: null,
       company: null,
       phone: null,
-      status: 'qualified',
+      status: 'negotiating',
       score: null,
       source: null,
       responses: null,
@@ -226,7 +226,7 @@ describe('Fallback prediction logic', () => {
       updatedAt: new Date(),
     };
 
-    expect(qualifiedLead.status).toBe('qualified');
+    expect(qualifiedLead.status).toBe('negotiating');
   });
 
   it('should consider profile completeness', () => {
