@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth';
+import { getAuthenticatedOrganization } from '@/lib/api/v2-auth';
 /**
  * REST API v2 - Analytics Endpoint
  *
@@ -7,7 +7,6 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
 import { and, avg, count, eq, gte, lte, sql } from 'drizzle-orm';
-import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -22,44 +21,12 @@ const analyticsQuerySchema = z.object({
 });
 
 // ============================================================================
-// Auth Helper
-// ============================================================================
-
-async function getAuthenticatedOrganization(request: NextRequest): Promise<{
-  organizationId: string;
-  userId?: string;
-} | null> {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    const parts = token.split('_');
-    if (parts.length >= 2 && parts[0] === 'org') {
-      return { organizationId: parts[1] };
-    }
-  }
-
-  const headersList = await headers();
-  const session = await auth.api.getSession({
-    headers: headersList,
-  });
-
-  if (!session?.session?.activeOrganizationId) {
-    return null;
-  }
-
-  return {
-    organizationId: session.session.activeOrganizationId,
-    userId: session.user?.id,
-  };
-}
-
-// ============================================================================
 // Handler
 // ============================================================================
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await getAuthenticatedOrganization(request);
+    const authResult = await getAuthenticatedOrganization();
     if (!authResult) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Authentication required' },
