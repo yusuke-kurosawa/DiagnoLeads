@@ -16,8 +16,8 @@ export const axMigrationDefinition: DiagnosticDefinition = {
     en: 'AX Migration Core System Check',
   },
   description: {
-    ja: '12の質問（約5分）に答えると、基幹システムや業務システムの移行難易度の目安と、優先して取り組むべき課題がわかります。',
-    en: 'Answer 12 questions (about 5 minutes) to see an estimate of your migration difficulty and the challenges to tackle first.',
+    ja: '12の質問（約5分）に答えると、基幹システムや部署の業務ツール（Access など）の移行難易度の目安と、優先して取り組むべき課題がわかります。',
+    en: 'Answer 12 questions (about 5 minutes) to see an estimate of the migration difficulty of your core system or department tools (such as Access) and the challenges to tackle first.',
   },
   sections: [
     {
@@ -27,7 +27,7 @@ export const axMigrationDefinition: DiagnosticDefinition = {
     },
     {
       id: 'system',
-      title: { ja: '基幹システムについて', en: 'About your core system' },
+      title: { ja: '対象のシステムについて', en: 'About the system' },
       questionIds: ['system', 'languages', 'years', 'programs', 'integrations'],
     },
     {
@@ -76,7 +76,14 @@ export const axMigrationDefinition: DiagnosticDefinition = {
       id: 'system',
       type: 'single',
       required: true,
-      label: { ja: '現在の基幹システムの基盤は？', en: 'What platform runs your core system?' },
+      label: {
+        ja: '刷新を検討している主なシステムの基盤は？',
+        en: 'What does the main system you want to modernize run on?',
+      },
+      description: {
+        ja: '基幹システムだけでなく、部署単位で使っている Access などの業務ツールも対象です。',
+        en: 'Department-level business tools such as Access are also in scope, not only core systems.',
+      },
       options: [
         { value: 'as400', label: { ja: 'AS/400（IBM i）', en: 'AS/400 (IBM i)' } },
         {
@@ -85,17 +92,28 @@ export const axMigrationDefinition: DiagnosticDefinition = {
         },
         { value: 'mainframe', label: { ja: '汎用機（メインフレーム）', en: 'Mainframe' } },
         {
-          value: 'client_server',
+          value: 'vb',
           label: {
-            ja: 'Windows のクライアントサーバー型（VB・Access など）',
-            en: 'Windows client-server (VB, Access, etc.)',
+            ja: 'Visual Basic で作ったクライアントサーバー型システム',
+            en: 'Client-server system built with Visual Basic',
           },
         },
         {
-          value: 'low_code',
+          value: 'access',
           label: {
-            ja: 'ローコード基盤（Notes・FileMaker など）',
-            en: 'Low-code platform (Notes, FileMaker, etc.)',
+            ja: 'Microsoft Access（部署単位のツールを含む）',
+            en: 'Microsoft Access (incl. department-level tools)',
+          },
+        },
+        {
+          value: 'webperformer',
+          label: { ja: 'WebPerformer', en: 'WebPerformer' },
+        },
+        {
+          value: 'other_low_code',
+          label: {
+            ja: 'その他のローコード・ノーコード製品',
+            en: 'Other low-code / no-code product',
           },
         },
         {

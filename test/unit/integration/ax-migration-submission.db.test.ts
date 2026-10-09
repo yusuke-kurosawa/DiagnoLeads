@@ -98,9 +98,9 @@ describe.skipIf(!url)('AX migration submission (PostgreSQL)', () => {
       conversionPoint: 'web_diagnosis',
       targetSystem: 'as400',
       score: outcome.result.leadScore,
-      // The Web diagnosis alone does not make an MQL (marketing confirms the candidate)
-      mqlQualifiedAt: null,
     });
+    // The Web diagnosis counts as the MQL action (2026-10-09 decision)
+    expect(lead?.mqlQualifiedAt).toEqual(now);
     expect(lead?.responses).toMatchObject({
       axMigration: { submissionId: outcome.submissionId, mqlCandidate: true, primaryChallenge: 'people' },
     });

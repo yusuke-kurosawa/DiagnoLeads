@@ -56,32 +56,36 @@ describe('axMigrationDefinition', () => {
 
 describe('evaluateAxMigration', () => {
   describe('MQL (業種 × システム × 行動)', () => {
-    const countDiagnosis = { ...AX_MIGRATION_CONFIG, countWebDiagnosisAsMqlAction: true };
+    const candidateOnly = { ...AX_MIGRATION_CONFIG, countWebDiagnosisAsMqlAction: false };
 
-    it('hands a manufacturer on AS/400 to marketing as an MQL candidate by default', () => {
+    it('qualifies a manufacturer on AS/400 (the diagnosis counts as an action)', () => {
       const result = evaluateAxMigration(typicalAs400);
       expect(result.mql).toEqual({
-        qualified: false,
+        qualified: true,
         candidate: true,
-        criteria: { industry: true, system: true, action: false },
+        criteria: { industry: true, system: true, action: true },
       });
     });
 
-    it('qualifies automatically only when the diagnosis counts as an action (config)', () => {
-      expect(evaluateAxMigration(typicalAs400, countDiagnosis).mql.qualified).toBe(true);
+    it('qualifies a distributor on a mainframe', () => {
       expect(
-        evaluateAxMigration(answer({ industry: 'distribution', system: 'mainframe' }), countDiagnosis)
-          .mql.qualified
+        evaluateAxMigration(answer({ industry: 'distribution', system: 'mainframe' })).mql.qualified
       ).toBe(true);
     });
 
-    it('does not make other industries a candidate', () => {
-      const result = evaluateAxMigration(answer({ industry: 'other' }), countDiagnosis);
+    it('only marks a candidate when the diagnosis does not count as an action (config)', () => {
+      const result = evaluateAxMigration(typicalAs400, candidateOnly);
+      expect(result.mql.qualified).toBe(false);
+      expect(result.mql.candidate).toBe(true);
+    });
+
+    it('does not qualify other industries', () => {
+      const result = evaluateAxMigration(answer({ industry: 'other' }));
       expect(result.mql.candidate).toBe(false);
       expect(result.mql.qualified).toBe(false);
     });
 
-    it('does not make packaged / cloud systems a candidate', () => {
+    it('does not qualify packaged / cloud systems', () => {
       const result = evaluateAxMigration(answer({ system: 'package', languages: ['other'] }));
       expect(result.mql.criteria.system).toBe(false);
     });
@@ -93,32 +97,34 @@ describe('evaluateAxMigration', () => {
     });
   });
 
-  describe('client-server / EUC and low-code targets', () => {
-    it('treats VB / Access client-server systems as migration targets', () => {
-      const result = evaluateAxMigration(answer({ system: 'client_server', languages: ['vb', 'vba'] }));
-      expect(result.targetSystem).toBe('client_server');
-      expect(result.mql.candidate).toBe(true);
+  describe('VB / Access / WebPerformer targets', () => {
+    it.each([
+      ['vb', ['vb'], 'vb'],
+      ['access', ['vba'], 'access'],
+      ['webperformer', ['other'], 'webperformer'],
+    ])('treats %s as a migration target', (system, languages, target) => {
+      const result = evaluateAxMigration(answer({ system, languages }));
+      expect(result.targetSystem).toBe(target);
+      expect(result.mql.qualified).toBe(true);
     });
 
-    it('treats Notes / FileMaker style low-code platforms as migration targets', () => {
-      const result = evaluateAxMigration(answer({ system: 'low_code', languages: ['other'] }));
-      expect(result.targetSystem).toBe('low_code');
-      expect(result.mql.candidate).toBe(true);
+    it('does not target other low-code products for now', () => {
+      const result = evaluateAxMigration(answer({ system: 'other_low_code', languages: ['other'] }));
+      expect(result.targetSystem).toBe('other');
+      expect(result.mql.criteria.system).toBe(false);
     });
 
-    it('estimates client-server from VB / VBA when the platform is unknown', () => {
+    it('estimates VB or Access from the language when the platform is unknown', () => {
+      expect(evaluateAxMigration(answer({ system: 'unknown', languages: ['vb'] })).targetSystem).toBe('vb');
       expect(evaluateAxMigration(answer({ system: 'unknown', languages: ['vba'] })).targetSystem).toBe(
-        'client_server'
+        'access'
       );
     });
 
-    it('can exclude them from the MQL target via config', () => {
-      const result = evaluateAxMigration(answer({ system: 'client_server', languages: ['vb'] }), {
-        ...AX_MIGRATION_CONFIG,
-        legacySystems: ['as400', 'office_computer', 'mainframe'],
-        legacyLanguages: ['rpg', 'cobol', 'cl'],
-      });
-      expect(result.mql.candidate).toBe(false);
+    it('rates an Access tool easier to migrate than a VB system of the same size', () => {
+      const access = evaluateAxMigration(answer({ system: 'access', languages: ['vba'] }));
+      const vb = evaluateAxMigration(answer({ system: 'vb', languages: ['vb'] }));
+      expect(access.difficulty.score).toBeLessThan(vb.difficulty.score);
     });
   });
 

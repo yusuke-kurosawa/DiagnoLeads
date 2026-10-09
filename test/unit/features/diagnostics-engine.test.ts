@@ -189,7 +189,7 @@ describe('sales notification', () => {
 
     const diagnosis = buildSalesMessage({ ...base, consultationRequested: false });
     expect(diagnosis.title).toContain('【AX診断】');
-    expect(diagnosis.message).toContain('MQL候補: 該当');
+    expect(diagnosis.message).toContain('MQL: 該当');
     expect(diagnosis.message).toContain('SQLの手がかり: あり');
 
     const unverified = buildSalesMessage({ ...base, consultationRequested: true, identityUnverified: true });

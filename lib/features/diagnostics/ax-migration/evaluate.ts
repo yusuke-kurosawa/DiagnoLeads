@@ -55,8 +55,10 @@ const DIFFICULTY_POINTS = {
     as400: 20,
     office_computer: 25,
     mainframe: 30,
-    client_server: 15,
-    low_code: 20,
+    vb: 15,
+    access: 10,
+    webperformer: 15,
+    other_low_code: 20,
     package: 10,
     unknown: 20,
   },
@@ -100,13 +102,15 @@ function toLevel(score: number, mediumFrom: number, highFrom: number): Level {
 function deriveTargetSystem(system: string | undefined, languages: string[]): TargetSystem | null {
   if (system === 'as400') return 'as400';
   if (system === 'office_computer' || system === 'mainframe') return 'other_legacy';
-  if (system === 'client_server') return 'client_server';
-  if (system === 'low_code') return 'low_code';
-  if (system === 'package') return 'other';
-  // Platform unknown: estimate from languages (RPG / CL run on IBM i, VB / VBA on Windows)
+  if (system === 'vb') return 'vb';
+  if (system === 'access') return 'access';
+  if (system === 'webperformer') return 'webperformer';
+  if (system === 'package' || system === 'other_low_code') return 'other';
+  // Platform unknown: estimate from languages (RPG / CL run on IBM i, VBA mostly means Access)
   if (languages.includes('rpg') || languages.includes('cl')) return 'as400';
   if (languages.includes('cobol')) return 'other_legacy';
-  if (languages.includes('vb') || languages.includes('vba')) return 'client_server';
+  if (languages.includes('vb')) return 'vb';
+  if (languages.includes('vba')) return 'access';
   return null;
 }
 
