@@ -23,6 +23,11 @@ import {
   sql,
 } from 'drizzle-orm';
 import {
+  type LeadPipelineFields,
+  qualificationUpdateFields,
+  statusUpdateFields,
+} from '../types/pipeline';
+import {
   type FilterCondition,
   type FilterGroup,
   bulkCreateSchema,
@@ -34,6 +39,25 @@ import {
   listLeadsSchema,
   updateLeadSchema,
 } from '../types/schemas';
+
+/**
+ * Pick only the pipeline fields that were explicitly provided
+ */
+function pickPipelineFields(input: LeadPipelineFields): LeadPipelineFields {
+  const keys = [
+    'inflowSource',
+    'conversionPoint',
+    'dealPhase',
+    'targetSystem',
+    'referrerName',
+    'lostReason',
+  ] as const;
+  const picked: Record<string, unknown> = {};
+  for (const key of keys) {
+    if (input[key] !== undefined) picked[key] = input[key];
+  }
+  return picked as LeadPipelineFields;
+}
 
 /**
  * Build SQL condition from a filter condition
@@ -50,6 +74,12 @@ function buildCondition(condition: FilterCondition): SQL | undefined {
     phone: leads.phone,
     status: leads.status,
     source: leads.source,
+    inflowSource: leads.inflowSource,
+    conversionPoint: leads.conversionPoint,
+    dealPhase: leads.dealPhase,
+    targetSystem: leads.targetSystem,
+    lostReason: leads.lostReason,
+    referrerName: leads.referrerName,
     score: leads.score,
     createdAt: leads.createdAt,
     updatedAt: leads.updatedAt,
@@ -153,10 +183,12 @@ export const leadsRouter = router({
         name: input.name,
         company: input.company,
         phone: input.phone,
-        status: input.status,
+        ...statusUpdateFields(input.status),
         score: input.score,
         source: input.source,
         responses: input.responses,
+        ...pickPipelineFields(input),
+        ...qualificationUpdateFields(input, null),
       })
       .returning();
 
@@ -216,6 +248,12 @@ export const leadsRouter = router({
     const conditions: (SQL | undefined)[] = [eq(leads.organizationId, input.organizationId)];
 
     // Basic filters
+    if (input.inflowSource) {
+      conditions.push(eq(leads.inflowSource, input.inflowSource));
+    }
+    if (input.dealPhase) {
+      conditions.push(eq(leads.dealPhase, input.dealPhase));
+    }
     if (input.status) {
       conditions.push(eq(leads.status, input.status));
     }
@@ -372,10 +410,14 @@ export const leadsRouter = router({
     if (input.name !== undefined) updateData.name = input.name;
     if (input.company !== undefined) updateData.company = input.company;
     if (input.phone !== undefined) updateData.phone = input.phone;
-    if (input.status !== undefined) updateData.status = input.status;
+    if (input.status !== undefined) {
+      Object.assign(updateData, statusUpdateFields(input.status));
+    }
     if (input.score !== undefined) updateData.score = input.score;
     if (input.source !== undefined) updateData.source = input.source;
     if (input.responses !== undefined) updateData.responses = input.responses;
+    Object.assign(updateData, pickPipelineFields(input));
+    Object.assign(updateData, qualificationUpdateFields(input, existing));
     updateData.updatedAt = new Date();
 
     // Update lead
@@ -438,7 +480,7 @@ export const leadsRouter = router({
       const result = await ctx.db
         .update(leads)
         .set({
-          status: input.status,
+          ...statusUpdateFields(input.status),
           updatedAt: new Date(),
         })
         .where(and(inArray(leads.id, input.ids), eq(leads.organizationId, input.organizationId)))
@@ -493,7 +535,7 @@ export const leadsRouter = router({
       name: lead.name,
       company: lead.company,
       phone: lead.phone,
-      status: lead.status,
+      ...statusUpdateFields(lead.status),
       source: lead.source,
       score: lead.score,
     }));

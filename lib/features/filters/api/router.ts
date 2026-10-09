@@ -3,6 +3,7 @@
  * Handles CRUD operations for saved filters with advanced filtering support
  */
 import { type FilterOperator, savedFilters } from '@/lib/db/schema';
+import { LEAD_STATUSES } from '@/lib/features/leads/types/pipeline';
 import { organizationProcedure, router } from '@/lib/trpc/init';
 import { TRPCError } from '@trpc/server';
 import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
@@ -424,7 +425,7 @@ export const filtersRouter = router({
           key: 'status',
           label: 'Status',
           type: 'select' as const,
-          options: ['new', 'contacted', 'qualified', 'converted'],
+          options: [...LEAD_STATUSES],
           operators: ['equals', 'not_equals', 'in', 'not_in'] as FilterOperator[],
         },
         {

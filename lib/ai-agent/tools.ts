@@ -22,7 +22,7 @@ export const searchLeadsTool: AgentTool = {
       status: {
         type: 'string',
         description: 'Lead status filter',
-        enum: ['new', 'contacted', 'qualified', 'converted', 'lost'],
+        enum: ['new', 'nurturing', 'negotiating', 'won', 'lost'],
       },
       limit: {
         type: 'number',
@@ -68,7 +68,7 @@ export const getLeadDetailsTool: AgentTool = {
       email: 'john@example.com',
       company: 'Acme Corp',
       score: 85,
-      status: 'qualified',
+      status: 'negotiating',
       createdAt: '2024-01-15',
       interactions: [
         { type: 'email', date: '2024-01-16' },

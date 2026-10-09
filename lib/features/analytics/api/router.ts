@@ -1,4 +1,5 @@
 import { leads } from '@/lib/db/schema';
+import { LEAD_STATUSES, type LeadStatus } from '@/lib/features/leads/types/pipeline';
 import { organizationProcedure, router } from '@/lib/trpc/init';
 import { and, avg, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import {
@@ -66,7 +67,7 @@ export const analyticsRouter = router({
       const convertedLeadsResult = await ctx.db
         .select({ count: count() })
         .from(leads)
-        .where(and(eq(leads.organizationId, organizationId), eq(leads.status, 'converted')));
+        .where(and(eq(leads.organizationId, organizationId), eq(leads.status, 'won')));
 
       const convertedLeads = convertedLeadsResult[0]?.count || 0;
       const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
@@ -91,15 +92,12 @@ export const analyticsRouter = router({
         .where(eq(leads.organizationId, organizationId))
         .groupBy(leads.status);
 
-      const leadsByStatus = {
-        new: 0,
-        contacted: 0,
-        qualified: 0,
-        converted: 0,
-      };
+      const leadsByStatus = Object.fromEntries(
+        LEAD_STATUSES.map((status) => [status, 0])
+      ) as Record<LeadStatus, number>;
 
       for (const row of leadsByStatusResult) {
-        const status = row.status as keyof typeof leadsByStatus;
+        const status = row.status as LeadStatus;
         if (status in leadsByStatus) {
           leadsByStatus[status] = row.count;
         }
@@ -136,7 +134,7 @@ export const analyticsRouter = router({
         .select({
           date: dateFormat.as('date'),
           count: count().as('count'),
-          converted: sql<number>`SUM(CASE WHEN ${leads.status} = 'converted' THEN 1 ELSE 0 END)`.as(
+          converted: sql<number>`SUM(CASE WHEN ${leads.status} = 'won' THEN 1 ELSE 0 END)`.as(
             'converted'
           ),
         })
@@ -237,34 +235,37 @@ export const analyticsRouter = router({
 
       const dateThreshold = getDateThreshold(dateRange);
 
-      // Get counts for each status
-      const statusCounts = await ctx.db
+      // One aggregate query. "Reached" counts are nested by construction
+      // (won ⊆ negotiation ⊆ nurturing ⊆ total), so stage rates never exceed 100%.
+      // Lost leads count toward negotiation only when has_negotiated is set; a lost
+      // lead that never negotiated is not counted as nurtured (it cannot be told apart
+      // from a lead lost straight from "new").
+      const [counts] = await ctx.db
         .select({
-          status: leads.status,
-          count: count().as('count'),
+          total: count(),
+          new: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'new')`,
+          nurturing: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'nurturing')`,
+          negotiating: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'negotiating')`,
+          won: sql<number>`count(*) FILTER (WHERE ${leads.status} = 'won')`,
+          reachedNurturing: sql<number>`count(*) FILTER (WHERE ${leads.status} IN ('nurturing', 'negotiating', 'won') OR ${leads.hasNegotiated})`,
+          reachedNegotiation: sql<number>`count(*) FILTER (WHERE ${leads.status} IN ('negotiating', 'won') OR ${leads.hasNegotiated})`,
         })
         .from(leads)
-        .where(and(eq(leads.organizationId, organizationId), gte(leads.createdAt, dateThreshold)))
-        .groupBy(leads.status);
+        .where(and(eq(leads.organizationId, organizationId), gte(leads.createdAt, dateThreshold)));
 
-      // Build status map
-      const statusMap: Record<string, number> = {};
-      for (const row of statusCounts) {
-        statusMap[row.status] = row.count;
-      }
+      const totalLeads = Number(counts?.total) || 0;
+      const newCount = Number(counts?.new) || 0;
+      const nurturingCount = Number(counts?.nurturing) || 0;
+      const negotiatingCount = Number(counts?.negotiating) || 0;
+      const wonCount = Number(counts?.won) || 0;
 
-      const newCount = statusMap.new || 0;
-      const contactedCount = statusMap.contacted || 0;
-      const qualifiedCount = statusMap.qualified || 0;
-      const convertedCount = statusMap.converted || 0;
-
-      const totalLeads = newCount + contactedCount + qualifiedCount + convertedCount;
-
-      // Calculate cumulative values for funnel
       const newTotal = totalLeads;
-      const contactedTotal = contactedCount + qualifiedCount + convertedCount;
-      const qualifiedTotal = qualifiedCount + convertedCount;
-      const convertedTotal = convertedCount;
+      const nurturingTotal = Number(counts?.reachedNurturing) || 0;
+      const negotiatingTotal = Number(counts?.reachedNegotiation) || 0;
+      const wonTotal = wonCount;
+
+      const rate = (numerator: number, denominator: number) =>
+        denominator > 0 ? Math.round((numerator / denominator) * 10000) / 100 : 0;
 
       // Build funnel stages
       const stages: FunnelStage[] = [
@@ -272,31 +273,29 @@ export const analyticsRouter = router({
           name: 'new',
           count: newCount,
           cumulativeCount: newTotal,
-          percentage: totalLeads > 0 ? Math.round((newTotal / totalLeads) * 10000) / 100 : 100,
+          percentage: 100,
           conversionRate: 100, // First stage always 100%
         },
         {
-          name: 'contacted',
-          count: contactedCount,
-          cumulativeCount: contactedTotal,
-          percentage: totalLeads > 0 ? Math.round((contactedTotal / totalLeads) * 10000) / 100 : 0,
-          conversionRate: newTotal > 0 ? Math.round((contactedTotal / newTotal) * 10000) / 100 : 0,
+          name: 'nurturing',
+          count: nurturingCount,
+          cumulativeCount: nurturingTotal,
+          percentage: rate(nurturingTotal, totalLeads),
+          conversionRate: rate(nurturingTotal, newTotal),
         },
         {
-          name: 'qualified',
-          count: qualifiedCount,
-          cumulativeCount: qualifiedTotal,
-          percentage: totalLeads > 0 ? Math.round((qualifiedTotal / totalLeads) * 10000) / 100 : 0,
-          conversionRate:
-            contactedTotal > 0 ? Math.round((qualifiedTotal / contactedTotal) * 10000) / 100 : 0,
+          name: 'negotiating',
+          count: negotiatingCount,
+          cumulativeCount: negotiatingTotal,
+          percentage: rate(negotiatingTotal, totalLeads),
+          conversionRate: rate(negotiatingTotal, nurturingTotal),
         },
         {
-          name: 'converted',
-          count: convertedCount,
-          cumulativeCount: convertedTotal,
-          percentage: totalLeads > 0 ? Math.round((convertedTotal / totalLeads) * 10000) / 100 : 0,
-          conversionRate:
-            qualifiedTotal > 0 ? Math.round((convertedTotal / qualifiedTotal) * 10000) / 100 : 0,
+          name: 'won',
+          count: wonCount,
+          cumulativeCount: wonTotal,
+          percentage: rate(wonTotal, totalLeads),
+          conversionRate: rate(wonTotal, negotiatingTotal),
         },
       ];
 
@@ -312,7 +311,7 @@ export const analyticsRouter = router({
         .where(
           and(
             eq(leads.organizationId, organizationId),
-            eq(leads.status, 'converted'),
+            eq(leads.status, 'won'),
             gte(leads.createdAt, dateThreshold)
           )
         );
@@ -322,8 +321,7 @@ export const analyticsRouter = router({
       return {
         stages,
         totalLeads,
-        overallConversionRate:
-          totalLeads > 0 ? Math.round((convertedTotal / totalLeads) * 10000) / 100 : 0,
+        overallConversionRate: rate(wonTotal, totalLeads),
         averageConversionDays,
       };
     }),
@@ -481,7 +479,7 @@ export const analyticsRouter = router({
         .select({
           source: sql<string>`COALESCE(${leads.source}, 'unknown')`.as('source'),
           total: count().as('total'),
-          converted: sql<number>`SUM(CASE WHEN ${leads.status} = 'converted' THEN 1 ELSE 0 END)`.as(
+          converted: sql<number>`SUM(CASE WHEN ${leads.status} = 'won' THEN 1 ELSE 0 END)`.as(
             'converted'
           ),
         })
@@ -564,10 +562,9 @@ export const analyticsRouter = router({
         const countsResult = await ctx.db
           .select({
             total: count().as('total'),
-            converted:
-              sql<number>`SUM(CASE WHEN ${leads.status} = 'converted' THEN 1 ELSE 0 END)`.as(
-                'converted'
-              ),
+            converted: sql<number>`SUM(CASE WHEN ${leads.status} = 'won' THEN 1 ELSE 0 END)`.as(
+              'converted'
+            ),
             avgScore: sql<number>`COALESCE(AVG(${leads.score}), 0)`.as('avgScore'),
           })
           .from(leads)

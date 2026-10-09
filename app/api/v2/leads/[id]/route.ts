@@ -8,6 +8,11 @@ import { getAuthenticatedOrganization } from '@/lib/api/v2-auth';
  */
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
+import {
+  leadStatusEnum,
+  normalizeLeadStatus,
+  statusUpdateFields,
+} from '@/lib/features/leads/types/pipeline';
 import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -22,7 +27,7 @@ const updateLeadSchema = z.object({
   company: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   source: z.string().optional(),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).optional(),
+  status: z.preprocess(normalizeLeadStatus, leadStatusEnum).optional(),
   score: z.number().int().min(0).max(100).optional().nullable(),
   responses: z.record(z.unknown()).optional(),
   customFields: z.record(z.unknown()).optional(),
@@ -157,7 +162,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (company !== undefined) updateData.company = company;
     if (phone !== undefined) updateData.phone = phone;
     if (source !== undefined) updateData.source = source;
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) Object.assign(updateData, statusUpdateFields(status));
     if (score !== undefined) updateData.score = score;
     if (responses !== undefined) updateData.responses = responses;
     if (customFields !== undefined) updateData.customFields = customFields;

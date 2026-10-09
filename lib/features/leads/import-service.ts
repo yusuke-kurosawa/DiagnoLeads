@@ -5,6 +5,7 @@
  */
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
+import { leadStatusEnum, normalizeLeadStatus } from './types/pipeline';
 
 /**
  * Imported lead row schema
@@ -14,7 +15,7 @@ const importLeadRowSchema = z.object({
   name: z.string().optional(),
   company: z.string().optional(),
   phone: z.string().optional(),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).default('new'),
+  status: z.preprocess(normalizeLeadStatus, leadStatusEnum).default('new'),
   source: z.enum(['website', 'embed', 'api']).optional(),
   score: z.coerce.number().int().min(0).max(100).optional(),
 });

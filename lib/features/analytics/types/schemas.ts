@@ -1,3 +1,4 @@
+import type { LeadStatus } from '@/lib/features/leads/types/pipeline';
 import { z } from 'zod';
 
 /**
@@ -89,17 +90,13 @@ export interface OverviewStats {
   newLeadsThisMonth: number;
   conversionRate: number;
   averageScore: number;
-  leadsByStatus: {
-    new: number;
-    contacted: number;
-    qualified: number;
-    converted: number;
-  };
+  leadsByStatus: Record<LeadStatus, number>;
 }
 
 export interface TrendDataPoint {
   date: string; // ISO 8601 date string
   count: number;
+  /** Number of leads won (status = 'won') */
   converted: number;
 }
 

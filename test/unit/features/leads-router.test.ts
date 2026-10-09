@@ -75,6 +75,16 @@ describe('Leads Router', () => {
     source: 'website',
     responses: {},
     customFields: {},
+    inflowSource: null,
+    conversionPoint: null,
+    dealPhase: null,
+    targetSystem: null,
+    referrerName: null,
+    lostReason: null,
+    hasNegotiated: false,
+    mqlQualifiedAt: null,
+    sqlDecision: null,
+    sqlDecidedAt: null,
     embedding: null,
     searchVector: null,
     createdAt: new Date(),
@@ -140,6 +150,30 @@ describe('Leads Router', () => {
 
       expect(result).toEqual(mockLead);
       expect(mockDb.insert).toHaveBeenCalled();
+    });
+
+    it('marks a lead created as won as negotiated and records judgements given at creation', async () => {
+      mockDb.returning.mockResolvedValue([mockLead]);
+
+      const caller = appRouter.createCaller(mockContext);
+      await caller.leads.create({
+        organizationId: TEST_ORG_ID,
+        email: 'won@example.com',
+        status: 'won',
+        responses: {},
+        mqlQualified: true,
+        dealPhase: 'migration_won',
+      });
+
+      expect(mockDb.values).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'won',
+          hasNegotiated: true,
+          dealPhase: 'migration_won',
+          mqlQualifiedAt: expect.any(Date),
+        })
+      );
+      expect(mockDb.values.mock.calls[0][0]).not.toHaveProperty('sqlDecidedAt');
     });
 
     it('should reject invalid email', async () => {
@@ -303,15 +337,104 @@ describe('Leads Router', () => {
       await caller.leads.update({
         organizationId: TEST_ORG_ID,
         id: TEST_LEAD_ID,
-        status: 'contacted',
+        status: 'nurturing',
       });
 
       expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'contacted',
+          status: 'nurturing',
           updatedAt: expect.any(Date),
         })
       );
+    });
+  });
+
+  describe('update (sales pipeline)', () => {
+    it('sets the negotiated flag (but no SQL judgement) when moving to negotiating', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+
+      const caller = appRouter.createCaller(mockContext);
+      await caller.leads.update({
+        organizationId: TEST_ORG_ID,
+        id: TEST_LEAD_ID,
+        status: 'negotiating',
+        dealPhase: 'initial_hearing',
+      });
+
+      expect(mockDb.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'negotiating',
+          hasNegotiated: true,
+          dealPhase: 'initial_hearing',
+        })
+      );
+    });
+
+    it('records the SQL decision only when sales sets it', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+      const caller = appRouter.createCaller(mockContext);
+
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, status: 'negotiating' });
+      expect(mockDb.set.mock.calls[0][0]).not.toHaveProperty('sqlDecidedAt');
+
+      await caller.leads.update({
+        organizationId: TEST_ORG_ID,
+        id: TEST_LEAD_ID,
+        sqlDecision: 'not_qualified',
+      });
+      expect(mockDb.set).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sqlDecision: 'not_qualified', sqlDecidedAt: expect.any(Date) })
+      );
+    });
+
+    it('never clears the negotiated flag when moving back', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue({ ...mockLead, hasNegotiated: true });
+      mockDb.returning.mockResolvedValue([mockLead]);
+      const caller = appRouter.createCaller(mockContext);
+
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, status: 'nurturing' });
+      expect(mockDb.set.mock.calls[0][0]).not.toHaveProperty('hasNegotiated');
+    });
+
+    it('marks and unmarks MQL', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+      const caller = appRouter.createCaller(mockContext);
+
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, mqlQualified: true });
+      expect(mockDb.set).toHaveBeenLastCalledWith(
+        expect.objectContaining({ mqlQualifiedAt: expect.any(Date) })
+      );
+
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, mqlQualified: false });
+      expect(mockDb.set).toHaveBeenLastCalledWith(expect.objectContaining({ mqlQualifiedAt: null }));
+    });
+
+    it('does not touch pipeline fields that were not provided', async () => {
+      mockDb.query.leads.findFirst.mockResolvedValue(mockLead);
+      mockDb.returning.mockResolvedValue([mockLead]);
+
+      const caller = appRouter.createCaller(mockContext);
+      await caller.leads.update({ organizationId: TEST_ORG_ID, id: TEST_LEAD_ID, name: 'Renamed' });
+
+      const setArg = mockDb.set.mock.calls[0][0];
+      expect(setArg).not.toHaveProperty('dealPhase');
+      expect(setArg).not.toHaveProperty('hasNegotiated');
+      expect(setArg).not.toHaveProperty('mqlQualifiedAt');
+    });
+
+    it('rejects unknown pipeline values', async () => {
+      const caller = appRouter.createCaller(mockContext);
+      await expect(
+        caller.leads.update({
+          organizationId: TEST_ORG_ID,
+          id: TEST_LEAD_ID,
+          // @ts-expect-error invalid value on purpose
+          dealPhase: 'closing',
+        })
+      ).rejects.toThrow();
     });
   });
 
@@ -431,12 +554,33 @@ describe('Leads Router', () => {
       const result = await caller.leads.bulkUpdateStatus({
         organizationId: TEST_ORG_ID,
         ids: [TEST_LEAD_ID, TEST_LEAD_ID_2],
-        status: 'contacted',
+        status: 'nurturing',
       });
 
       expect(result.success).toBe(true);
       expect(result.updatedCount).toBe(2);
       expect(mockDb.update).toHaveBeenCalled();
+    });
+
+    it('turns the negotiated flag on in bulk only for negotiating / won', async () => {
+      mockDb.returning.mockResolvedValue([{ id: TEST_LEAD_ID }]);
+      const caller = appRouter.createCaller(mockContext);
+
+      await caller.leads.bulkUpdateStatus({
+        organizationId: TEST_ORG_ID,
+        ids: [TEST_LEAD_ID],
+        status: 'won',
+      });
+      expect(mockDb.set).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: 'won', hasNegotiated: true })
+      );
+
+      await caller.leads.bulkUpdateStatus({
+        organizationId: TEST_ORG_ID,
+        ids: [TEST_LEAD_ID],
+        status: 'lost',
+      });
+      expect(mockDb.set.mock.calls.at(-1)?.[0]).not.toHaveProperty('hasNegotiated');
     });
 
     it('should return count of 0 when no leads match', async () => {
@@ -446,7 +590,7 @@ describe('Leads Router', () => {
       const result = await caller.leads.bulkUpdateStatus({
         organizationId: TEST_ORG_ID,
         ids: [TEST_LEAD_ID],
-        status: 'contacted',
+        status: 'nurturing',
       });
 
       expect(result.success).toBe(true);

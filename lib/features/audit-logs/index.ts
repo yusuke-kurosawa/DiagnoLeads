@@ -21,7 +21,7 @@
  *   'lead',
  *   'lead-789',
  *   { status: 'new' },
- *   { status: 'contacted' }
+ *   { status: 'nurturing' }
  * );
  * ```
  */

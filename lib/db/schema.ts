@@ -235,9 +235,21 @@ export const leads = pgTable('leads', {
   phone: text('phone'),
 
   // Lead metadata
-  status: text('status').notNull().default('new'), // 'new', 'contacted', 'qualified', 'converted'
+  status: text('status').notNull().default('new'), // 'new', 'nurturing', 'negotiating', 'won', 'lost'
   score: integer('score'),
   source: text('source'), // 'website', 'embed', 'api'
+
+  // Sales pipeline (values are defined in lib/features/leads/types/pipeline.ts)
+  inflowSource: text('inflow_source'),
+  conversionPoint: text('conversion_point'),
+  dealPhase: text('deal_phase'),
+  targetSystem: text('target_system'),
+  referrerName: text('referrer_name'),
+  lostReason: text('lost_reason'),
+  hasNegotiated: boolean('has_negotiated').default(false).notNull(),
+  mqlQualifiedAt: timestamp('mql_qualified_at'),
+  sqlDecision: text('sql_decision'), // 'qualified' | 'not_qualified' | null（未判定）
+  sqlDecidedAt: timestamp('sql_decided_at'),
 
   // Assessment data
   responses: jsonb('responses').$type<Record<string, unknown>>().default({}),

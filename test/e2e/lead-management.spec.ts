@@ -145,9 +145,9 @@ test.describe('Lead Management', () => {
     // Wait for edit dialog
     await expect(page.getByRole('dialog')).toBeVisible();
 
-    // Change status to "contacted"
+    // Change status to "nurturing"
     await page.click('[data-testid="status-select"]');
-    await page.click('[data-value="contacted"]');
+    await page.click('[data-value="nurturing"]');
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -156,7 +156,7 @@ test.describe('Lead Management', () => {
     await expect(page.getByText(/リードを更新しました|Lead updated/i)).toBeVisible();
 
     // Verify status badge updated
-    await expect(page.getByText(/連絡済み|Contacted/i)).toBeVisible();
+    await expect(page.getByText(/ナーチャリング|Nurturing/i)).toBeVisible();
   });
 
   test('should delete a lead', async ({ page }) => {
@@ -373,7 +373,7 @@ test.describe('Lead Management', () => {
         await bulkStatusButton.click();
 
         // Select new status
-        await page.click('[data-value="qualified"]');
+        await page.click('[data-value="negotiating"]');
 
         // Wait for success toast
         await expect(page.getByText(/ステータスを更新しました|Status updated/i)).toBeVisible();

@@ -7,6 +7,11 @@ import { getAuthenticatedOrganization } from '@/lib/api/v2-auth';
  */
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
+import {
+  leadStatusEnum,
+  normalizeLeadStatus,
+  statusUpdateFields,
+} from '@/lib/features/leads/types/pipeline';
 import { and, desc, eq, gte, ilike, lte, or, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -18,7 +23,7 @@ import { z } from 'zod';
 const listLeadsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).optional(),
+  status: z.preprocess(normalizeLeadStatus, leadStatusEnum).optional(),
   source: z.string().optional(),
   minScore: z.coerce.number().int().min(0).max(100).optional(),
   maxScore: z.coerce.number().int().min(0).max(100).optional(),
@@ -35,7 +40,7 @@ const createLeadSchema = z.object({
   company: z.string().optional(),
   phone: z.string().optional(),
   source: z.string().default('api'),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).default('new'),
+  status: z.preprocess(normalizeLeadStatus, leadStatusEnum).default('new'),
   score: z.number().int().min(0).max(100).optional(),
   responses: z.record(z.unknown()).optional(),
   customFields: z.record(z.unknown()).optional(),
@@ -245,7 +250,7 @@ export async function POST(request: NextRequest) {
         company,
         phone,
         source,
-        status,
+        ...statusUpdateFields(status),
         score,
         responses: responses ?? {},
         customFields: customFields ?? {},

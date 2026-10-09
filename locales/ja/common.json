@@ -306,11 +306,56 @@
       "saturday": "土曜日"
     }
   },
+  "pipeline": {
+    "inflowSource": {
+      "existing_customer": "既存顧客",
+      "referral_partner": "紹介・パートナー",
+      "executive_network": "経営層ネットワーク",
+      "lp_organic": "LP（自然検索）",
+      "seminar": "勉強会・セミナー",
+      "advertising": "広告"
+    },
+    "conversionPoint": {
+      "consultation": "相談申込",
+      "document_download": "資料ダウンロード",
+      "demo_view": "デモ閲覧",
+      "seminar": "勉強会参加",
+      "via_sales": "営業経由",
+      "web_diagnosis": "Web診断"
+    },
+    "dealPhase": {
+      "initial_hearing": "初回ヒアリング",
+      "simple_diagnosis": "簡易診断",
+      "proposal": "提案",
+      "survey_won": "現行調査受注",
+      "migration_won": "移行受注",
+      "ax": "AX化"
+    },
+    "targetSystem": {
+      "as400": "AS/400",
+      "other_legacy": "その他オフコン・汎用機",
+      "vb": "VB（クライアントサーバー型）",
+      "access": "Access（部署単位のツールを含む）",
+      "webperformer": "WebPerformer",
+      "other": "その他"
+    },
+    "sqlDecision": {
+      "qualified": "SQL（商談対象）",
+      "not_qualified": "SQL外（育成に戻す）"
+    },
+    "lostReason": {
+      "budget": "予算",
+      "timing": "時期",
+      "competitor": "他社選定",
+      "internal_structure": "社内体制",
+      "other": "その他"
+    }
+  },
   "status": {
     "new": "新規",
-    "contacted": "連絡済",
-    "qualified": "見込",
-    "converted": "成約",
+    "nurturing": "ナーチャリング",
+    "negotiating": "商談中",
+    "won": "成約",
     "lost": "失注"
   },
   "leadSource": {
@@ -422,6 +467,22 @@
     }
   },
   "leads": {
+    "pipeline": "営業パイプライン",
+    "inflowSource": "流入元",
+    "conversionPoint": "コンバージョンポイント",
+    "dealPhase": "商談フェーズ",
+    "targetSystem": "対象システム",
+    "referrerName": "紹介元",
+    "lostReason": "失注・保留理由",
+    "hasNegotiated": "商談済み",
+    "mqlQualifiedAt": "MQL判定日",
+    "sqlDecision": "SQL判定",
+    "sqlDecidedAt": "SQL判定日",
+    "sqlUndecided": "未判定",
+    "mqlQualified": "MQLとして判定（マーケ確定）",
+    "notSet": "未設定",
+    "allInflowSources": "すべての流入元",
+    "allDealPhases": "すべての商談フェーズ",
     "title": "リード管理",
     "description": "診断フォームから取得したリードを管理します",
     "totalLeads": "総リード数",

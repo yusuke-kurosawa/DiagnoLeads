@@ -212,21 +212,21 @@ function generateFallbackPrediction(lead: LeadForPrediction): ConversionPredicti
   }
 
   // Status factor
-  if (lead.status === 'qualified') {
+  if (lead.status === 'negotiating') {
     probability += 20;
     factors.push({
-      name: 'Qualified Status',
+      name: 'Negotiating Status',
       impact: 'positive',
       weight: 7,
-      description: 'Lead has been qualified by sales team',
+      description: 'Lead is in negotiation with the sales team',
     });
-  } else if (lead.status === 'contacted') {
+  } else if (lead.status === 'nurturing') {
     probability += 10;
     factors.push({
-      name: 'Contacted Status',
+      name: 'Nurturing Status',
       impact: 'positive',
       weight: 5,
-      description: 'Lead has been contacted',
+      description: 'Lead is being nurtured',
     });
   }
 

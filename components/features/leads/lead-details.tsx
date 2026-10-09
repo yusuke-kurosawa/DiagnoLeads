@@ -13,11 +13,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { Lead } from '@/lib/db/schema';
+import type { LeadStatus } from '@/lib/features/leads/types';
 import { format, formatDistance } from 'date-fns';
 import { enUS, ja } from 'date-fns/locale';
 import { Building2, Calendar, Mail, Pencil, Phone, Trash2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { LEAD_STATUS_BADGE_CLASSES } from './lead-status-styles';
 
 interface LeadDetailsProps {
   lead: Lead;
@@ -26,12 +28,13 @@ interface LeadDetailsProps {
   isDeleting?: boolean;
 }
 
-const statusColors = {
-  new: 'bg-blue-100 text-blue-800',
-  contacted: 'bg-yellow-100 text-yellow-800',
-  qualified: 'bg-green-100 text-green-800',
-  converted: 'bg-purple-100 text-purple-800',
-};
+const PIPELINE_ENUM_FIELDS = [
+  'inflowSource',
+  'conversionPoint',
+  'dealPhase',
+  'targetSystem',
+  'lostReason',
+] as const;
 
 /**
  * Lead details component
@@ -40,17 +43,15 @@ const statusColors = {
 export function LeadDetails({ lead, onEdit, onDelete, isDeleting }: LeadDetailsProps) {
   const t = useTranslations('leads');
   const tStatus = useTranslations('status');
+  const tPipeline = useTranslations('pipeline');
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const dateLocale = locale === 'ja' ? ja : enUS;
   const dateFormat = locale === 'ja' ? 'yyyy年MM月dd日 HH:mm' : 'MMM dd, yyyy HH:mm';
 
-  const statusLabels = {
-    new: tStatus('new'),
-    contacted: tStatus('contacted'),
-    qualified: tStatus('qualified'),
-    converted: tStatus('converted'),
-  };
+  const status = lead.status as LeadStatus;
+  const formatDate = (value: Date | string | null) =>
+    value ? format(new Date(value), dateFormat, { locale: dateLocale }) : t('notSet');
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -69,11 +70,16 @@ export function LeadDetails({ lead, onEdit, onDelete, isDeleting }: LeadDetailsP
             <div className="mt-2">
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  statusColors[lead.status as keyof typeof statusColors]
+                  LEAD_STATUS_BADGE_CLASSES[status] ?? ''
                 }`}
               >
-                {statusLabels[lead.status as keyof typeof statusLabels]}
+                {tStatus(status)}
               </span>
+              {lead.hasNegotiated && (
+                <span className="ml-2 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
+                  {t('hasNegotiated')}
+                </span>
+              )}
             </div>
           </div>
 
@@ -134,6 +140,42 @@ export function LeadDetails({ lead, onEdit, onDelete, isDeleting }: LeadDetailsP
               </div>
             )}
           </div>
+        </Card>
+
+        {/* Sales pipeline */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">{t('pipeline')}</h3>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            {PIPELINE_ENUM_FIELDS.map((field) => (
+              <div key={field}>
+                <dt className="text-sm text-gray-500">{t(field)}</dt>
+                <dd className="font-medium mt-1">
+                  {lead[field] ? tPipeline(`${field}.${lead[field]}`) : t('notSet')}
+                </dd>
+              </div>
+            ))}
+            <div>
+              <dt className="text-sm text-gray-500">{t('referrerName')}</dt>
+              <dd className="font-medium mt-1">{lead.referrerName || t('notSet')}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">{t('mqlQualifiedAt')}</dt>
+              <dd className="font-medium mt-1">{formatDate(lead.mqlQualifiedAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">{t('sqlDecision')}</dt>
+              <dd className="font-medium mt-1">
+                {lead.sqlDecision
+                  ? tPipeline(`sqlDecision.${lead.sqlDecision}`)
+                  : t('sqlUndecided')}
+                {lead.sqlDecidedAt && (
+                  <span className="ml-2 text-sm text-gray-500">
+                    {formatDate(lead.sqlDecidedAt)}
+                  </span>
+                )}
+              </dd>
+            </div>
+          </dl>
         </Card>
 
         {/* Lead score */}

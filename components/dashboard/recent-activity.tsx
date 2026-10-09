@@ -1,7 +1,9 @@
 'use client';
 
+import { LEAD_STATUS_BADGE_CLASSES } from '@/components/features/leads/lead-status-styles';
 import { Card } from '@/components/ui/card';
 import type { Lead } from '@/lib/db/schema';
+import type { LeadStatus } from '@/lib/features/leads/types';
 import { formatDistance } from 'date-fns';
 import { enUS, ja } from 'date-fns/locale';
 import { Building2, Mail, Phone, TrendingUp } from 'lucide-react';
@@ -23,20 +25,6 @@ export function RecentActivity({ leads, isLoading = false, maxItems = 5 }: Recen
   const tStatus = useTranslations('status');
   const locale = useLocale();
   const dateLocale = locale === 'ja' ? ja : enUS;
-
-  const statusLabels = {
-    new: tStatus('new'),
-    contacted: tStatus('contacted'),
-    qualified: tStatus('qualified'),
-    converted: tStatus('converted'),
-  };
-
-  const statusColors = {
-    new: 'bg-blue-100 text-blue-800',
-    contacted: 'bg-yellow-100 text-yellow-800',
-    qualified: 'bg-green-100 text-green-800',
-    converted: 'bg-purple-100 text-purple-800',
-  };
 
   if (isLoading) {
     return (
@@ -103,10 +91,10 @@ export function RecentActivity({ leads, isLoading = false, maxItems = 5 }: Recen
                 </h4>
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
-                    statusColors[lead.status as keyof typeof statusColors]
+                    LEAD_STATUS_BADGE_CLASSES[lead.status as LeadStatus] ?? ''
                   }`}
                 >
-                  {statusLabels[lead.status as keyof typeof statusLabels]}
+                  {tStatus(lead.status as LeadStatus)}
                 </span>
               </div>
 

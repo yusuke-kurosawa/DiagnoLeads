@@ -1,16 +1,21 @@
 'use client';
 
 import type { ConversionFunnelData } from '@/lib/features/analytics/types/schemas';
+import { LEAD_STATUSES, type LeadStatus } from '@/lib/features/leads/types/pipeline';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
+const STAGE_COLORS: Record<string, { color: string; bgColor: string; textColor: string }> = {
+  new: { color: 'bg-blue-500', bgColor: 'bg-blue-100', textColor: 'text-blue-600' },
+  nurturing: { color: 'bg-yellow-500', bgColor: 'bg-yellow-100', textColor: 'text-yellow-600' },
+  negotiating: { color: 'bg-green-500', bgColor: 'bg-green-100', textColor: 'text-green-600' },
+  won: { color: 'bg-purple-500', bgColor: 'bg-purple-100', textColor: 'text-purple-600' },
+  lost: { color: 'bg-gray-400', bgColor: 'bg-gray-100', textColor: 'text-gray-600' },
+};
+
 interface ConversionFunnelProps {
-  leadsByStatus?: {
-    new: number;
-    contacted: number;
-    qualified: number;
-    converted: number;
-  };
+  leadsByStatus?: Record<LeadStatus, number>;
   funnelData?: ConversionFunnelData;
   isLoading?: boolean;
 }
@@ -32,63 +37,38 @@ export function ConversionFunnel({
   funnelData: apiFunnelData,
   isLoading = false,
 }: ConversionFunnelProps) {
+  const tStatus = useTranslations('status');
+
   const displayData = useMemo((): FunnelStageDisplay[] => {
     // Prefer API funnel data if available
     if (apiFunnelData && apiFunnelData.stages.length > 0) {
-      const colors: Record<string, { color: string; bgColor: string }> = {
-        new: { color: 'bg-blue-500', bgColor: 'bg-blue-100' },
-        contacted: { color: 'bg-yellow-500', bgColor: 'bg-yellow-100' },
-        qualified: { color: 'bg-green-500', bgColor: 'bg-green-100' },
-        converted: { color: 'bg-purple-500', bgColor: 'bg-purple-100' },
-      };
-
       return apiFunnelData.stages.map((stage) => ({
-        label: stage.name.charAt(0).toUpperCase() + stage.name.slice(1),
+        label: tStatus(stage.name as LeadStatus),
         value: stage.cumulativeCount,
         percentage: stage.percentage,
         conversionRate: stage.conversionRate,
-        ...(colors[stage.name] || { color: 'bg-gray-500', bgColor: 'bg-gray-100' }),
+        ...(STAGE_COLORS[stage.name] || { color: 'bg-gray-500', bgColor: 'bg-gray-100' }),
       }));
     }
 
     // Fallback to leadsByStatus if API data not available
     if (!leadsByStatus) return [];
 
-    const total =
-      leadsByStatus.new +
-      leadsByStatus.contacted +
-      leadsByStatus.qualified +
-      leadsByStatus.converted;
+    const total = LEAD_STATUSES.reduce((sum, status) => sum + leadsByStatus[status], 0);
 
     if (total === 0) return [];
 
-    // Calculate cumulative totals for funnel
+    // Approximate cumulative totals (lost leads cannot be placed without has_negotiated)
     const stages = [
-      {
-        label: 'New',
-        value: total,
-        color: 'bg-blue-500',
-        bgColor: 'bg-blue-100',
-      },
-      {
-        label: 'Contacted',
-        value: leadsByStatus.contacted + leadsByStatus.qualified + leadsByStatus.converted,
-        color: 'bg-yellow-500',
-        bgColor: 'bg-yellow-100',
-      },
-      {
-        label: 'Qualified',
-        value: leadsByStatus.qualified + leadsByStatus.converted,
-        color: 'bg-green-500',
-        bgColor: 'bg-green-100',
-      },
-      {
-        label: 'Converted',
-        value: leadsByStatus.converted,
-        color: 'bg-purple-500',
-        bgColor: 'bg-purple-100',
-      },
-    ];
+      { key: 'new', value: total },
+      { key: 'nurturing', value: total - leadsByStatus.new },
+      { key: 'negotiating', value: leadsByStatus.negotiating + leadsByStatus.won },
+      { key: 'won', value: leadsByStatus.won },
+    ].map(({ key, value }) => ({
+      label: tStatus(key as LeadStatus),
+      value,
+      ...STAGE_COLORS[key],
+    }));
 
     return stages.map((stage, index) => ({
       ...stage,
@@ -98,7 +78,7 @@ export function ConversionFunnel({
           ? (stage.value / stages[index - 1].value) * 100
           : 100,
     }));
-  }, [leadsByStatus, apiFunnelData]);
+  }, [leadsByStatus, apiFunnelData, tStatus]);
 
   if (isLoading) {
     return (
@@ -189,23 +169,15 @@ export function ConversionFunnel({
 
       {/* Summary Stats */}
       {leadsByStatus && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{leadsByStatus.new}</p>
-            <p className="text-xs text-gray-500">New Leads</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-yellow-600">{leadsByStatus.contacted}</p>
-            <p className="text-xs text-gray-500">Contacted</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">{leadsByStatus.qualified}</p>
-            <p className="text-xs text-gray-500">Qualified</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">{leadsByStatus.converted}</p>
-            <p className="text-xs text-gray-500">Converted</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4 border-t border-gray-200">
+          {LEAD_STATUSES.map((status) => (
+            <div key={status} className="text-center">
+              <p className={cn('text-2xl font-bold', STAGE_COLORS[status].textColor)}>
+                {leadsByStatus[status]}
+              </p>
+              <p className="text-xs text-gray-500">{tStatus(status)}</p>
+            </div>
+          ))}
         </div>
       )}
 
@@ -217,7 +189,7 @@ export function ConversionFunnel({
             {apiFunnelData
               ? apiFunnelData.overallConversionRate.toFixed(1)
               : displayData.length > 0 && leadsByStatus
-                ? ((leadsByStatus.converted / displayData[0].value) * 100).toFixed(1)
+                ? ((leadsByStatus.won / displayData[0].value) * 100).toFixed(1)
                 : '0'}
             %
           </span>

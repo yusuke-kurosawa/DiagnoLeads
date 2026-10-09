@@ -16,6 +16,7 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
 import { AreaChart, ChartLegend, DonutChart } from '@/components/charts';
+import { LEAD_STATUS_COLORS } from '@/components/features/leads/lead-status-styles';
 import { Badge } from '@/components/ui/badge';
 import { BadgeDelta } from '@/components/ui/badge-delta';
 import { BarList } from '@/components/ui/bar-list';
@@ -23,6 +24,7 @@ import { Card } from '@/components/ui/card';
 import { Divider, Metric, Text, Title } from '@/components/ui/metric';
 import { CategoryBar, DeltaBar, ProgressBar } from '@/components/ui/progress-bar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LEAD_STATUSES } from '@/lib/features/leads/types/pipeline';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -518,25 +520,12 @@ export default function AnalyticsPage() {
           {overview && !overviewLoading && (
             <Card className="mt-6 p-6">
               <Title>{t('charts.statusBreakdown')}</Title>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
-                {[
-                  { key: 'new', color: 'blue' as const, value: overview.leadsByStatus.new },
-                  {
-                    key: 'contacted',
-                    color: 'yellow' as const,
-                    value: overview.leadsByStatus.contacted,
-                  },
-                  {
-                    key: 'qualified',
-                    color: 'emerald' as const,
-                    value: overview.leadsByStatus.qualified,
-                  },
-                  {
-                    key: 'converted',
-                    color: 'violet' as const,
-                    value: overview.leadsByStatus.converted,
-                  },
-                ].map((status) => {
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-4">
+                {LEAD_STATUSES.map((key) => ({
+                  key,
+                  color: LEAD_STATUS_COLORS[key],
+                  value: overview.leadsByStatus[key],
+                })).map((status) => {
                   const percentage =
                     overview.totalLeads > 0 ? (status.value / overview.totalLeads) * 100 : 0;
                   return (
@@ -650,51 +639,24 @@ export default function AnalyticsPage() {
 
           {/* Funnel Metrics */}
           {overview && !overviewLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-              <Card className="p-6" decoration="left" decorationColor="blue">
-                <Text>{tStatus('new')}</Text>
-                <Metric className="mt-2">{overview.leadsByStatus.new}</Metric>
-                <Text className="mt-2">100%</Text>
-              </Card>
-              <Card className="p-6" decoration="left" decorationColor="yellow">
-                <Text>{tStatus('contacted')}</Text>
-                <Metric className="mt-2">{overview.leadsByStatus.contacted}</Metric>
-                <Text className="mt-2">
-                  {overview.leadsByStatus.new > 0
-                    ? (
-                        (overview.leadsByStatus.contacted / overview.leadsByStatus.new) *
-                        100
-                      ).toFixed(1)
-                    : 0}
-                  %
-                </Text>
-              </Card>
-              <Card className="p-6" decoration="left" decorationColor="emerald">
-                <Text>{tStatus('qualified')}</Text>
-                <Metric className="mt-2">{overview.leadsByStatus.qualified}</Metric>
-                <Text className="mt-2">
-                  {overview.leadsByStatus.contacted > 0
-                    ? (
-                        (overview.leadsByStatus.qualified / overview.leadsByStatus.contacted) *
-                        100
-                      ).toFixed(1)
-                    : 0}
-                  %
-                </Text>
-              </Card>
-              <Card className="p-6" decoration="left" decorationColor="violet">
-                <Text>{tStatus('converted')}</Text>
-                <Metric className="mt-2">{overview.leadsByStatus.converted}</Metric>
-                <Text className="mt-2">
-                  {overview.leadsByStatus.qualified > 0
-                    ? (
-                        (overview.leadsByStatus.converted / overview.leadsByStatus.qualified) *
-                        100
-                      ).toFixed(1)
-                    : 0}
-                  %
-                </Text>
-              </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
+              {LEAD_STATUSES.map((key) => (
+                <Card
+                  key={key}
+                  className="p-6"
+                  decoration="left"
+                  decorationColor={LEAD_STATUS_COLORS[key]}
+                >
+                  <Text>{tStatus(key)}</Text>
+                  <Metric className="mt-2">{overview.leadsByStatus[key]}</Metric>
+                  <Text className="mt-2">
+                    {overview.totalLeads > 0
+                      ? ((overview.leadsByStatus[key] / overview.totalLeads) * 100).toFixed(1)
+                      : 0}
+                    %
+                  </Text>
+                </Card>
+              ))}
             </div>
           )}
         </TabsContent>

@@ -2,8 +2,11 @@
 
 import { Card } from '@/components/ui/card';
 import type { Lead } from '@/lib/db/schema';
+import type { LeadStatus } from '@/lib/features/leads/types';
 import { formatDistance } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { useTranslations } from 'next-intl';
+import { LEAD_STATUS_BADGE_CLASSES } from './lead-status-styles';
 
 interface LeadCardProps {
   lead: Lead;
@@ -15,19 +18,8 @@ interface LeadCardProps {
  * Displays lead information in a card format
  */
 export function LeadCard({ lead, onClick }: LeadCardProps) {
-  const statusColors = {
-    new: 'bg-blue-100 text-blue-800',
-    contacted: 'bg-yellow-100 text-yellow-800',
-    qualified: 'bg-green-100 text-green-800',
-    converted: 'bg-purple-100 text-purple-800',
-  };
-
-  const statusLabels = {
-    new: '新規',
-    contacted: '連絡済',
-    qualified: '見込',
-    converted: '成約',
-  };
+  const tStatus = useTranslations('status');
+  const status = lead.status as LeadStatus;
 
   return (
     <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
@@ -37,10 +29,10 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
             <h3 className="font-semibold text-lg">{lead.name || '名前未設定'}</h3>
             <span
               className={`px-2 py-1 rounded-full text-xs font-medium ${
-                statusColors[lead.status as keyof typeof statusColors]
+                LEAD_STATUS_BADGE_CLASSES[status] ?? ''
               }`}
             >
-              {statusLabels[lead.status as keyof typeof statusLabels]}
+              {tStatus(status)}
             </span>
           </div>
 

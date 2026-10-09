@@ -262,14 +262,15 @@ describe('Analytics response types', () => {
         averageScore: 72.3,
         leadsByStatus: {
           new: 300,
-          contacted: 400,
-          qualified: 200,
-          converted: 100,
+          nurturing: 400,
+          negotiating: 200,
+          won: 100,
+          lost: 0,
         },
       };
 
       expect(stats.totalLeads).toBe(1000);
-      expect(stats.leadsByStatus.converted).toBe(100);
+      expect(stats.leadsByStatus.won).toBe(100);
     });
   });
 
@@ -301,12 +302,12 @@ describe('Analytics response types', () => {
   describe('StatusBreakdown', () => {
     it('should create valid status breakdown', () => {
       const breakdown: StatusBreakdown = {
-        status: 'qualified',
+        status: 'negotiating',
         count: 200,
         percentage: 20,
       };
 
-      expect(breakdown.status).toBe('qualified');
+      expect(breakdown.status).toBe('negotiating');
     });
   });
 
@@ -396,7 +397,7 @@ describe('Analytics response types', () => {
           conversionRate: 15,
           averageScore: 72,
           bySource: { website: 300, embed: 200 },
-          byStatus: { new: 200, contacted: 150, qualified: 75, converted: 75 },
+          byStatus: { new: 200, nurturing: 150, negotiating: 75, won: 75 },
         },
         previousPeriod: {
           totalLeads: 400,
@@ -404,7 +405,7 @@ describe('Analytics response types', () => {
           conversionRate: 12.5,
           averageScore: 68,
           bySource: { website: 250, embed: 150 },
-          byStatus: { new: 180, contacted: 120, qualified: 50, converted: 50 },
+          byStatus: { new: 180, nurturing: 120, negotiating: 50, won: 50 },
         },
         changes: {
           totalLeads: 25,

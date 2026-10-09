@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -18,7 +19,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Lead } from '@/lib/db/schema';
-import { createLeadSchema } from '@/lib/features/leads/types';
+import {
+  CONVERSION_POINTS,
+  DEAL_PHASES,
+  INFLOW_SOURCES,
+  LEAD_STATUSES,
+  LOST_REASONS,
+  type LeadPipelineFields,
+  type LeadStatus,
+  SQL_DECISIONS,
+  TARGET_SYSTEMS,
+  createLeadSchema,
+} from '@/lib/features/leads/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
@@ -27,6 +39,22 @@ import type { z } from 'zod';
 // Form schema without organizationId (will be added by parent component)
 const formSchema = createLeadSchema.omit({ organizationId: true });
 type FormValues = z.infer<typeof formSchema>;
+
+/** Sentinel for "not set" because Radix Select does not accept an empty value */
+const NONE = '__none__';
+
+type PipelineSelectField = keyof Pick<
+  LeadPipelineFields,
+  'inflowSource' | 'conversionPoint' | 'dealPhase' | 'targetSystem' | 'lostReason'
+>;
+
+const PIPELINE_SELECTS: { name: PipelineSelectField; options: readonly string[] }[] = [
+  { name: 'inflowSource', options: INFLOW_SOURCES },
+  { name: 'conversionPoint', options: CONVERSION_POINTS },
+  { name: 'dealPhase', options: DEAL_PHASES },
+  { name: 'targetSystem', options: TARGET_SYSTEMS },
+  { name: 'lostReason', options: LOST_REASONS },
+];
 
 interface LeadFormProps {
   lead?: Lead;
@@ -41,6 +69,7 @@ interface LeadFormProps {
 export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
   const t = useTranslations('leads');
   const tStatus = useTranslations('status');
+  const tPipeline = useTranslations('pipeline');
   const tCommon = useTranslations('common');
 
   const form = useForm<FormValues>({
@@ -50,10 +79,18 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
       name: lead?.name ?? '',
       company: lead?.company ?? '',
       phone: lead?.phone ?? '',
-      status: (lead?.status as 'new' | 'contacted' | 'qualified' | 'converted') ?? 'new',
+      status: (lead?.status as LeadStatus) ?? 'new',
       score: lead?.score ?? undefined,
       source: (lead?.source as 'website' | 'embed' | 'api') ?? undefined,
       responses: lead?.responses ?? {},
+      inflowSource: (lead?.inflowSource as FormValues['inflowSource']) ?? null,
+      conversionPoint: (lead?.conversionPoint as FormValues['conversionPoint']) ?? null,
+      dealPhase: (lead?.dealPhase as FormValues['dealPhase']) ?? null,
+      targetSystem: (lead?.targetSystem as FormValues['targetSystem']) ?? null,
+      lostReason: (lead?.lostReason as FormValues['lostReason']) ?? null,
+      referrerName: lead?.referrerName ?? null,
+      mqlQualified: Boolean(lead?.mqlQualifiedAt),
+      sqlDecision: (lead?.sqlDecision as FormValues['sqlDecision']) ?? null,
     },
   });
 
@@ -122,17 +159,18 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('status')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder={t('status')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="new">{tStatus('new')}</SelectItem>
-                  <SelectItem value="contacted">{tStatus('contacted')}</SelectItem>
-                  <SelectItem value="qualified">{tStatus('qualified')}</SelectItem>
-                  <SelectItem value="converted">{tStatus('converted')}</SelectItem>
+                  {LEAD_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {tStatus(status)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -163,6 +201,106 @@ export function LeadForm({ lead, onSubmit, isLoading }: LeadFormProps) {
             </FormItem>
           )}
         />
+
+        <div className="space-y-4 rounded-md border p-4">
+          <p className="text-sm font-medium">{t('pipeline')}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {PIPELINE_SELECTS.map(({ name, options }) => (
+              <FormField
+                key={name}
+                control={form.control}
+                name={name}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t(name)}</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === NONE ? null : value)}
+                      value={field.value ?? NONE}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('notSet')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE}>{t('notSet')}</SelectItem>
+                        {options.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {tPipeline(`${name}.${option}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+            <FormField
+              control={form.control}
+              name="referrerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('referrerName')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value || null)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="mqlQualified"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value ?? false}
+                      onCheckedChange={(state) => field.onChange(state === true)}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">{t('mqlQualified')}</FormLabel>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sqlDecision"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('sqlDecision')}</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === NONE ? null : value)}
+                    value={field.value ?? NONE}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('sqlUndecided')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={NONE}>{t('sqlUndecided')}</SelectItem>
+                      {SQL_DECISIONS.map((decision) => (
+                        <SelectItem key={decision} value={decision}>
+                          {tPipeline(`sqlDecision.${decision}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
 
         <div className="flex gap-4 justify-end">
           <Button type="submit" disabled={isLoading}>

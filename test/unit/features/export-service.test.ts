@@ -103,9 +103,10 @@ describe('Export Service', () => {
       averageScore: 72,
       leadsByStatus: {
         new: 40,
-        contacted: 30,
-        qualified: 20,
-        converted: 10,
+        nurturing: 30,
+        negotiating: 20,
+        won: 10,
+        lost: 0,
       },
     };
 
@@ -115,6 +116,8 @@ describe('Export Service', () => {
       expect(csv).toContain('Total Leads,100');
       expect(csv).toContain('Conversion Rate (%),15.50');
       expect(csv).toContain('New Status,40');
+      expect(csv).toContain('Nurturing Status,30');
+      expect(csv).toContain('Lost Status,0');
     });
   });
 
@@ -154,14 +157,14 @@ describe('Export Service', () => {
   describe('statusBreakdownToCSV', () => {
     const mockStatuses = [
       { status: 'new', count: 40, percentage: 40 },
-      { status: 'converted', count: 10, percentage: 10 },
+      { status: 'won', count: 10, percentage: 10 },
     ];
 
     it('should convert status breakdown to CSV', () => {
       const csv = statusBreakdownToCSV(mockStatuses);
       expect(csv).toContain('Status,Count,Percentage (%)');
       expect(csv).toContain('new,40,40.00');
-      expect(csv).toContain('converted,10,10.00');
+      expect(csv).toContain('won,10,10.00');
     });
   });
 
@@ -169,7 +172,7 @@ describe('Export Service', () => {
     const mockFunnel = {
       stages: [
         { name: 'new', count: 100, cumulativeCount: 100, percentage: 100, conversionRate: 100 },
-        { name: 'contacted', count: 60, cumulativeCount: 60, percentage: 60, conversionRate: 60 },
+        { name: 'nurturing', count: 60, cumulativeCount: 60, percentage: 60, conversionRate: 60 },
       ],
       totalLeads: 100,
       overallConversionRate: 10,
@@ -194,9 +197,10 @@ describe('Export Service', () => {
         averageScore: 72,
         leadsByStatus: {
           new: 40,
-          contacted: 30,
-          qualified: 20,
-          converted: 10,
+          nurturing: 30,
+          negotiating: 20,
+          won: 10,
+          lost: 0,
         },
       },
       trend: [{ date: '2024-01-01', count: 10, converted: 2 }],

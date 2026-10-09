@@ -11,7 +11,7 @@ import { z } from 'zod';
 const listLeadsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).optional(),
+  status: z.enum(['new', 'nurturing', 'negotiating', 'won', 'lost']).optional(),
   source: z.string().optional(),
   minScore: z.coerce.number().int().min(0).max(100).optional(),
   maxScore: z.coerce.number().int().min(0).max(100).optional(),
@@ -28,7 +28,7 @@ const createLeadSchema = z.object({
   company: z.string().optional(),
   phone: z.string().optional(),
   source: z.string().default('api'),
-  status: z.enum(['new', 'contacted', 'qualified', 'converted']).default('new'),
+  status: z.enum(['new', 'nurturing', 'negotiating', 'won', 'lost']).default('new'),
   score: z.number().int().min(0).max(100).optional(),
   responses: z.record(z.unknown()).optional(),
   customFields: z.record(z.unknown()).optional(),
@@ -78,7 +78,7 @@ describe('REST API v2 - Leads', () => {
     });
 
     it('should accept all valid status values', () => {
-      for (const status of ['new', 'contacted', 'qualified', 'converted']) {
+      for (const status of ['new', 'nurturing', 'negotiating', 'won', 'lost']) {
         const result = listLeadsQuerySchema.parse({ status });
         expect(result.status).toBe(status);
       }
@@ -172,7 +172,7 @@ describe('REST API v2 - Leads', () => {
     });
 
     it('should accept all valid status values', () => {
-      for (const status of ['new', 'contacted', 'qualified', 'converted']) {
+      for (const status of ['new', 'nurturing', 'negotiating', 'won', 'lost']) {
         const result = createLeadSchema.parse({ email: 'test@example.com', status });
         expect(result.status).toBe(status);
       }

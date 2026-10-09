@@ -70,7 +70,7 @@ describe('ai-chat-assistant', () => {
       const messages: ChatMessage[] = [{ role: 'user', content: 'What are my recent leads?' }];
       const context = {
         recentLeads: [
-          { name: 'John Doe', company: 'Tech Inc', status: 'contacted' },
+          { name: 'John Doe', company: 'Tech Inc', status: 'nurturing' },
           { name: 'Jane Smith', company: 'Sales Co', status: 'new' },
         ],
       };
@@ -175,7 +175,7 @@ describe('ai-chat-assistant', () => {
         industry: 'Technology',
         position: 'CEO',
         notes: 'Interested in product',
-        status: 'contacted',
+        status: 'nurturing',
       };
 
       const result = await generateLeadSummary(lead);

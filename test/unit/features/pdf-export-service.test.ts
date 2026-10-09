@@ -57,7 +57,7 @@ describe('PDF Export Service', () => {
         phone: null,
         position: null,
         source: 'api',
-        status: 'converted',
+        status: 'won',
         score: 92,
         notes: null,
         createdAt: new Date('2024-01-16'),
@@ -103,9 +103,10 @@ describe('PDF Export Service', () => {
         averageScore: 72,
         leadsByStatus: {
           new: 40,
-          contacted: 30,
-          qualified: 20,
-          converted: 10,
+          nurturing: 30,
+          negotiating: 20,
+          won: 10,
+          lost: 0,
         },
       },
       trend: [
@@ -119,29 +120,29 @@ describe('PDF Export Service', () => {
       ],
       statusBreakdown: [
         { status: 'new', count: 40, percentage: 40 },
-        { status: 'contacted', count: 30, percentage: 30 },
-        { status: 'qualified', count: 20, percentage: 20 },
-        { status: 'converted', count: 10, percentage: 10 },
+        { status: 'nurturing', count: 30, percentage: 30 },
+        { status: 'negotiating', count: 20, percentage: 20 },
+        { status: 'won', count: 10, percentage: 10 },
       ],
       funnel: {
         stages: [
           { name: 'new', count: 100, cumulativeCount: 100, percentage: 100, conversionRate: 100 },
           {
-            name: 'contacted',
+            name: 'nurturing',
             count: 60,
             cumulativeCount: 60,
             percentage: 60,
             conversionRate: 60,
           },
           {
-            name: 'qualified',
+            name: 'negotiating',
             count: 30,
             cumulativeCount: 30,
             percentage: 30,
             conversionRate: 50,
           },
           {
-            name: 'converted',
+            name: 'won',
             count: 10,
             cumulativeCount: 10,
             percentage: 10,
