@@ -20,11 +20,11 @@ const answerTypicalAs400 = async (page: Page) => {
 
   // Step 2: core system
   await page.getByLabel('AS/400（IBM i）').check();
-  await page.getByLabel('RPG').check();
+  await page.getByLabel('RPG', { exact: true }).check();
   await page.getByLabel('CL', { exact: true }).check();
-  await page.getByLabel('20年以上').check();
+  await page.getByLabel('20年以上', { exact: true }).check();
   await page.getByLabel('500〜2,000本').check();
-  await page.getByLabel('3〜5').check();
+  await page.getByLabel('3〜5', { exact: true }).check();
   await page.getByRole('button', { name: '次へ' }).click();
 
   // Step 3: operations and challenges
@@ -79,7 +79,9 @@ test.describe('AX migration diagnosis', () => {
     await expect(languages.getByLabel('わからない')).not.toBeChecked();
   });
 
-  test('completes the diagnosis and requests a consultation from the result', async ({ page }) => {
+  test('completes the diagnosis and requests a consultation from the result @smoke', async ({
+    page,
+  }) => {
     test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');
     await page.goto('/ja/ax-diagnosis?utm_source=google&utm_medium=cpc&utm_campaign=ax-hito');
     await page.getByRole('button', { name: '診断をはじめる' }).click();
@@ -98,7 +100,7 @@ test.describe('AX migration diagnosis', () => {
     expect(body.result).not.toHaveProperty('leadScore');
 
     await expect(page.getByRole('heading', { name: '診断結果' })).toBeVisible();
-    await expect(page.getByTestId('ax-result-difficulty')).toContainText('中');
+    await expect(page.getByTestId('ax-result-difficulty')).toHaveAttribute('data-level', 'medium');
     await expect(page.getByTestId('ax-result-challenge')).toContainText(
       'ヒト：人に依存した基幹システム'
     );
@@ -106,10 +108,12 @@ test.describe('AX migration diagnosis', () => {
 
     await page.getByRole('button', { name: '無料の個別相談を申し込む' }).click();
     await expect(page.getByText('個別相談のお申し込みを受け付けました')).toBeVisible();
-    await expect(page.getByText('2営業日以内に担当者からご連絡します。')).toBeVisible();
+    await expect(page.getByText('担当者からご連絡します。')).toBeVisible();
+    // No promises that are still under review (free scope, response days)
+    await expect(page.getByText('無料', { exact: true })).toHaveCount(0);
   });
 
-  test('shows the accepted message right away when consultation is checked in the form', async ({
+  test('shows the accepted message right away when consultation is checked in the form @smoke', async ({
     page,
   }) => {
     test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');

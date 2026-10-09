@@ -9,7 +9,7 @@ import type {
 import { cn } from '@/lib/utils';
 import { CheckCircle2, Loader2, RotateCcw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { trackAxEvent } from './tracking';
 
 const LEVEL_STYLES: Record<Level, { badge: string; bar: string }> = {
@@ -26,7 +26,6 @@ interface AxDiagnosisResultProps {
   submissionId: string;
   result: AxMigrationPublicResult;
   consultationRequested: boolean;
-  consultationDays: number;
   onRestart: () => void;
 }
 
@@ -35,13 +34,19 @@ export function AxDiagnosisResult({
   submissionId,
   result,
   consultationRequested,
-  consultationDays,
   onRestart,
 }: AxDiagnosisResultProps) {
   const t = useTranslations('axDiagnosis.result');
   const [requested, setRequested] = useState(consultationRequested);
   const [sending, setSending] = useState(false);
   const [failed, setFailed] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const acceptedRef = useRef<HTMLOutputElement>(null);
+
+  // The submit button disappears with the form: move focus to the result heading
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   const primary = result.challenges.primary;
   const otherSelected = CHALLENGE_KEYS.filter(
@@ -59,6 +64,7 @@ export function AxDiagnosisResult({
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setRequested(true);
+      requestAnimationFrame(() => acceptedRef.current?.focus());
       trackAxEvent('ax_consultation_request', { source: 'result' });
     } catch {
       setFailed(true);
@@ -70,11 +76,22 @@ export function AxDiagnosisResult({
   return (
     <section className="space-y-8" aria-labelledby="ax-result-heading">
       <header className="space-y-1">
-        <h1 id="ax-result-heading" className="text-3xl font-bold text-gray-900">
+        <h1
+          id="ax-result-heading"
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-3xl font-bold text-gray-900 outline-none"
+        >
           {t('title')}
         </h1>
-        <p className="text-sm text-gray-500">{t('subtitle', { company })}</p>
+        <p className="text-sm text-gray-600">{t('subtitle', { company })}</p>
       </header>
+
+      {result.needsHearing && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          {t('needsHearing')}
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <LevelCard
@@ -99,16 +116,25 @@ export function AxDiagnosisResult({
         className="space-y-4 rounded-xl border border-gray-200 bg-white p-6"
         data-testid="ax-result-challenge"
       >
-        <p className="text-sm font-semibold text-emerald-700">{t('primaryChallenge')}</p>
-        <h2 className="text-xl font-bold text-gray-900">{t(`challenges.${primary}.title`)}</h2>
-        <p className="text-gray-700">{t(`challenges.${primary}.problem`)}</p>
-        <p className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
-          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>{t(`challenges.${primary}.solution`)}</span>
-        </p>
+        {primary ? (
+          <>
+            <p className="text-sm font-semibold text-emerald-700">{t('primaryChallenge')}</p>
+            <h2 className="text-xl font-bold text-gray-900">{t(`challenges.${primary}.title`)}</h2>
+            <p className="text-gray-700">{t(`challenges.${primary}.problem`)}</p>
+            <p className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{t(`challenges.${primary}.solution`)}</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold text-gray-900">{t('noPrimaryChallenge.title')}</h2>
+            <p className="text-gray-700">{t('noPrimaryChallenge.body')}</p>
+          </>
+        )}
         {otherSelected.length > 0 && (
           <div className="space-y-2 pt-2">
-            <p className="text-xs font-medium text-gray-500">{t('selectedChallenges')}</p>
+            <p className="text-xs font-medium text-gray-600">{t('selectedChallenges')}</p>
             <ul className="flex flex-wrap gap-2">
               {otherSelected.map((key) => (
                 <li key={key} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
@@ -131,15 +157,10 @@ export function AxDiagnosisResult({
                 index === 0 ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200 bg-white'
               )}
             >
-              <p className="text-xs font-semibold text-gray-500">STEP {index + 1}</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {t(`steps.${key}.title`)}
-                {key === 'simple' && (
-                  <span className="ml-2 rounded bg-emerald-700 px-1.5 py-0.5 text-xs font-medium text-white">
-                    {t('steps.simple.badge')}
-                  </span>
-                )}
+              <p className="text-xs font-semibold text-gray-600">
+                {t('stepLabel', { number: index + 1 })}
               </p>
+              <p className="mt-1 font-semibold text-gray-900">{t(`steps.${key}.title`)}</p>
               <p className="mt-2 text-xs leading-relaxed text-gray-600">{t(`steps.${key}.body`)}</p>
             </li>
           ))}
@@ -148,13 +169,11 @@ export function AxDiagnosisResult({
 
       <div className="space-y-4 rounded-xl bg-gray-900 p-6 text-white" data-testid="ax-result-cta">
         {requested ? (
-          <output className="flex items-start gap-3">
+          <output ref={acceptedRef} tabIndex={-1} className="flex items-start gap-3 outline-none">
             <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-400" aria-hidden="true" />
             <span className="block">
               <span className="block text-lg font-semibold">{t('cta.accepted')}</span>
-              <span className="block text-sm text-gray-300">
-                {t('cta.acceptedBody', { days: consultationDays })}
-              </span>
+              <span className="block text-sm text-gray-300">{t('cta.acceptedBody')}</span>
             </span>
           </output>
         ) : (
@@ -189,7 +208,7 @@ export function AxDiagnosisResult({
         )}
       </div>
 
-      <p className="text-xs leading-relaxed text-gray-500">{t('disclaimer')}</p>
+      <p className="text-xs leading-relaxed text-gray-600">{t('disclaimer')}</p>
 
       <Button variant="ghost" size="sm" onClick={onRestart}>
         <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -211,21 +230,19 @@ interface LevelCardProps {
 function LevelCard({ label, level, score, levelLabel, text, testId }: LevelCardProps) {
   const style = LEVEL_STYLES[level];
   return (
-    <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5" data-testid={testId}>
+    <div
+      className="space-y-3 rounded-xl border border-gray-200 bg-white p-5"
+      data-testid={testId}
+      data-level={level}
+    >
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-gray-600">{label}</p>
         <span className={cn('rounded-full px-3 py-1 text-sm font-bold', style.badge)}>
           {levelLabel}
         </span>
       </div>
-      <div
-        className="h-2 w-full overflow-hidden rounded-full bg-gray-100"
-        role="meter"
-        aria-label={label}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={score}
-      >
+      {/* Decorative: the level label above carries the information */}
+      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
         <div className={cn('h-full rounded-full', style.bar)} style={{ width: `${score}%` }} />
       </div>
       <p className="text-sm leading-relaxed text-gray-700">{text}</p>

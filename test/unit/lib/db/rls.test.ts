@@ -49,35 +49,26 @@ describe('RLSContext', () => {
   });
 });
 
-describe('setCurrentUser', () => {
-  it('should set user ID in session', async () => {
-    const mockExecute = vi.fn().mockResolvedValue(undefined);
-    
-    const setCurrentUser = async (userId: string | null) => {
-      if (!userId) {
-        await mockExecute("SET LOCAL app.current_user_id = ''");
-        return;
-      }
-      await mockExecute(`SET LOCAL app.current_user_id = '${userId}'`);
-    };
+describe('setCurrentUser (real implementation)', () => {
+  // Render the SQL the real function sends, as PostgreSQL would receive it
+  const capture = async (userId: string | null) => {
+    const { setCurrentUser } = await import('@/lib/db/rls');
+    const { PgDialect } = await import('drizzle-orm/pg-core');
+    const execute = vi.fn().mockResolvedValue(undefined);
+    await setCurrentUser({ execute } as never, userId);
+    return new PgDialect().sqlToQuery(execute.mock.calls[0][0]);
+  };
 
-    await setCurrentUser('user-123');
-    expect(mockExecute).toHaveBeenCalled();
+  it('uses set_config with a bind parameter (SET cannot take parameters)', async () => {
+    const query = await capture('user-123');
+    expect(query.sql).toContain("set_config('app.current_user_id'");
+    expect(query.sql).not.toMatch(/^\s*SET /i);
+    expect(query.params).toEqual(['user-123']);
   });
 
-  it('should set empty string when userId is null', async () => {
-    const mockExecute = vi.fn().mockResolvedValue(undefined);
-    
-    const setCurrentUser = async (userId: string | null) => {
-      if (!userId) {
-        await mockExecute("SET LOCAL app.current_user_id = ''");
-        return;
-      }
-      await mockExecute(`SET LOCAL app.current_user_id = '${userId}'`);
-    };
-
-    await setCurrentUser(null);
-    expect(mockExecute).toHaveBeenCalledWith("SET LOCAL app.current_user_id = ''");
+  it('sends an empty string for a null user', async () => {
+    const query = await capture(null);
+    expect(query.params).toEqual(['']);
   });
 });
 

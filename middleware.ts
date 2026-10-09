@@ -120,8 +120,9 @@ export async function middleware(request: NextRequest) {
 
   // 1. Handle i18n (locale routing)
   // Skip i18n for API routes, static files, etc.
+  let intlResponse: NextResponse | undefined;
   if (!shouldSkipI18nMiddleware(pathname)) {
-    const intlResponse = intlMiddleware(request);
+    intlResponse = intlMiddleware(request);
     // If i18n middleware returns a redirect, return it immediately
     if (intlResponse && intlResponse.status === 307) {
       return intlResponse;
@@ -155,7 +156,10 @@ export async function middleware(request: NextRequest) {
 
   // 4. Create response (authentication temporarily disabled for i18n testing)
   // TODO: Re-enable authentication after migrating to Node.js Runtime or API Route-based auth
-  const response = NextResponse.next();
+  // Build on the next-intl response: it carries the locale header that server components
+  // read through getTranslations() / getRequestConfig(). Replacing it with a plain
+  // NextResponse.next() made every server-rendered string fall back to Japanese on /en.
+  const response = intlResponse ?? NextResponse.next();
 
   // // Allow public routes
   // if (isPublicRoute(pathnameWithoutLocale)) {

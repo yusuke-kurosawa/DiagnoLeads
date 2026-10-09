@@ -321,7 +321,7 @@
         "challenge": "Top-priority challenge"
       },
       "start": "Start the check",
-      "note": "Your answers are used only to create the result and, if you wish, to contact you."
+      "note": "We use the information only to send your result and to contact you about AX migration."
     },
     "progress": "Step {current} of {total}",
     "contactStep": "Where to send your result",
@@ -348,7 +348,7 @@
       "phone": "Phone",
       "department": "Department / title",
       "consultation": "I would like a free consultation about my result",
-      "consultationHint": "We will contact you within {days} business days.",
+      "consultationHint": "Our team will contact you.",
       "consent": "I agree to the handling of personal information",
       "consentNotice": "We use the information only to send your result and to contact you about AX migration.",
       "privacyPolicy": "Privacy policy"
@@ -364,7 +364,7 @@
         "high": "High"
       },
       "difficultyText": {
-        "low": "Relatively small and simple; a short migration is likely.",
+        "low": "Relatively small and simple. A closer look at the current system determines the outlook.",
         "medium": "A typical size. Clarify the current specification before choosing the migration approach.",
         "high": "Large or highly integrated. Start by making the specification visible and proceed in stages."
       },
@@ -400,9 +400,8 @@
       "stepsTitle": "Start small, then go beyond migration to AX",
       "steps": {
         "simple": {
-          "title": "Free simple assessment",
-          "body": "An inventory of your assets gives a detailed estimate of migration difficulty.",
-          "badge": "Free"
+          "title": "Simple assessment",
+          "body": "An inventory of your assets gives a detailed estimate of migration difficulty."
         },
         "survey": {
           "title": "Current-system survey",
@@ -424,11 +423,17 @@
         "button": "Request a free consultation",
         "sending": "Sending...",
         "accepted": "Your consultation request has been received",
-        "acceptedBody": "Our team will contact you within {days} business days.",
+        "acceptedBody": "Our team will contact you.",
         "failed": "Could not send your request. Please try again later."
       },
       "disclaimer": "This result is an estimate based on your answers. The exact approach, schedule and cost are determined in the current-system survey.",
-      "restart": "Check again"
+      "restart": "Check again",
+      "needsHearing": "Many answers were \"I don't know\", so this estimate is rough. A consultation lets us give you a more accurate outlook.",
+      "noPrimaryChallenge": {
+        "title": "You see no major challenge at the moment",
+        "body": "Organizing the current specification now makes future decisions easier when staff change or support ends."
+      },
+      "stepLabel": "STEP {number}"
     },
     "operator": "Provided by Software Agency System Co., Ltd., DX Services Division"
   },

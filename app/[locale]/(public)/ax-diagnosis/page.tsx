@@ -1,5 +1,4 @@
 import { AxDiagnosisFlow } from '@/components/features/ax-diagnosis/ax-diagnosis-flow';
-import { AX_MIGRATION_CONFIG } from '@/lib/features/diagnostics/ax-migration/config';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
@@ -28,7 +27,6 @@ export default async function AxDiagnosisPage({ params }: AxDiagnosisPageProps) 
     <main className="min-h-screen bg-gray-50">
       <AxDiagnosisFlow
         locale={locale === 'en' ? 'en' : 'ja'}
-        consultationDays={AX_MIGRATION_CONFIG.consultationResponseBusinessDays}
         privacyPolicyUrl={process.env.NEXT_PUBLIC_AX_PRIVACY_POLICY_URL || undefined}
       />
     </main>

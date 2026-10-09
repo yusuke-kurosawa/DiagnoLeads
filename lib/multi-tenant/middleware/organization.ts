@@ -37,7 +37,10 @@ export async function createOrganizationContext(
   const ability = defineAbilitiesFor(ctx.user as any, membership);
 
   // 3. Set current user for RLS
-  // All subsequent database queries will automatically respect RLS policies
+  // NOTE: ctx.db is the connection pool, not a transaction, so this setting only lives for
+  // this one statement and RLS is NOT applied to the following queries. Tenant isolation
+  // currently relies on the explicit organizationId conditions in each query (and the
+  // membership check above). Wrap procedures in withRLS() before relying on RLS.
   await setCurrentUser(ctx.db, ctx.user.id);
 
   return {

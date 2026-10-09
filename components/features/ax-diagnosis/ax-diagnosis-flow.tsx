@@ -39,7 +39,6 @@ interface SubmissionResponse {
 
 interface AxDiagnosisFlowProps {
   locale: DiagnosticLocale;
-  consultationDays: number;
   privacyPolicyUrl?: string;
 }
 
@@ -47,7 +46,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Match the checkbox accent to the radio buttons (brand green of the AX pamphlet) */
 const CHECKBOX_CLASS =
-  'focus-visible:ring-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-600';
+  'border-gray-500 focus-visible:ring-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-600';
 
 /** Read UTM / referral parameters once on the landing page */
 function readTracking(): Record<string, string> {
@@ -69,11 +68,7 @@ function readTracking(): Record<string, string> {
   );
 }
 
-export function AxDiagnosisFlow({
-  locale,
-  consultationDays,
-  privacyPolicyUrl,
-}: AxDiagnosisFlowProps) {
+export function AxDiagnosisFlow({ locale, privacyPolicyUrl }: AxDiagnosisFlowProps) {
   const t = useTranslations('axDiagnosis');
   const [stage, setStage] = useState<'intro' | 'questions' | 'result'>('intro');
   const [step, setStep] = useState(0);
@@ -94,12 +89,45 @@ export function AxDiagnosisFlow({
   const [response, setResponse] = useState<SubmissionResponse | null>(null);
   const tracking = useRef<Record<string, string>>({});
   const topRef = useRef<HTMLDivElement>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // Move focus to the step heading on every step change so keyboard and screen reader
+  // users start at the new questions instead of the bottom of the page
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `step` is the trigger (refocus on every step)
+  useEffect(() => {
+    if (stage === 'questions') stepHeadingRef.current?.focus();
+  }, [stage, step]);
+
+  // Warn before leaving the page (e.g. the browser back button) with unsent answers
+  useEffect(() => {
+    if (stage !== 'questions' || Object.keys(answers).length === 0) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [stage, answers]);
 
   useEffect(() => {
     tracking.current = readTracking();
   }, []);
 
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  /** Bring the first invalid field into view and focus it */
+  const focusFirstError = (elementId: string) => {
+    requestAnimationFrame(() => {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const target =
+        element instanceof HTMLInputElement || element instanceof HTMLButtonElement
+          ? element
+          : element.closest('fieldset')?.querySelector<HTMLElement>('button, input');
+      target?.focus({ preventScroll: true });
+    });
+  };
 
   const questionById = (id: string) =>
     definition.questions.find((q) => q.id === id) as DiagnosticQuestion;
@@ -136,7 +164,9 @@ export function AxDiagnosisFlow({
       if (question.required && empty) nextErrors[id] = t('errors.required');
     }
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    const first = section.questionIds.find((id) => nextErrors[id]);
+    if (first) focusFirstError(`q-${first}`);
+    return first === undefined;
   };
 
   const validateContact = (): boolean => {
@@ -147,7 +177,9 @@ export function AxDiagnosisFlow({
     else if (!EMAIL_PATTERN.test(contact.email.trim())) nextErrors.email = t('errors.email');
     if (!consent) nextErrors.consent = t('errors.consent');
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    const first = ['company', 'name', 'email', 'consent'].find((key) => nextErrors[key]);
+    if (first) focusFirstError(first === 'consent' ? 'consent' : `contact-${first}`);
+    return first === undefined;
   };
 
   const start = () => {
@@ -241,6 +273,9 @@ export function AxDiagnosisFlow({
     setAnswers({});
     setResponse(null);
     setConsultation(false);
+    setConsent(false);
+    setErrors({});
+    setSubmitError(null);
     setStage('intro');
     setStep(0);
     scrollToTop();
@@ -296,13 +331,20 @@ export function AxDiagnosisFlow({
       )}
 
       {stage === 'questions' && (
-        <section className="space-y-8" aria-live="polite">
+        <section className="space-y-8" aria-labelledby="ax-step-heading">
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>{t('progress', { current: step + 1, total: CONTACT_STEP + 1 })}</span>
-              <span className="font-medium text-gray-700">
-                {step < CONTACT_STEP ? definition.sections[step].title[locale] : t('contactStep')}
+            <div className="flex items-center justify-between gap-3 text-sm text-gray-600">
+              <span aria-live="polite">
+                {t('progress', { current: step + 1, total: CONTACT_STEP + 1 })}
               </span>
+              <h2
+                id="ax-step-heading"
+                ref={stepHeadingRef}
+                tabIndex={-1}
+                className="text-base font-semibold text-gray-900 outline-none"
+              >
+                {step < CONTACT_STEP ? definition.sections[step].title[locale] : t('contactStep')}
+              </h2>
             </div>
             <ProgressBar
               value={((step + 1) / (CONTACT_STEP + 1)) * 100}
@@ -337,7 +379,6 @@ export function AxDiagnosisFlow({
               consultation={consultation}
               consent={consent}
               honeypot={honeypot}
-              consultationDays={consultationDays}
               privacyPolicyUrl={privacyPolicyUrl}
               onContact={(field, value) => {
                 setContact((prev) => ({ ...prev, [field]: value }));
@@ -359,17 +400,18 @@ export function AxDiagnosisFlow({
           )}
 
           <div className="flex items-center justify-between gap-3">
-            <Button variant="outline" onClick={goBack} disabled={submitting}>
+            <Button key="back" variant="outline" onClick={goBack} disabled={submitting}>
               <ChevronLeft className="mr-1 h-4 w-4" aria-hidden="true" />
               {t('back')}
             </Button>
             {step < CONTACT_STEP ? (
-              <Button onClick={goNext} className="bg-emerald-700 hover:bg-emerald-800">
+              <Button key="next" onClick={goNext} className="bg-emerald-700 hover:bg-emerald-800">
                 {t('next')}
                 <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" />
               </Button>
             ) : (
               <Button
+                key="submit"
                 onClick={submit}
                 disabled={submitting}
                 className="bg-emerald-700 hover:bg-emerald-800"
@@ -394,12 +436,11 @@ export function AxDiagnosisFlow({
           submissionId={response.submissionId}
           result={response.result}
           consultationRequested={response.consultationRequested}
-          consultationDays={consultationDays}
           onRestart={restart}
         />
       )}
 
-      <p className="mt-12 text-center text-xs text-gray-400">{t('operator')}</p>
+      <p className="mt-12 text-center text-xs text-gray-500">{t('operator')}</p>
     </div>
   );
 }
@@ -431,11 +472,18 @@ function QuestionField({
       'flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm transition-colors',
       selected
         ? 'border-emerald-600 bg-emerald-50 text-gray-900'
-        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50'
     );
 
   return (
-    <fieldset className="space-y-3" aria-describedby={error ? `${legendId}-error` : undefined}>
+    <fieldset
+      className="space-y-3"
+      aria-describedby={
+        [question.type === 'multiple' ? `${legendId}-hint` : '', error ? `${legendId}-error` : '']
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
+    >
       <legend id={legendId} className="mb-1 text-base font-semibold text-gray-900">
         {question.label[locale]}
         {question.required && (
@@ -444,13 +492,16 @@ function QuestionField({
           </span>
         )}
       </legend>
-      {question.type === 'multiple' && <p className="text-xs text-gray-500">{multipleHint}</p>}
+      {question.type === 'multiple' && (
+        <p id={`${legendId}-hint`} className="text-xs text-gray-600">
+          {multipleHint}
+        </p>
+      )}
 
       {question.type === 'single' ? (
         <RadioGroup
           value={typeof value === 'string' ? value : ''}
           onValueChange={onSingle}
-          aria-labelledby={legendId}
           className="grid gap-2 sm:grid-cols-2"
         >
           {question.options.map((option) => {
@@ -461,7 +512,7 @@ function QuestionField({
                 htmlFor={id}
                 className={optionClass(value === option.value)}
               >
-                <RadioGroupItem id={id} value={option.value} className="mt-0.5" />
+                <RadioGroupItem id={id} value={option.value} className="mt-0.5 border-gray-500" />
                 <span>{option.label[locale]}</span>
               </Label>
             );
@@ -488,7 +539,7 @@ function QuestionField({
       )}
 
       {error && (
-        <p id={`${legendId}-error`} role="alert" className="text-sm text-red-600">
+        <p id={`${legendId}-error`} className="text-sm text-red-600">
           {error}
         </p>
       )}
@@ -502,7 +553,6 @@ interface ContactFieldsProps {
   consultation: boolean;
   consent: boolean;
   honeypot: string;
-  consultationDays: number;
   privacyPolicyUrl?: string;
   onContact: (field: keyof ContactState, value: string) => void;
   onConsultation: (value: boolean) => void;
@@ -516,7 +566,6 @@ function ContactFields({
   consultation,
   consent,
   honeypot,
-  consultationDays,
   privacyPolicyUrl,
   onContact,
   onConsultation,
@@ -557,10 +606,12 @@ function ContactFields({
               value={contact[key]}
               onChange={(e) => onContact(key, e.target.value)}
               aria-invalid={Boolean(errors[key])}
+              aria-required={required}
+              aria-describedby={errors[key] ? `contact-${key}-error` : undefined}
               className={cn(errors[key] && 'border-red-500')}
             />
             {errors[key] && (
-              <p role="alert" className="text-sm text-red-600">
+              <p id={`contact-${key}-error`} className="text-sm text-red-600">
                 {errors[key]}
               </p>
             )}
@@ -592,9 +643,7 @@ function ContactFields({
             <span className="block text-sm font-medium text-gray-900">
               {t('contact.consultation')}
             </span>
-            <span className="block text-xs text-gray-600">
-              {t('contact.consultationHint', { days: consultationDays })}
-            </span>
+            <span className="block text-xs text-gray-600">{t('contact.consultationHint')}</span>
           </span>
         </Label>
       </div>
@@ -622,12 +671,13 @@ function ContactFields({
             checked={consent}
             onCheckedChange={(state) => onConsent(state === true)}
             aria-invalid={Boolean(errors.consent)}
+            aria-describedby={errors.consent ? 'consent-error' : undefined}
             className={CHECKBOX_CLASS}
           />
           <span className="text-sm text-gray-800">{t('contact.consent')}</span>
         </Label>
         {errors.consent && (
-          <p role="alert" className="text-sm text-red-600">
+          <p id="consent-error" className="text-sm text-red-600">
             {errors.consent}
           </p>
         )}
