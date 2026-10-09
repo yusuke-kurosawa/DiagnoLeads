@@ -324,8 +324,9 @@
     "targetSystem": {
       "as400": "AS/400",
       "other_legacy": "Other Office Computer / Mainframe",
-      "client_server": "Client-server / EUC (VB, Access, etc.)",
-      "low_code": "Low-code (Notes, FileMaker, etc.)",
+      "vb": "VB (client-server)",
+      "access": "Access (incl. department tools)",
+      "webperformer": "WebPerformer",
       "other": "Other"
     },
     "sqlDecision": {

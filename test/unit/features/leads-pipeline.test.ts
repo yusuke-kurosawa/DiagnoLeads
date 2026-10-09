@@ -98,7 +98,7 @@ describe('leadPipelineFieldsSchema', () => {
       inflowSource: 'referral_partner',
       conversionPoint: 'web_diagnosis',
       dealPhase: 'simple_diagnosis',
-      targetSystem: 'client_server',
+      targetSystem: 'access',
       referrerName: 'Partner Inc.',
       lostReason: null,
       sqlDecision: 'not_qualified',

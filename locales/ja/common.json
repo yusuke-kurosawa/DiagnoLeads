@@ -334,8 +334,9 @@
     "targetSystem": {
       "as400": "AS/400",
       "other_legacy": "その他オフコン・汎用機",
-      "client_server": "クライアントサーバー・EUC（VB・Access など）",
-      "low_code": "ローコード（Notes・FileMaker など）",
+      "vb": "VB（クライアントサーバー型）",
+      "access": "Access（部署単位のツールを含む）",
+      "webperformer": "WebPerformer",
       "other": "その他"
     },
     "sqlDecision": {
