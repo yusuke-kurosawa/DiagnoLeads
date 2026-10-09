@@ -23,10 +23,15 @@ export interface AxMigrationNotification {
   email: string;
   result: Pick<
     AxMigrationResult,
-    'difficulty' | 'urgency' | 'challenges' | 'mql' | 'sqlSignals' | 'leadScore'
+    'difficulty' | 'urgency' | 'challenges' | 'mql' | 'sqlSignals' | 'leadScore' | 'needsHearing'
   >;
   consultationRequested: boolean;
   leadCreated: boolean;
+  /**
+   * The email matched an existing lead. The public form cannot prove who answered, so
+   * sales must confirm before acting; company / name come from the DB, not the request.
+   */
+  identityUnverified: boolean;
   requestedAt: Date;
 }
 
@@ -41,19 +46,32 @@ export function consultationDeadline(
 }
 
 export function buildSalesMessage(n: AxMigrationNotification): { title: string; message: string } {
+  const primary = n.result.challenges.primary;
   const summary = [
     `移行難易度: ${LEVEL_LABELS[n.result.difficulty.level]}`,
     `緊急度: ${LEVEL_LABELS[n.result.urgency.level]}`,
-    `主な課題: ${CHALLENGE_LABELS[n.result.challenges.primary]}`,
-    `MQL: ${n.result.mql.qualified ? '該当' : '非該当'}`,
-    `SQL候補: ${n.result.sqlSignals.candidate ? 'あり' : 'なし'}`,
+    `主な課題: ${primary ? CHALLENGE_LABELS[primary] : '特になし'}`,
+    n.result.mql.qualified
+      ? 'MQL: 該当'
+      : `MQL候補: ${n.result.mql.candidate ? '該当（マーケで確定してください）' : '非該当'}`,
+    `SQLの手がかり: ${n.result.sqlSignals.candidate ? 'あり' : 'なし'}`,
+    ...(n.result.needsHearing ? ['「わからない」の回答が多く要ヒアリング'] : []),
   ].join(' / ');
+  const unverified = n.identityUnverified
+    ? '既存リードと同じメールアドレスからの回答です。本人確認のうえ対応してください（リードの内容は変更していません）。'
+    : '';
 
   if (n.consultationRequested) {
     const deadline = format(consultationDeadline(n.requestedAt), 'yyyy/MM/dd');
     return {
-      title: `【相談申込】${n.company} ${n.name} 様（${deadline} までに連絡）`,
-      message: `AXマイグレーション診断から相談申込がありました。MQL判定を経ずに営業へ引き渡します。${summary}`,
+      title: `【相談申込${n.identityUnverified ? '・本人未確認' : ''}】${n.company} ${n.name} 様（${deadline} までに連絡）`,
+      message: `AXマイグレーション診断から相談申込がありました。MQL判定を経ずに営業へ引き渡します。${unverified}${summary}`,
+    };
+  }
+  if (n.identityUnverified) {
+    return {
+      title: `【AX診断・本人未確認】既存リード ${n.company} ${n.name} 様のメールアドレスで再回答がありました`,
+      message: `${unverified}${summary}`,
     };
   }
   return {
@@ -73,6 +91,7 @@ export async function notifyAxMigrationSubmission(n: AxMigrationNotification): P
     submissionId: n.submissionId,
     diagnosticKey: 'ax-migration',
     consultationRequested: n.consultationRequested,
+    identityUnverified: n.identityUnverified,
   };
 
   const tasks: Promise<unknown>[] = [
@@ -83,15 +102,17 @@ export async function notifyAxMigrationSubmission(n: AxMigrationNotification): P
       name: n.name,
       score: n.result.leadScore,
       mql: n.result.mql.qualified,
-      sqlCandidate: n.result.sqlSignals.candidate,
+      mqlCandidate: n.result.mql.candidate,
+      sqlSignals: n.result.sqlSignals.candidate,
       difficulty: n.result.difficulty.level,
       urgency: n.result.urgency.level,
       primaryChallenge: n.result.challenges.primary,
     }),
   ];
 
-  // Notify in-app for consultation requests, MQLs and new leads; skip repeat answers that change nothing
-  if (n.consultationRequested || n.result.mql.qualified || n.leadCreated) {
+  // In-app: consultation requests and new leads only. A repeat answer without a consultation
+  // request changes nothing on the lead, so it does not ping every member again.
+  if (n.consultationRequested || n.leadCreated) {
     tasks.push(
       notifyOrganizationMembers(
         n.organizationId,

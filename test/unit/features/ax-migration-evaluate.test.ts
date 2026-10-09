@@ -56,26 +56,32 @@ describe('axMigrationDefinition', () => {
 
 describe('evaluateAxMigration', () => {
   describe('MQL (業種 × システム × 行動)', () => {
-    it('qualifies a manufacturer on AS/400', () => {
+    const countDiagnosis = { ...AX_MIGRATION_CONFIG, countWebDiagnosisAsMqlAction: true };
+
+    it('hands a manufacturer on AS/400 to marketing as an MQL candidate by default', () => {
       const result = evaluateAxMigration(typicalAs400);
       expect(result.mql).toEqual({
-        qualified: true,
-        criteria: { industry: true, system: true, action: true },
+        qualified: false,
+        candidate: true,
+        criteria: { industry: true, system: true, action: false },
       });
     });
 
-    it('qualifies a distributor on a mainframe', () => {
-      const result = evaluateAxMigration(answer({ industry: 'distribution', system: 'mainframe' }));
-      expect(result.mql.qualified).toBe(true);
+    it('qualifies automatically only when the diagnosis counts as an action (config)', () => {
+      expect(evaluateAxMigration(typicalAs400, countDiagnosis).mql.qualified).toBe(true);
+      expect(
+        evaluateAxMigration(answer({ industry: 'distribution', system: 'mainframe' }), countDiagnosis)
+          .mql.qualified
+      ).toBe(true);
     });
 
-    it('does not qualify other industries', () => {
-      const result = evaluateAxMigration(answer({ industry: 'other' }));
+    it('does not make other industries a candidate', () => {
+      const result = evaluateAxMigration(answer({ industry: 'other' }), countDiagnosis);
+      expect(result.mql.candidate).toBe(false);
       expect(result.mql.qualified).toBe(false);
-      expect(result.mql.criteria.industry).toBe(false);
     });
 
-    it('does not qualify packaged / cloud systems', () => {
+    it('does not make packaged / cloud systems a candidate', () => {
       const result = evaluateAxMigration(answer({ system: 'package', languages: ['other'] }));
       expect(result.mql.criteria.system).toBe(false);
     });
@@ -85,14 +91,56 @@ describe('evaluateAxMigration', () => {
       expect(result.mql.criteria.system).toBe(true);
       expect(result.targetSystem).toBe('other_legacy');
     });
+  });
 
-    it('does not count the diagnosis as an action when the config says so', () => {
-      const result = evaluateAxMigration(typicalAs400, {
+  describe('client-server / EUC and low-code targets', () => {
+    it('treats VB / Access client-server systems as migration targets', () => {
+      const result = evaluateAxMigration(answer({ system: 'client_server', languages: ['vb', 'vba'] }));
+      expect(result.targetSystem).toBe('client_server');
+      expect(result.mql.candidate).toBe(true);
+    });
+
+    it('treats Notes / FileMaker style low-code platforms as migration targets', () => {
+      const result = evaluateAxMigration(answer({ system: 'low_code', languages: ['other'] }));
+      expect(result.targetSystem).toBe('low_code');
+      expect(result.mql.candidate).toBe(true);
+    });
+
+    it('estimates client-server from VB / VBA when the platform is unknown', () => {
+      expect(evaluateAxMigration(answer({ system: 'unknown', languages: ['vba'] })).targetSystem).toBe(
+        'client_server'
+      );
+    });
+
+    it('can exclude them from the MQL target via config', () => {
+      const result = evaluateAxMigration(answer({ system: 'client_server', languages: ['vb'] }), {
         ...AX_MIGRATION_CONFIG,
-        countWebDiagnosisAsMqlAction: false,
+        legacySystems: ['as400', 'office_computer', 'mainframe'],
+        legacyLanguages: ['rpg', 'cobol', 'cl'],
       });
-      expect(result.mql.qualified).toBe(false);
-      expect(result.mql.criteria.action).toBe(false);
+      expect(result.mql.candidate).toBe(false);
+    });
+  });
+
+  describe('no challenges / many unknowns', () => {
+    it('has no primary challenge and no problem awareness for "no particular challenges"', () => {
+      const result = evaluateAxMigration(answer({ challenges: ['none'], maintenance: 'team' }));
+      expect(result.challenges.primary).toBeNull();
+      expect(result.sqlSignals.problemAware).toBe(false);
+    });
+
+    it('rejects "no particular challenges" combined with a challenge', () => {
+      expect(
+        validateAnswers(axMigrationDefinition, answer({ challenges: ['none', 'cost'] })).success
+      ).toBe(false);
+    });
+
+    it('flags a hearing when three or more system answers are "I don\'t know"', () => {
+      const result = evaluateAxMigration(
+        answer({ system: 'unknown', languages: ['unknown'], programs: 'unknown', documents: 'unknown' })
+      );
+      expect(result.needsHearing).toBe(true);
+      expect(evaluateAxMigration(typicalAs400).needsHearing).toBe(false);
     });
   });
 
@@ -236,7 +284,7 @@ describe('evaluateAxMigration', () => {
       expect(worst.leadScore).toBeLessThan(30);
     });
 
-    it('recommends a consultation to MQLs and information otherwise', () => {
+    it('recommends a consultation to MQL candidates and information otherwise', () => {
       expect(evaluateAxMigration(typicalAs400).recommendation).toBe('consultation');
       const info = evaluateAxMigration(
         answer({
@@ -256,6 +304,13 @@ describe('evaluateAxMigration', () => {
       expect(publicResult).not.toHaveProperty('leadScore');
       expect(publicResult).not.toHaveProperty('mql');
       expect(publicResult).not.toHaveProperty('sqlSignals');
+      expect(Object.keys(publicResult).sort()).toEqual([
+        'challenges',
+        'difficulty',
+        'needsHearing',
+        'recommendation',
+        'urgency',
+      ]);
     });
   });
 });

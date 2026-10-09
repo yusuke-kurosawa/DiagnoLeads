@@ -1,7 +1,7 @@
 import { consultationDeadline, buildSalesMessage } from '@/lib/features/diagnostics/ax-migration/notify';
 import { evaluateAxMigration } from '@/lib/features/diagnostics/ax-migration/evaluate';
 import { multiple, single, toPercent, validateAnswers } from '@/lib/features/diagnostics/engine';
-import { compactTracking, inferInflowSource } from '@/lib/features/diagnostics/tracking';
+import { compactTracking, inferInflowSource, trackingSchema } from '@/lib/features/diagnostics/tracking';
 import type { DiagnosticDefinition } from '@/lib/features/diagnostics/types';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -127,6 +127,17 @@ describe('inferInflowSource（流入元の推定）', () => {
     expect(inferInflowSource({ utmMedium: 'organic' }).inflowSource).toBe('lp_organic');
   });
 
+  it('leaves unknown campaign media (email, dm, form) blank instead of calling them organic', () => {
+    expect(inferInflowSource({ utmMedium: 'email' }).inflowSource).toBeNull();
+    expect(inferInflowSource({ utmMedium: 'dm' }).inflowSource).toBeNull();
+  });
+
+  it('cuts long tracking values instead of rejecting the submission', () => {
+    const parsed = trackingSchema.parse({ utmSource: 'x'.repeat(300), ref: 'r'.repeat(150) });
+    expect(parsed.utmSource).toHaveLength(200);
+    expect(parsed.ref).toHaveLength(100);
+  });
+
   it('drops empty tracking values', () => {
     expect(compactTracking({ utmSource: 'google', utmMedium: ' ', ref: undefined })).toEqual({
       utmSource: 'google',
@@ -167,6 +178,7 @@ describe('sales notification', () => {
       email: 'yamada@example.com',
       result,
       leadCreated: true,
+      identityUnverified: false,
       requestedAt: new Date(2026, 9, 9, 10, 0),
     };
 
@@ -177,6 +189,11 @@ describe('sales notification', () => {
 
     const diagnosis = buildSalesMessage({ ...base, consultationRequested: false });
     expect(diagnosis.title).toContain('【AX診断】');
-    expect(diagnosis.message).toContain('MQL: 該当');
+    expect(diagnosis.message).toContain('MQL候補: 該当');
+    expect(diagnosis.message).toContain('SQLの手がかり: あり');
+
+    const unverified = buildSalesMessage({ ...base, consultationRequested: true, identityUnverified: true });
+    expect(unverified.title).toContain('【相談申込・本人未確認】');
+    expect(unverified.message).toContain('リードの内容は変更していません');
   });
 });

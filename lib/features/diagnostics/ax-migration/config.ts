@@ -8,13 +8,17 @@
 export interface AxMigrationConfig {
   /** MQL 条件「業種」: target industries */
   targetIndustries: readonly string[];
-  /** MQL 条件「システム」: legacy platforms */
+  /**
+   * MQL 条件「システム」: legacy platforms.
+   * client_server（VB・Access）と low_code（Notes・FileMaker）を含めるかは要確認
+   */
   legacySystems: readonly string[];
   /** Languages that suggest a legacy platform when the platform itself is unknown（推定でも可） */
   legacyLanguages: readonly string[];
   /**
    * MQL 条件「行動」: count completing this Web diagnosis as an action
-   * (資料DL・デモ閲覧・勉強会参加 と同等に扱うか) — 要確認
+   * (資料DL・デモ閲覧・勉強会参加 と同等に扱うか) — 要確認。
+   * false の間は MQL を自動判定せず「MQL候補」として営業・マーケに渡し、マーケが確定する
    */
   countWebDiagnosisAsMqlAction: boolean;
   /** SQL 条件③「検討時期」: timelines that count as "visible" — 要確認 */
@@ -27,9 +31,9 @@ export interface AxMigrationConfig {
 
 export const AX_MIGRATION_CONFIG: AxMigrationConfig = {
   targetIndustries: ['manufacturing', 'distribution'],
-  legacySystems: ['as400', 'office_computer', 'mainframe'],
-  legacyLanguages: ['rpg', 'cobol', 'cl'],
-  countWebDiagnosisAsMqlAction: true,
+  legacySystems: ['as400', 'office_computer', 'mainframe', 'client_server', 'low_code'],
+  legacyLanguages: ['rpg', 'cobol', 'cl', 'vb', 'vba'],
+  countWebDiagnosisAsMqlAction: false,
   sqlTimelines: ['within_1y', '1_2y'],
   decisionAccessRoles: ['executive', 'it_manager', 'it_staff'],
   consultationResponseBusinessDays: 2,

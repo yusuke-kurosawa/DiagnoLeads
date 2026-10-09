@@ -3,6 +3,7 @@ import { diagnosticSubmissions, leads } from '@/lib/db/schema';
 import type { AxMigrationResult } from '@/lib/features/diagnostics/ax-migration/evaluate';
 import { notifyAxMigrationSubmission } from '@/lib/features/diagnostics/ax-migration/notify';
 import { requestAxMigrationConsultation } from '@/lib/features/diagnostics/ax-migration/submission-service';
+import { checkPublicJsonRequest } from '@/lib/features/diagnostics/request-guard';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -15,9 +16,12 @@ const consultationSchema = z.object({
  * POST /api/diagnostics/ax-migration/consultation
  *
  * Consultation request (相談申込) made from the result page.
- * Idempotent: repeated requests do not notify sales again.
+ * Idempotent: only the first of concurrent / repeated requests notifies sales.
  */
 export async function POST(req: NextRequest) {
+  const guard = checkPublicJsonRequest(req, 1024);
+  if (guard) return guard;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -55,6 +59,7 @@ export async function POST(req: NextRequest) {
           result: submission.result as unknown as AxMigrationResult,
           consultationRequested: true,
           leadCreated: false,
+          identityUnverified: !outcome.leadCreated,
           requestedAt,
         }).catch((error) => console.error('AX consultation notification error:', error));
       }

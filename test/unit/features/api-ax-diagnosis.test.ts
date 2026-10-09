@@ -39,12 +39,27 @@ const validBody = {
   locale: 'ja',
 };
 
-const request = (body: unknown) =>
+const request = (body: unknown, headers: Record<string, string> = {}) =>
   new NextRequest('http://localhost/api/diagnostics/ax-migration', {
     method: 'POST',
     body: typeof body === 'string' ? body : JSON.stringify(body),
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...headers },
   });
+
+const fullAnswers = {
+  industry: 'manufacturing',
+  revenue: '10b_30b',
+  system: 'as400',
+  languages: ['rpg'],
+  years: 'gte20',
+  programs: '500_2000',
+  integrations: 'some',
+  maintenance: 'few',
+  documents: 'partial',
+  challenges: ['people'],
+  timeline: '1_2y',
+  role: 'it_manager',
+};
 
 const result = evaluateAxMigration({
   industry: 'manufacturing',
@@ -74,6 +89,7 @@ describe('POST /api/diagnostics/ax-migration', () => {
       submissionId: 'sub-1',
       leadId: 'lead-1',
       leadCreated: true,
+      existingLead: null,
       result,
       answers: {},
     });
@@ -90,7 +106,13 @@ describe('POST /api/diagnostics/ax-migration', () => {
 
     expect(submitMock).toHaveBeenCalledWith({}, ORG_ID, expect.objectContaining({ consultationRequested: true }));
     expect(notifyMock).toHaveBeenCalledWith(
-      expect.objectContaining({ organizationId: ORG_ID, leadId: 'lead-1', consultationRequested: true })
+      expect.objectContaining({
+        organizationId: ORG_ID,
+        leadId: 'lead-1',
+        consultationRequested: true,
+        identityUnverified: false,
+        company: '三田製作所',
+      })
     );
   });
 
@@ -100,10 +122,97 @@ describe('POST /api/diagnostics/ax-migration', () => {
     expect(submitMock).not.toHaveBeenCalled();
   });
 
-  it('rejects bots that fill the honeypot field', async () => {
-    const response = await POST(request({ ...validBody, website: 'http://spam.example' }));
-    expect(response.status).toBe(400);
+  it('answers a filled honeypot with a fake success and stores nothing', async () => {
+    const response = await POST(
+      request({ ...validBody, answers: fullAnswers, website: 'http://spam.example' })
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).result.difficulty).toBeDefined();
     expect(submitMock).not.toHaveBeenCalled();
+    expect(notifyMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts an empty honeypot', async () => {
+    submitMock.mockResolvedValue({
+      ok: true,
+      submissionId: 'sub-3',
+      leadId: 'lead-3',
+      leadCreated: true,
+      existingLead: null,
+      result,
+      answers: {},
+    });
+    const response = await POST(request({ ...validBody, website: '' }));
+    expect(response.status).toBe(200);
+    expect(submitMock).toHaveBeenCalled();
+  });
+
+  it('rejects non-JSON requests that cross-site forms could send', async () => {
+    const response = await POST(request(validBody, { 'content-type': 'text/plain' }));
+    expect(response.status).toBe(415);
+    expect(submitMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects requests from another origin', async () => {
+    const response = await POST(request(validBody, { origin: 'https://evil.example' }));
+    expect(response.status).toBe(403);
+    expect(submitMock).not.toHaveBeenCalled();
+  });
+
+  it('allows same-origin requests', async () => {
+    submitMock.mockResolvedValue({
+      ok: true,
+      submissionId: 'sub-4',
+      leadId: 'lead-4',
+      leadCreated: true,
+      existingLead: null,
+      result,
+      answers: {},
+    });
+    const response = await POST(request(validBody, { origin: 'http://localhost' }));
+    expect(response.status).toBe(200);
+  });
+
+  it('rejects oversized bodies', async () => {
+    const response = await POST(request(validBody, { 'content-length': String(64 * 1024) }));
+    expect(response.status).toBe(413);
+  });
+
+  it('notifies sales with the stored identity when the email matches an existing lead', async () => {
+    submitMock.mockResolvedValue({
+      ok: true,
+      submissionId: 'sub-5',
+      leadId: 'lead-existing',
+      leadCreated: false,
+      existingLead: { name: '登録済み 花子', company: '登録済み商事', email: 'yamada@example.jp' },
+      result,
+      answers: {},
+    });
+    const response = await POST(request(validBody));
+    expect(response.status).toBe(200);
+    expect(notifyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        company: '登録済み商事',
+        name: '登録済み 花子',
+        identityUnverified: true,
+        leadCreated: false,
+      })
+    );
+  });
+
+  it('caps the number of validation issues returned', async () => {
+    submitMock.mockResolvedValue({
+      ok: false,
+      issues: Array.from({ length: 50 }, (_, i) => ({ questionId: `q${i}`, code: 'unknown_question' })),
+    });
+    const response = await POST(request(validBody));
+    expect((await response.json()).issues).toHaveLength(20);
+  });
+
+  it('returns 500 when saving fails', async () => {
+    submitMock.mockRejectedValue(new Error('db down'));
+    const response = await POST(request(validBody));
+    expect(response.status).toBe(500);
   });
 
   it('rejects malformed JSON', async () => {
@@ -132,6 +241,7 @@ describe('POST /api/diagnostics/ax-migration', () => {
       submissionId: 'sub-2',
       leadId: 'lead-2',
       leadCreated: false,
+      existingLead: null,
       result,
       answers: {},
     });

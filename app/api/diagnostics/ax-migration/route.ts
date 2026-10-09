@@ -1,21 +1,35 @@
 import { db } from '@/lib/db/client';
-import { toPublicResult } from '@/lib/features/diagnostics/ax-migration/evaluate';
+import { axMigrationDefinition } from '@/lib/features/diagnostics/ax-migration/definition';
+import {
+  evaluateAxMigration,
+  toPublicResult,
+} from '@/lib/features/diagnostics/ax-migration/evaluate';
 import { notifyAxMigrationSubmission } from '@/lib/features/diagnostics/ax-migration/notify';
 import {
   axMigrationSubmissionSchema,
   submitAxMigrationDiagnosis,
 } from '@/lib/features/diagnostics/ax-migration/submission-service';
+import { validateAnswers } from '@/lib/features/diagnostics/engine';
 import { resolveDiagnosisOrganizationId } from '@/lib/features/diagnostics/organization';
+import { checkPublicJsonRequest } from '@/lib/features/diagnostics/request-guard';
 import { type NextRequest, NextResponse } from 'next/server';
+
+/** Upper bound for the request body (answers + contact + tracking are a few KB) */
+const MAX_BODY_BYTES = 32 * 1024;
+/** Cap the number of validation issues echoed back */
+const MAX_ISSUES = 20;
 
 /**
  * POST /api/diagnostics/ax-migration
  *
  * Public endpoint for the AX migration self-diagnosis.
  * Validates answers, evaluates them on the server, saves the submission and
- * creates or updates the lead. Returns only the respondent-facing result.
+ * links it to a lead. Returns only the respondent-facing result.
  */
 export async function POST(req: NextRequest) {
+  const guard = checkPublicJsonRequest(req, MAX_BODY_BYTES);
+  if (guard) return guard;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -31,6 +45,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Honeypot filled: answer like a normal success so bots learn nothing, but store nothing
+  if (parsed.data.website) {
+    const validation = validateAnswers(axMigrationDefinition, parsed.data.answers);
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid answers' }, { status: 400 });
+    }
+    return NextResponse.json({
+      submissionId: crypto.randomUUID(),
+      consultationRequested: parsed.data.consultationRequested,
+      result: toPublicResult(evaluateAxMigration(validation.answers)),
+    });
+  }
+
   const organizationId = resolveDiagnosisOrganizationId();
   if (!organizationId) {
     console.error(
@@ -43,22 +70,30 @@ export async function POST(req: NextRequest) {
     const outcome = await submitAxMigrationDiagnosis(db, organizationId, parsed.data);
     if (!outcome.ok) {
       return NextResponse.json(
-        { error: 'Invalid answers', issues: outcome.issues },
+        { error: 'Invalid answers', issues: outcome.issues.slice(0, MAX_ISSUES) },
         { status: 400 }
       );
     }
+
+    // For an existing lead, show sales the stored identity, not what an anonymous visitor typed
+    const identity = outcome.existingLead ?? {
+      company: parsed.data.contact.company,
+      name: parsed.data.contact.name,
+      email: parsed.data.contact.email,
+    };
 
     // Fire-and-forget: notifications must not delay or fail the respondent's flow
     notifyAxMigrationSubmission({
       organizationId,
       leadId: outcome.leadId,
       submissionId: outcome.submissionId,
-      company: parsed.data.contact.company,
-      name: parsed.data.contact.name,
-      email: parsed.data.contact.email,
+      company: identity.company ?? '',
+      name: identity.name ?? '',
+      email: identity.email,
       result: outcome.result,
       consultationRequested: parsed.data.consultationRequested,
       leadCreated: outcome.leadCreated,
+      identityUnverified: outcome.existingLead !== null,
       requestedAt: new Date(),
     }).catch((error) => console.error('AX diagnosis notification error:', error));
 

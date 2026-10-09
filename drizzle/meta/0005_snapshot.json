@@ -1,6 +1,6 @@
 {
-  "id": "3cfa90d2-cc55-486d-9a21-9547f22f300d",
-  "prevId": "681baea2-5c50-4727-a783-90d698662692",
+  "id": "fbcada0f-fce9-43d7-870d-b919156e50e3",
+  "prevId": "f03216f6-67d7-46be-a221-9a419c46005c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -599,6 +599,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "lead_created": {
+          "name": "lead_created",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "diagnostic_key": {
           "name": "diagnostic_key",
@@ -1660,8 +1667,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "sql_qualified_at": {
-          "name": "sql_qualified_at",
+        "sql_decision": {
+          "name": "sql_decision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sql_decided_at": {
+          "name": "sql_decided_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false

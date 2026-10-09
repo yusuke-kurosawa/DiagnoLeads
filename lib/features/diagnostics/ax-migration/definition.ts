@@ -16,7 +16,7 @@ export const axMigrationDefinition: DiagnosticDefinition = {
     en: 'AX Migration Core System Check',
   },
   description: {
-    ja: '12の質問（約5分）に答えると、基幹システムの移行難易度の目安と、優先して取り組むべき課題がわかります。',
+    ja: '12の質問（約5分）に答えると、基幹システムや業務システムの移行難易度の目安と、優先して取り組むべき課題がわかります。',
     en: 'Answer 12 questions (about 5 minutes) to see an estimate of your migration difficulty and the challenges to tackle first.',
   },
   sections: [
@@ -85,6 +85,20 @@ export const axMigrationDefinition: DiagnosticDefinition = {
         },
         { value: 'mainframe', label: { ja: '汎用機（メインフレーム）', en: 'Mainframe' } },
         {
+          value: 'client_server',
+          label: {
+            ja: 'Windows のクライアントサーバー型（VB・Access など）',
+            en: 'Windows client-server (VB, Access, etc.)',
+          },
+        },
+        {
+          value: 'low_code',
+          label: {
+            ja: 'ローコード基盤（Notes・FileMaker など）',
+            en: 'Low-code platform (Notes, FileMaker, etc.)',
+          },
+        },
+        {
           value: 'package',
           label: { ja: 'パッケージ・クラウドサービス', en: 'Packaged software / cloud service' },
         },
@@ -104,6 +118,14 @@ export const axMigrationDefinition: DiagnosticDefinition = {
         { value: 'rpg', label: { ja: 'RPG', en: 'RPG' } },
         { value: 'cobol', label: { ja: 'COBOL', en: 'COBOL' } },
         { value: 'cl', label: { ja: 'CL', en: 'CL' } },
+        {
+          value: 'vb',
+          label: { ja: 'Visual Basic（VB6・VB.NET）', en: 'Visual Basic (VB6, VB.NET)' },
+        },
+        {
+          value: 'vba',
+          label: { ja: 'VBA（Access・Excel マクロ）', en: 'VBA (Access, Excel macros)' },
+        },
         { value: 'other', label: { ja: 'Java・その他', en: 'Java / other' } },
         { value: 'unknown', label: { ja: 'わからない', en: "I don't know" } },
       ],
@@ -192,12 +214,14 @@ export const axMigrationDefinition: DiagnosticDefinition = {
           label: { ja: '一部が古い・足りない', en: 'Partly outdated or missing' },
         },
         { value: 'none', label: { ja: 'ほとんどない', en: 'Almost none' } },
+        { value: 'unknown', label: { ja: 'わからない', en: "I don't know" } },
       ],
     },
     {
       id: 'challenges',
       type: 'multiple',
       required: true,
+      exclusiveOptions: ['none'],
       label: {
         ja: '現在感じている課題は？（複数選択可）',
         en: 'Which challenges do you face? (select all that apply)',
@@ -238,6 +262,13 @@ export const axMigrationDefinition: DiagnosticDefinition = {
             en: 'Hardware or OS support is ending soon',
           },
         },
+        {
+          value: 'none',
+          label: {
+            ja: '特に課題は感じていない',
+            en: 'No particular challenges',
+          },
+        },
       ],
     },
     {
@@ -249,6 +280,7 @@ export const axMigrationDefinition: DiagnosticDefinition = {
         { value: 'within_1y', label: { ja: '1年以内', en: 'Within 1 year' } },
         { value: '1_2y', label: { ja: '1〜2年以内', en: 'In 1-2 years' } },
         { value: '2_3y', label: { ja: '2〜3年以内', en: 'In 2-3 years' } },
+        { value: 'beyond_3y', label: { ja: '3年以上先', en: 'More than 3 years from now' } },
         { value: 'undecided', label: { ja: '未定', en: 'Undecided' } },
       ],
     },

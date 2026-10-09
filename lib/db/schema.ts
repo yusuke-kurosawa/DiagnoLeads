@@ -353,6 +353,8 @@ export const diagnosticSubmissions = pgTable(
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
     leadId: uuid('lead_id').references(() => leads.id, { onDelete: 'set null' }),
+    /** true when this submission created the lead; false when it matched an existing one */
+    leadCreated: boolean('lead_created').default(false).notNull(),
     diagnosticKey: text('diagnostic_key').notNull(),
     diagnosticVersion: integer('diagnostic_version').notNull(),
     answers: jsonb('answers').$type<Record<string, string | string[]>>().notNull(),
