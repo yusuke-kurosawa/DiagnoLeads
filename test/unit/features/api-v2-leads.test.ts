@@ -34,17 +34,6 @@ const createLeadSchema = z.object({
   customFields: z.record(z.unknown()).optional(),
 });
 
-// Helper to parse Bearer token
-function parseAuthToken(authHeader: string | null): { organizationId: string } | null {
-  if (!authHeader?.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7);
-  const parts = token.split('_');
-  if (parts.length >= 2 && parts[0] === 'org') {
-    return { organizationId: parts[1] };
-  }
-  return null;
-}
-
 describe('REST API v2 - Leads', () => {
   describe('List Leads Query Schema', () => {
     it('should accept valid query parameters', () => {
@@ -228,37 +217,6 @@ describe('REST API v2 - Leads', () => {
     });
   });
 
-  describe('Bearer Token Authentication', () => {
-    it('should parse valid org token', () => {
-      const result = parseAuthToken('Bearer org_12345_secretkey');
-
-      expect(result).toEqual({ organizationId: '12345' });
-    });
-
-    it('should reject missing Bearer prefix', () => {
-      const result = parseAuthToken('org_12345_secretkey');
-
-      expect(result).toBeNull();
-    });
-
-    it('should reject null header', () => {
-      const result = parseAuthToken(null);
-
-      expect(result).toBeNull();
-    });
-
-    it('should reject invalid token format', () => {
-      const result = parseAuthToken('Bearer invalid-token');
-
-      expect(result).toBeNull();
-    });
-
-    it('should parse token with multiple underscores', () => {
-      const result = parseAuthToken('Bearer org_uuid-123_secret_key_here');
-
-      expect(result).toEqual({ organizationId: 'uuid-123' });
-    });
-  });
 
   describe('Response Format', () => {
     it('should have correct list response structure', () => {

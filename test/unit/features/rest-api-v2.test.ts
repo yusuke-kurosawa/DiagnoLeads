@@ -363,26 +363,3 @@ describe('REST API v2 - Pagination', () => {
   });
 });
 
-describe('REST API v2 - Auth Header Parsing', () => {
-  it('should parse Bearer token correctly', () => {
-    const authHeader = 'Bearer org_12345_secrettoken';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-    expect(token).toBe('org_12345_secrettoken');
-  });
-
-  it('should extract organization ID from token', () => {
-    const token = 'org_12345_secrettoken';
-    const parts = token.split('_');
-
-    expect(parts[0]).toBe('org');
-    expect(parts[1]).toBe('12345');
-  });
-
-  it('should handle missing Bearer prefix', () => {
-    const authHeader = 'Basic abc123';
-    const isBearer = authHeader.startsWith('Bearer ');
-
-    expect(isBearer).toBe(false);
-  });
-});

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { auth } from '@/lib/auth';
+import { getAuthenticatedOrganization } from '@/lib/api/v2-auth';
 /**
  * REST API v2 - Webhooks Endpoint
  *
@@ -9,7 +9,6 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { type WebhookEventType, webhooks } from '@/lib/db/schema';
 import { and, desc, eq } from 'drizzle-orm';
-import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -43,38 +42,6 @@ const createWebhookSchema = z.object({
 });
 
 // ============================================================================
-// Auth Helper
-// ============================================================================
-
-async function getAuthenticatedOrganization(request: NextRequest): Promise<{
-  organizationId: string;
-  userId?: string;
-} | null> {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    const parts = token.split('_');
-    if (parts.length >= 2 && parts[0] === 'org') {
-      return { organizationId: parts[1] };
-    }
-  }
-
-  const headersList = await headers();
-  const session = await auth.api.getSession({
-    headers: headersList,
-  });
-
-  if (!session?.session?.activeOrganizationId) {
-    return null;
-  }
-
-  return {
-    organizationId: session.session.activeOrganizationId,
-    userId: session.user?.id,
-  };
-}
-
-// ============================================================================
 // Handlers
 // ============================================================================
 
@@ -84,7 +51,7 @@ async function getAuthenticatedOrganization(request: NextRequest): Promise<{
  */
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await getAuthenticatedOrganization(request);
+    const authResult = await getAuthenticatedOrganization();
     if (!authResult) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Authentication required' },
@@ -131,7 +98,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await getAuthenticatedOrganization(request);
+    const authResult = await getAuthenticatedOrganization();
     if (!authResult) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Authentication required' },
