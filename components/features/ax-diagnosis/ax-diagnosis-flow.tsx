@@ -479,7 +479,11 @@ function QuestionField({
     <fieldset
       className="space-y-3"
       aria-describedby={
-        [question.type === 'multiple' ? `${legendId}-hint` : '', error ? `${legendId}-error` : '']
+        [
+          question.description ? `${legendId}-description` : '',
+          question.type === 'multiple' ? `${legendId}-hint` : '',
+          error ? `${legendId}-error` : '',
+        ]
           .filter(Boolean)
           .join(' ') || undefined
       }
@@ -492,6 +496,11 @@ function QuestionField({
           </span>
         )}
       </legend>
+      {question.description && (
+        <p id={`${legendId}-description`} className="text-sm text-gray-600">
+          {question.description[locale]}
+        </p>
+      )}
       {question.type === 'multiple' && (
         <p id={`${legendId}-hint`} className="text-xs text-gray-600">
           {multipleHint}

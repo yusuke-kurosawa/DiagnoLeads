@@ -122,6 +122,18 @@ describe('AxDiagnosisFlow', () => {
     await user.click(screen.getByLabelText('100億〜300億円'));
     await user.click(screen.getByRole('button', { name: '次へ' }));
 
+    // The platform question covers department tools and separates VB / Access / WebPerformer
+    expect(screen.getByRole('heading', { name: '対象のシステムについて' })).toBeInTheDocument();
+    expect(screen.getByText(/部署単位で使っている Access などの業務ツールも対象です/)).toBeInTheDocument();
+    for (const label of [
+      'Visual Basic で作ったクライアントサーバー型システム',
+      'Microsoft Access（部署単位のツールを含む）',
+      'WebPerformer',
+      'その他のローコード・ノーコード製品',
+    ]) {
+      expect(screen.getByLabelText(label)).toBeInTheDocument();
+    }
+
     const languages = screen.getByRole('group', { name: /主な開発言語/ });
     await user.click(within(languages).getByLabelText('RPG'));
     await user.click(within(languages).getByLabelText('わからない'));
