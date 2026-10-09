@@ -4,7 +4,7 @@
  * Predefined API module definitions for documentation
  */
 
-import type { ApiModule, ApiEndpoint } from './types';
+import type { ApiEndpoint, ApiModule } from './types';
 
 /**
  * System module

@@ -10,7 +10,7 @@ import { organizationProcedure, router } from '@/lib/trpc/init';
 import { TRPCError } from '@trpc/server';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { evaluateFlag, invalidateFlagCache, getCachedFlag, setCachedFlag } from '../service';
+import { evaluateFlag, getCachedFlag, invalidateFlagCache, setCachedFlag } from '../service';
 import {
   createFeatureFlagSchema,
   evaluateFeatureFlagSchema,
