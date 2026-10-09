@@ -6,12 +6,12 @@
 
 import type {
   BaseEvent,
+  EmitOptions,
   EventBusConfig,
   EventHandler,
   EventHistoryEntry,
   EventSubscription,
   EventType,
-  EmitOptions,
 } from './types';
 
 /**

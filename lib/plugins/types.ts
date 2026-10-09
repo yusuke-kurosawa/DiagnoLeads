@@ -4,7 +4,7 @@
  * Type definitions for the plugin architecture
  */
 
-import type { EventType, EventHandler } from '@/lib/events/types';
+import type { EventHandler, EventType } from '@/lib/events/types';
 
 /**
  * Plugin status

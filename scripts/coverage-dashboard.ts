@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * Coverage Dashboard - カバレッジ状況を素早く確認
- * 
+ *
  * Usage:
  *   bun run coverage:dashboard        # キャッシュから表示（高速）
  *   bun run coverage:dashboard --fresh # 新規計測して表示
@@ -40,9 +40,9 @@ function calculateCoverage(file: FileCoverage): ProcessedCoverage {
   const functions = Object.values(file.f);
   const branches = Object.values(file.b).flat();
 
-  const coveredStatements = statements.filter(v => v > 0).length;
-  const coveredFunctions = functions.filter(v => v > 0).length;
-  const coveredBranches = branches.filter(v => v > 0).length;
+  const coveredStatements = statements.filter((v) => v > 0).length;
+  const coveredFunctions = functions.filter((v) => v > 0).length;
+  const coveredBranches = branches.filter((v) => v > 0).length;
 
   return {
     lines: statements.length > 0 ? (coveredStatements / statements.length) * 100 : 100,
@@ -76,9 +76,22 @@ function formatPct(pct: number): string {
 }
 
 function printDashboard(rawData: RawCoverageData) {
-  console.log('\n' + colors.bold + colors.cyan + '═══════════════════════════════════════════════════════════════' + colors.reset);
-  console.log(colors.bold + '                    📊 COVERAGE DASHBOARD                        ' + colors.reset);
-  console.log(colors.cyan + '═══════════════════════════════════════════════════════════════' + colors.reset + '\n');
+  console.log(
+    '\n' +
+      colors.bold +
+      colors.cyan +
+      '═══════════════════════════════════════════════════════════════' +
+      colors.reset
+  );
+  console.log(
+    colors.bold + '                    📊 COVERAGE DASHBOARD                        ' + colors.reset
+  );
+  console.log(
+    colors.cyan +
+      '═══════════════════════════════════════════════════════════════' +
+      colors.reset +
+      '\n'
+  );
 
   // 全体カバレッジを計算
   let totalStatements = 0;
@@ -94,11 +107,11 @@ function printDashboard(rawData: RawCoverageData) {
     const branches = Object.values(file.b).flat();
 
     totalStatements += statements.length;
-    coveredStatements += statements.filter(v => v > 0).length;
+    coveredStatements += statements.filter((v) => v > 0).length;
     totalFunctions += functions.length;
-    coveredFunctions += functions.filter(v => v > 0).length;
+    coveredFunctions += functions.filter((v) => v > 0).length;
     totalBranches += branches.length;
-    coveredBranches += branches.filter(v => v > 0).length;
+    coveredBranches += branches.filter((v) => v > 0).length;
   }
 
   const overallLines = totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 0;
@@ -113,23 +126,26 @@ function printDashboard(rawData: RawCoverageData) {
   console.log();
 
   // モジュール別集計
-  const moduleStats = new Map<string, { 
-    totalStatements: number; 
-    coveredStatements: number;
-    fileCount: number;
-  }>();
-  
+  const moduleStats = new Map<
+    string,
+    {
+      totalStatements: number;
+      coveredStatements: number;
+      fileCount: number;
+    }
+  >();
+
   for (const [filePath, file] of Object.entries(rawData)) {
     const match = filePath.match(/lib\/([^/]+)/);
     if (match) {
       const moduleName = match[1];
       const statements = Object.values(file.s);
-      const covered = statements.filter(v => v > 0).length;
+      const covered = statements.filter((v) => v > 0).length;
 
-      const stat = moduleStats.get(moduleName) || { 
-        totalStatements: 0, 
-        coveredStatements: 0, 
-        fileCount: 0 
+      const stat = moduleStats.get(moduleName) || {
+        totalStatements: 0,
+        coveredStatements: 0,
+        fileCount: 0,
       };
       stat.totalStatements += statements.length;
       stat.coveredStatements += covered;
@@ -148,32 +164,47 @@ function printDashboard(rawData: RawCoverageData) {
     .sort((a, b) => b.pct - a.pct);
 
   // 80%達成
-  const achieved = sortedModules.filter(m => m.pct >= TARGET);
-  const inProgress = sortedModules.filter(m => m.pct < TARGET);
+  const achieved = sortedModules.filter((m) => m.pct >= TARGET);
+  const inProgress = sortedModules.filter((m) => m.pct < TARGET);
 
-  console.log(colors.bold + colors.green + `✅ 80%+ Achieved (${achieved.length} modules)` + colors.reset);
+  console.log(
+    colors.bold + colors.green + `✅ 80%+ Achieved (${achieved.length} modules)` + colors.reset
+  );
   console.log('─'.repeat(50));
   for (const mod of achieved) {
     console.log(`   ${mod.name.padEnd(20)} ${formatPct(mod.pct)}`);
   }
   console.log();
 
-  console.log(colors.bold + colors.yellow + `🔄 In Progress (${inProgress.length} modules)` + colors.reset);
+  console.log(
+    colors.bold + colors.yellow + `🔄 In Progress (${inProgress.length} modules)` + colors.reset
+  );
   console.log('─'.repeat(50));
   for (const mod of inProgress) {
     const gap = TARGET - mod.pct;
-    console.log(`   ${mod.name.padEnd(20)} ${formatPct(mod.pct)} ${colors.dim}(need +${gap.toFixed(1)}%)${colors.reset}`);
+    console.log(
+      `   ${mod.name.padEnd(20)} ${formatPct(mod.pct)} ${colors.dim}(need +${gap.toFixed(1)}%)${colors.reset}`
+    );
   }
   console.log();
 
   // サマリー
   const totalModules = sortedModules.length;
   const achievedCount = achieved.length;
-  const progressPct = (achievedCount / totalModules * 100).toFixed(0);
+  const progressPct = ((achievedCount / totalModules) * 100).toFixed(0);
 
-  console.log(colors.cyan + '═══════════════════════════════════════════════════════════════' + colors.reset);
-  console.log(`${colors.bold}Summary:${colors.reset} ${achievedCount}/${totalModules} modules at 80%+ (${progressPct}% complete)`);
-  console.log(colors.cyan + '═══════════════════════════════════════════════════════════════' + colors.reset + '\n');
+  console.log(
+    colors.cyan + '═══════════════════════════════════════════════════════════════' + colors.reset
+  );
+  console.log(
+    `${colors.bold}Summary:${colors.reset} ${achievedCount}/${totalModules} modules at 80%+ (${progressPct}% complete)`
+  );
+  console.log(
+    colors.cyan +
+      '═══════════════════════════════════════════════════════════════' +
+      colors.reset +
+      '\n'
+  );
 }
 
 async function main() {
@@ -184,7 +215,7 @@ async function main() {
   if (fresh || !fs.existsSync(COVERAGE_JSON)) {
     console.log(colors.dim + '⏳ Running coverage (this may take a moment)...' + colors.reset);
     try {
-      execSync('bun run test:coverage --reporter=json --run', { 
+      execSync('bun run test:coverage --reporter=json --run', {
         stdio: 'inherit',
         timeout: 300000,
       });

@@ -198,24 +198,15 @@ Co-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.g
 
 ## UI/コンポーネントルール
 
-- TailAdminを導入してください
-| 特徴項目          | TailAdmin（無料版）                         | Flowbite Admin                              |
-|------------------|-------------------------------------------|---------------------------------------------|
-| 利用形態         | 完全無料（オープンソース・MITライセンス）| 無料＋有料プランあり                         |
-| コンポーネント数 | 500以上                                   | 約180以上（無料版＋有料拡張あり）             |
-| ダッシュボード数 | 7種類（アナリティクス/マーケ/CRMなど）    | 10種類以上                                   |
-| フレームワーク対応| Next.js, React, Vue, Angular, Laravel    | React(App)、Vue、Angular、Svelte対応          |
-| Tailwind CSS バージョンサポート | v4対応（Oxideエンジン、@theme導入済み） | v4対応（自動バージョン検出、v4+向け最適化）    |
-| UIスタイル       | モダン、ビジネス向け                       | モダンで多用途。アクセシビリティ等配慮あり     |
-| カスタマイズ性   | 高い（CSS変数、@themeで簡単に変更可）     | 標準的。テーマ切り替えや拡張サポートあり       |
-| ダークモード     | 自動切り替え対応                           | 自動切り替え対応                             |
-| ドキュメンテーション | わかりやすいセットアップ、サンプル多め    | ��実したAPI・設定ドキュメント               |
-| 商用利用         | 無料利用可能                             | 無料利用可能（有料プランあり）               |
-| 大規模プロジェクト適性 | 大規模・モノレポでもパフォーマンス良好      | 中～大規模向け、各種デバイス対応良好           |
+- **その時点のモダンなUIコンポーネントを採用する**（2026-10-09 決定。旧方針の TailAdmin 指定は撤回）
+- 現時点の標準は **shadcn/ui**（Radix UI + Tailwind CSS v4）。部品は `components/ui/` に `bunx shadcn@latest add <component>` で追加する
+- グラフは1ライブラリに寄せる。現状 Recharts と ApexCharts が併存しているため、整理方針は Issue で決める
+- 新しいUIライブラリを導入するときは Issue で理由を残し、`.factory/memory/decisions.md` に記録する
 
-### コメント
+---
 
-- **TailAdmin**は無料かつ多彩なダッシュボードが揃い、Next.jsなど幅広いフレームワーク対応が魅力で、Tailwind v4の高速化恩恵を活かせる。ビジネス用途の診断プラットフォーム開発に最適。
-- **Flowbite Admin**は無料でも高品質なコンポーネント群を提供し、公式ドキュメントが充実。React中心でアクセシビリティ重視設計。商用拡張も視野に入る場合に良い。
+## 旧リポジトリ（v1）の参照
 
-どちらもTailwind CSS v4対応の優良ライブラリですが、特にNext.jsベースかつバリエーション豊富な管理画面をすぐ構築したいならTailAdmin、ドキュメント・拡張性重視ならFlowbiteが適しています。
+- v1（FastAPI + React）は `yusuke-kurosawa/DiagnoLeads-v1-legacy` としてアーカイブ済み
+- 移植の計画と対象ファイルは Epic #31 を参照
+- 注意: `github.com/yusuke-kurosawa/DiagnoLeads` は本リポジトリを指す。v1 のコードへのリンクは必ず `DiagnoLeads-v1-legacy` とコミット SHA 固定で書く

@@ -5,7 +5,7 @@
  */
 
 import { getStorage } from './client';
-import type { UploadOptions, PresignedUrlOptions } from './types';
+import type { PresignedUrlOptions, UploadOptions } from './types';
 import { ALLOWED_FILE_TYPES, FILE_SIZE_LIMITS } from './types';
 
 /**

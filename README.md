@@ -1,4 +1,7 @@
-# DiagnoLeads v2
+# DiagnoLeads
+
+> 2026-10-09: 旧 `diagnoleads-v2` を `DiagnoLeads` に改名し、v1（FastAPI + React）をこのリポジトリに集約しました。
+> v1 は [DiagnoLeads-v1-legacy](https://github.com/yusuke-kurosawa/DiagnoLeads-v1-legacy)（アーカイブ）として参照用に残しています。移植計画は #31。
 
 AI-Powered B2B Diagnostic Platform for **Holdings, Group Companies & Enterprise Organizations**
 
@@ -44,7 +47,7 @@ For production deployment instructions, see [docs/deployment-guide.md](./docs/de
 
 ### Quick Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/diagnoleads-v2)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yusuke-kurosawa/DiagnoLeads)
 
 ```bash
 # Using Vercel CLI
@@ -61,7 +64,7 @@ vercel --prod
 - **State Management**: Zustand + nuqs
 - **Testing**: Vitest + Playwright
 - **Code Quality**: Biome + lefthook
-- **Package Manager**: Bun (recommended) or npm
+- **Package Manager**: Bun
 - **Deployment**: Vercel
 - **Monitoring**: Sentry
 
