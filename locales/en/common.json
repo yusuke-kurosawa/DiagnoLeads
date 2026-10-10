@@ -1748,5 +1748,35 @@
     },
     "bySource": "By Source",
     "byStatus": "By Status"
+  },
+  "organizations": {
+    "switcher": {
+      "create": "Create organization",
+      "select": "Select organization",
+      "createNew": "Create a new organization",
+      "label": "Switch organization",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "member": "Member"
+      }
+    },
+    "create": {
+      "title": "Create an organization",
+      "description": "Leads and diagnosis results are managed per organization. You become its owner.",
+      "nameLabel": "Organization name",
+      "namePlaceholder": "e.g. Sample Inc.",
+      "slugLabel": "Organization slug",
+      "slugPlaceholder": "e.g. sample-corp",
+      "slugHelp": "An identifier for the organization. Lowercase letters, numbers and hyphens only. You can change it later.",
+      "nameRequired": "Enter the organization name",
+      "slugRequired": "Enter the organization slug",
+      "slugInvalid": "Use lowercase letters, numbers and hyphens only",
+      "slugTaken": "This slug is already taken. Choose another one.",
+      "error": "The organization could not be created. Please try again later.",
+      "submit": "Create",
+      "submitting": "Creating…",
+      "success": "Created \"{name}\""
+    }
   }
 }
