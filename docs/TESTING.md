@@ -226,8 +226,8 @@ describe('UserService', () => {
 
 ```bash
 docker run -d --name dl-test -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dl_test -p 55432:5432 pgvector/pgvector:pg16
-# drizzle/0000 は Supabase の auth スキーマを前提にしているため、先に作っておく
-docker exec dl-test psql -U postgres -d dl_test -c 'CREATE EXTENSION IF NOT EXISTS vector; CREATE EXTENSION IF NOT EXISTS ltree; CREATE SCHEMA IF NOT EXISTS auth;'
+# 0001 が使う拡張を先に有効にしておく
+docker exec dl-test psql -U postgres -d dl_test -c 'CREATE EXTENSION IF NOT EXISTS vector; CREATE EXTENSION IF NOT EXISTS ltree;'
 DATABASE_URL=postgres://postgres:postgres@127.0.0.1:55432/dl_test SKIP_ENV_VALIDATION=1 bun run db:migrate
 TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:55432/dl_test bunx vitest --run test/unit/integration
 ```

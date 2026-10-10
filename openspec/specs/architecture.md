@@ -104,11 +104,11 @@ leads               // リード（organizationId外部キー）
 -- PostgreSQL RLS ポリシー
 CREATE POLICY "leads_select" ON "leads"
   FOR SELECT
-  USING (organization_id IN (SELECT auth.user_organization_ids()));
+  USING (organization_id IN (SELECT app.user_organization_ids()));
 
 -- ヘルパー関数
-CREATE FUNCTION auth.user_id() RETURNS uuid;
-CREATE FUNCTION auth.user_organization_ids() RETURNS SETOF uuid;
+CREATE FUNCTION app.user_id() RETURNS uuid;
+CREATE FUNCTION app.user_organization_ids() RETURNS SETOF uuid;
 ```
 
 ### 権限管理（CASL）

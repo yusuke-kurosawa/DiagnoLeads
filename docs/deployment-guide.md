@@ -112,11 +112,27 @@ GitHub連携により以下が自動化されます：
 postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/diagnoleads?sslmode=require
 ```
 
+### Supabase（本番で使用中）
+
+直接接続のホスト（`db.<project-ref>.supabase.co`）は IPv6 しか持たない。IPv4 の環境（WSL など）からは、管理画面の「Connect」に出る **Session pooler**（ポート 5432、ユーザー名は `postgres.<project-ref>`）を使う。6543 の Transaction pooler はマイグレーションには使わない。
+
+最初のマイグレーションの前に一度だけ、拡張の有効化と Data API 向けの権限の取り消しを行う（何度流しても同じ結果になる）。
+
+```bash
+# <URL> は Session pooler の接続文字列（パスワードを含むので会話やログに残さない）
+psql "<URL>" -v ON_ERROR_STOP=1 -f scripts/supabase/prepare.sql
+DATABASE_URL="<URL>" SKIP_ENV_VALIDATION=1 bun run db:migrate
+```
+
+- アプリは `postgres` ロールで直接接続し、Supabase の Data API（PostgREST / GraphQL）は使わない。`prepare.sql` は `anon` / `authenticated` への既定の権限を取り消す。あわせて管理画面の Data API も無効にしておく
+- 無料プランは一定期間使われないと一時停止する。停止中はアプリから DB に接続できない（ログインが 500 になる）。管理画面から再開できる
+- psql の接続オプション（`PGOPTIONS`）はプーラーでは無視される。読み取り専用で調べるときは、接続後に `SET default_transaction_read_only = on;` を実行してから使う
+
 ### データベースマイグレーション
 
 ```bash
-# マイグレーション実行
-bun run db:push
+# マイグレーション実行（drizzle/ の未適用分を順に適用し、drizzle.__drizzle_migrations に記録する）
+bun run db:migrate
 
 # マイグレーション状態確認
 bun run db:studio
