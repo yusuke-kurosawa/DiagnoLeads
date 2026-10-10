@@ -9,13 +9,15 @@ export interface AxMigrationConfig {
   /** MQL 条件「業種」: target industries */
   targetIndustries: readonly string[];
   /**
-   * MQL 条件「システム」: migration targets.
-   * VB・Access（部署単位のツールを含む）・WebPerformer を対象にする（2026-10-09 決定）。
-   * その他のローコード製品（other_low_code）は当面対象外
+   * MQL 条件「システム」: migration paths that count as legacy systems.
+   * AS/400・NEC ACOS・Access（部署単位のツールを含む）を対象にする（2026-10-09, 2026-10-11 決定）
    */
-  legacySystems: readonly string[];
-  /** Languages that suggest a legacy platform when the platform itself is unknown（推定でも可） */
-  legacyLanguages: readonly string[];
+  legacyPlatforms: readonly string[];
+  /**
+   * For the "other" path: VB・WebPerformer（ローコードはまず WebPerformer）・他社のオフコン・汎用機.
+   * その他のローコード製品（other_low_code）とパッケージは当面対象外
+   */
+  legacyOtherSystems: readonly string[];
   /**
    * MQL 条件「行動」: count completing this Web diagnosis as an action
    * (資料DL・デモ閲覧・勉強会参加 と同等に扱う。2026-10-09 決定)。
@@ -32,10 +34,11 @@ export interface AxMigrationConfig {
 
 export const AX_MIGRATION_CONFIG: AxMigrationConfig = {
   targetIndustries: ['manufacturing', 'distribution'],
-  legacySystems: ['as400', 'office_computer', 'mainframe', 'vb', 'access', 'webperformer'],
-  legacyLanguages: ['rpg', 'cobol', 'cl', 'vb', 'vba'],
+  legacyPlatforms: ['as400', 'acos', 'access'],
+  legacyOtherSystems: ['vb', 'webperformer', 'office_computer', 'mainframe'],
   countWebDiagnosisAsMqlAction: true,
   sqlTimelines: ['within_1y', '1_2y'],
-  decisionAccessRoles: ['executive', 'it_manager', 'it_staff'],
+  // 部署単位の Access は業務部門の部長・課長が決裁することが多い（2026-10-11 レビュー）
+  decisionAccessRoles: ['executive', 'it_manager', 'it_staff', 'business_manager'],
   consultationResponseBusinessDays: 2,
 };

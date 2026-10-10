@@ -7,6 +7,12 @@ import { AX_MIGRATION_CONFIG } from './config';
 import type { AxMigrationResult } from './evaluate';
 
 const LEVEL_LABELS = { low: '低', medium: '中', high: '高' } as const;
+const PLATFORM_LABELS: Record<string, string> = {
+  as400: 'AS/400（IBM i）',
+  acos: 'NEC ACOS',
+  access: 'Microsoft Access',
+  other: 'その他・わからない',
+};
 const CHALLENGE_LABELS = {
   people: 'ヒト（担い手不足・属人化）',
   cost: 'カネ（保守・延命コスト）',
@@ -24,7 +30,8 @@ export interface AxMigrationNotification {
   result: Pick<
     AxMigrationResult,
     'difficulty' | 'urgency' | 'challenges' | 'mql' | 'sqlSignals' | 'leadScore' | 'needsHearing'
-  >;
+  > &
+    Partial<Pick<AxMigrationResult, 'platform'>>;
   consultationRequested: boolean;
   leadCreated: boolean;
   /**
@@ -60,7 +67,9 @@ export function consultationDeadline(
 
 export function buildSalesMessage(n: AxMigrationNotification): { title: string; message: string } {
   const primary = n.result.challenges.primary;
+  const platform = n.result.platform ? PLATFORM_LABELS[n.result.platform] : undefined;
   const summary = [
+    ...(platform ? [`移行元: ${platform}`] : []),
     `移行難易度: ${LEVEL_LABELS[n.result.difficulty.level]}`,
     `緊急度: ${LEVEL_LABELS[n.result.urgency.level]}`,
     `主な課題: ${primary ? CHALLENGE_LABELS[primary] : '特になし'}`,
@@ -120,6 +129,7 @@ export async function notifyAxMigrationSubmission(n: AxMigrationNotification): P
       difficulty: n.result.difficulty.level,
       urgency: n.result.urgency.level,
       primaryChallenge: n.result.challenges.primary,
+      platform: n.result.platform ?? null,
     }),
   ];
 

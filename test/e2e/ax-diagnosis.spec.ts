@@ -1,130 +1,105 @@
-import { type Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import {
+  answerAccess,
+  answerAcos,
+  answerAs400,
+  canSubmit,
+  fillContact,
+  submit,
+} from './helpers/ax-diagnosis';
 
 /**
- * E2E Test: AX migration self-diagnosis (/ax-diagnosis)
+ * E2E Test: AX migration self-diagnosis v2 on its own page (/ax-diagnosis)
  *
  * Requires AX_DIAGNOSIS_ORGANIZATION_ID (or DEFAULT_ORGANIZATION_ID) and a database
  * with the drizzle migrations applied.
  */
-
-/** Submissions need a receiving organization; without it the API answers 503 */
-const canSubmit = Boolean(
-  process.env.AX_DIAGNOSIS_ORGANIZATION_ID || process.env.DEFAULT_ORGANIZATION_ID
-);
-
-const answerTypicalAs400 = async (page: Page) => {
-  // Step 1: company
-  await page.getByLabel('製造業').check();
-  await page.getByLabel('100億〜300億円').check();
-  await page.getByRole('button', { name: '次へ' }).click();
-
-  // Step 2: core system
-  await page.getByLabel('AS/400（IBM i）').check();
-  await page.getByLabel('RPG', { exact: true }).check();
-  await page.getByLabel('CL', { exact: true }).check();
-  await page.getByLabel('20年以上', { exact: true }).check();
-  await page.getByLabel('500〜2,000本').check();
-  await page.getByLabel('3〜5', { exact: true }).check();
-  await page.getByRole('button', { name: '次へ' }).click();
-
-  // Step 3: operations and challenges
-  await page.getByLabel('社内の1〜2名に頼っている').check();
-  await page.getByLabel('一部が古い・足りない').check();
-  await page.getByLabel('扱える技術者が減り、仕様がブラックボックス化している').check();
-  await page.getByLabel('保守・延命の費用がかさみ、新しい投資に回せない').check();
-  await page.getByRole('button', { name: '次へ' }).click();
-
-  // Step 4: plans
-  await page.getByLabel('1〜2年以内').check();
-  await page.getByLabel('情報システム部門の責任者').check();
-  await page.getByRole('button', { name: '次へ' }).click();
-};
-
-const fillContact = async (page: Page, email: string) => {
-  await page.getByLabel(/会社名/).fill('E2E製作所');
-  await page.getByLabel(/お名前/).fill('E2E 太郎');
-  await page.getByLabel(/メールアドレス/).fill(email);
-  await page.getByLabel('個人情報の取り扱いに同意する').check();
-};
-
 test.describe('AX migration diagnosis', () => {
-  test('shows the intro and is hidden from search engines @smoke', async ({ page }) => {
+  test('starts with the migration path and is hidden from search engines @smoke', async ({
+    page,
+  }) => {
     await page.goto('/ja/ax-diagnosis');
     await expect(
       page.getByRole('heading', { name: '今の基幹システムのまま、AI時代の経営判断はできますか？' })
     ).toBeVisible();
+    for (const id of ['as400', 'acos', 'access', 'other']) {
+      await expect(page.getByTestId(`platform-${id}`)).toBeVisible();
+    }
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   });
 
-  test('requires an answer before moving on', async ({ page }) => {
+  test('names the unanswered questions before moving on', async ({ page }) => {
     await page.goto('/ja/ax-diagnosis');
-    await page.getByRole('button', { name: '診断をはじめる' }).click();
-    await page.getByRole('button', { name: '次へ' }).click();
-    await expect(page.getByText('回答を選んでください').first()).toBeVisible();
-    await expect(page.getByText('ステップ 1 / 5')).toBeVisible();
+    await page.getByTestId('platform-acos').click();
+    await page.getByRole('button', { name: /次へ/ }).click();
+    await expect(page.locator('#q-maintenance-error')).toHaveText('いずれか1つを選んでください');
+    await expect(page.getByRole('heading', { name: /STEP 2 \/ 5/ })).toBeVisible();
   });
 
-  test('keeps "I don\'t know" exclusive in multiple-choice questions', async ({ page }) => {
+  test('goes back a step with the browser back button', async ({ page }) => {
     await page.goto('/ja/ax-diagnosis');
-    await page.getByRole('button', { name: '診断をはじめる' }).click();
-    await page.getByLabel('製造業').check();
-    await page.getByLabel('100億〜300億円').check();
-    await page.getByRole('button', { name: '次へ' }).click();
-
-    const languages = page.getByRole('group', { name: /主な開発言語/ });
-    await languages.getByLabel('RPG').check();
-    await languages.getByLabel('わからない').check();
-    await expect(languages.getByLabel('RPG')).not.toBeChecked();
-    await languages.getByLabel('COBOL').check();
-    await expect(languages.getByLabel('わからない')).not.toBeChecked();
+    await page.getByTestId('platform-as400').click();
+    await expect(page.getByRole('heading', { name: /STEP 2 \/ 5/ })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole('heading', { name: /STEP 1 \/ 5/ })).toBeVisible();
+    await expect(page.getByTestId('platform-as400')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('completes the diagnosis and requests a consultation from the result @smoke', async ({
+  test('completes the AS/400 path and requests a consultation from the result @smoke', async ({
     page,
   }) => {
     test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');
     await page.goto('/ja/ax-diagnosis?utm_source=google&utm_medium=cpc&utm_campaign=ax-hito');
-    await page.getByRole('button', { name: '診断をはじめる' }).click();
-    await answerTypicalAs400(page);
+    await answerAs400(page);
+    await page.getByRole('button', { name: /診断結果を見る/ }).click();
+    await expect(page.locator('#contact-company-error')).toHaveText('会社名を入力してください');
 
-    await expect(page.getByText('ステップ 5 / 5')).toBeVisible();
-    await page.getByRole('button', { name: '診断結果を見る' }).click();
-    await expect(page.getByText('個人情報の取り扱いへの同意が必要です')).toBeVisible();
-
-    await fillContact(page, `e2e-ax-${Date.now()}@example.com`);
-    const responsePromise = page.waitForResponse('**/api/diagnostics/ax-migration');
-    await page.getByRole('button', { name: '診断結果を見る' }).click();
-    const response = await responsePromise;
-    expect(response.status()).toBe(200);
-    const body = await response.json();
+    await fillContact(page, `e2e-ax-as400-${Date.now()}@example.com`);
+    const body = await submit(page);
     expect(body.result).not.toHaveProperty('leadScore');
 
     await expect(page.getByRole('heading', { name: '診断結果' })).toBeVisible();
-    await expect(page.getByTestId('ax-result-difficulty')).toHaveAttribute('data-level', 'medium');
-    await expect(page.getByTestId('ax-result-challenge')).toContainText(
-      'ヒト：人に依存した基幹システム'
-    );
-    await expect(page.getByText('E2E製作所 様の回答にもとづく目安です')).toBeVisible();
+    await expect(page.getByText('移行元：AS/400（IBM i）')).toBeVisible();
+    await expect(page.getByTestId('ax-result-checkpoints')).toContainText('見つからないソース');
+    await expect(page.getByTestId('ax-result-reasons')).toBeVisible();
 
-    await page.getByRole('button', { name: '無料の個別相談を申し込む' }).click();
+    await page.getByRole('button', { name: /無料の個別相談を申し込む/ }).first().click();
     await expect(page.getByText('個別相談のお申し込みを受け付けました')).toBeVisible();
-    await expect(page.getByText('担当者からご連絡します。')).toBeVisible();
-    // No promises that are still under review (free scope, response days)
-    await expect(page.getByText('無料', { exact: true })).toHaveCount(0);
   });
 
-  test('shows the accepted message right away when consultation is checked in the form @smoke', async ({
+  test('completes the NEC ACOS path @smoke', async ({ page }) => {
+    test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');
+    await page.goto('/ja/ax-diagnosis');
+    await answerAcos(page);
+    await fillContact(page, `e2e-ax-acos-${Date.now()}@example.com`);
+    await submit(page);
+
+    await expect(page.getByText('移行元：NEC ACOS')).toBeVisible();
+    await expect(page.getByTestId('ax-result-urgency')).toHaveAttribute('data-level', 'high');
+    await expect(page.getByTestId('ax-result-checkpoints')).toContainText('ACOSの文字コード');
+  });
+
+  test('completes the Access path and refines it with the follow-up questions @smoke', async ({
     page,
   }) => {
     test.skip(!canSubmit, 'AX_DIAGNOSIS_ORGANIZATION_ID is not set');
     await page.goto('/ja/ax-diagnosis');
-    await page.getByRole('button', { name: '診断をはじめる' }).click();
-    await answerTypicalAs400(page);
-    await fillContact(page, `e2e-ax-consult-${Date.now()}@example.com`);
-    await page.getByLabel('結果をもとに、無料の個別相談を希望する').check();
-    await page.getByRole('button', { name: '診断結果を見る' }).click();
+    await answerAccess(page);
+    await fillContact(page, `e2e-ax-access-${Date.now()}@example.com`);
+    await page.getByRole('checkbox', { name: /無料の個別相談を希望する/ }).check();
+    await page.getByRole('textbox', { name: /電話番号/ }).fill('03-0000-0000');
+    await submit(page);
 
+    await expect(page.getByText('移行元：Microsoft Access')).toBeVisible();
     await expect(page.getByText('個別相談のお申し込みを受け付けました')).toBeVisible();
-    await expect(page.getByRole('button', { name: '無料の個別相談を申し込む' })).toHaveCount(0);
+
+    const followUp = page.getByTestId('ax-follow-up');
+    await followUp.getByRole('button', { name: /追加質問/ }).click();
+    await followUp.getByRole('group', { name: /データはどこに置いて/ }).getByLabel(/OneDrive/).check();
+    const detailsResponse = page.waitForResponse('**/api/diagnostics/ax-migration/details');
+    await followUp.getByRole('button', { name: '回答して結果を更新する' }).click();
+    expect((await detailsResponse).status()).toBe(200);
+    await expect(page.getByText(/結果を更新しました/)).toBeVisible();
+    await expect(page.getByTestId('ax-result-checkpoints')).toContainText('クラウドのフォルダ');
   });
 });

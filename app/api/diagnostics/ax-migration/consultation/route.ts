@@ -3,7 +3,7 @@ import { diagnosticSubmissions, leads } from '@/lib/db/schema';
 import type { AxMigrationResult } from '@/lib/features/diagnostics/ax-migration/evaluate';
 import { notifyAxMigrationSubmission } from '@/lib/features/diagnostics/ax-migration/notify';
 import { requestAxMigrationConsultation } from '@/lib/features/diagnostics/ax-migration/submission-service';
-import { checkPublicJsonRequest } from '@/lib/features/diagnostics/request-guard';
+import { checkPublicJsonRequest, readJsonBody } from '@/lib/features/diagnostics/request-guard';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -22,12 +22,9 @@ export async function POST(req: NextRequest) {
   const guard = checkPublicJsonRequest(req, 1024);
   if (guard) return guard;
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const read = await readJsonBody(req, 1024);
+  if (!read.ok) return read.response;
+  const body = read.body;
 
   const parsed = consultationSchema.safeParse(body);
   if (!parsed.success) {

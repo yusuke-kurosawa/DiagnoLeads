@@ -11,7 +11,7 @@ import {
 } from '@/lib/features/diagnostics/ax-migration/submission-service';
 import { validateAnswers } from '@/lib/features/diagnostics/engine';
 import { resolveDiagnosisOrganizationId } from '@/lib/features/diagnostics/organization';
-import { checkPublicJsonRequest } from '@/lib/features/diagnostics/request-guard';
+import { checkPublicJsonRequest, readJsonBody } from '@/lib/features/diagnostics/request-guard';
 import { type NextRequest, NextResponse } from 'next/server';
 
 /** Upper bound for the request body (answers + contact + tracking are a few KB) */
@@ -30,12 +30,9 @@ export async function POST(req: NextRequest) {
   const guard = checkPublicJsonRequest(req, MAX_BODY_BYTES);
   if (guard) return guard;
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const read = await readJsonBody(req, MAX_BODY_BYTES);
+  if (!read.ok) return read.response;
+  const body = read.body;
 
   const parsed = axMigrationSubmissionSchema.safeParse(body);
   if (!parsed.success) {

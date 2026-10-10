@@ -13,6 +13,10 @@
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
 
+  /* AX migration site, styled after maru2-dx.com (fonts come from next/font in ax-site/fonts.ts) */
+  --font-ax: var(--font-noto-sans-jp), 'Noto Sans JP', sans-serif;
+  --font-ax-latin: var(--font-lato), 'Lato', var(--font-noto-sans-jp), sans-serif;
+
   /* TailAdmin Breakpoints */
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -41,6 +45,22 @@
   --text-theme-sm--line-height: 20px;
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
+
+  /*
+   * AX migration site colors (maru2-dx.com). White text goes on ax-teal-dark or darker
+   * (ax-teal is decorative / large text only); the yellow and orange carry ax-ink text.
+   */
+  --color-ax-teal: #06908f;
+  --color-ax-teal-dark: #087270;
+  --color-ax-deep: #033b3a;
+  --color-ax-lime: #e1e17e;
+  --color-ax-yellow: #ecda5a;
+  --color-ax-yellow-dark: #dcc840;
+  --color-ax-orange: #fb7c21;
+  --color-ax-coral: #f15f4b;
+  --color-ax-coral-dark: #b9372a;
+  --color-ax-mist: #f3f3f3;
+  --color-ax-ink: #333333;
 
   /* DiagnoLeads Brand Colors - Trust & Friendly Teal Palette */
   --color-brand-25: #f0fdfa;
@@ -603,4 +623,14 @@ span.flatpickr-weekday,
 /* Dark mode base styles */
 .dark body {
   @apply bg-gray-900 text-gray-100;
+}
+
+/* AX migration site: keep focused elements clear of the sticky header and the phone CTA bar */
+html:has(.ax-site) {
+  scroll-padding-top: 5rem;
+}
+@media (max-width: 639px) {
+  html:has(.ax-site) {
+    scroll-padding-bottom: 6rem;
+  }
 }

@@ -11,7 +11,7 @@ import {
 /**
  * Public routes that don't require authentication
  */
-const publicRoutes = ['/', '/api/auth', '/ax-diagnosis'];
+const publicRoutes = ['/', '/api/auth', '/ax-diagnosis', '/ax-migration'];
 
 /**
  * API routes that should always be accessible

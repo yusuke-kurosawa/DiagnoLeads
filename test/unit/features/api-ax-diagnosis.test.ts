@@ -3,6 +3,7 @@
  * The real route handler is imported; DB access and notifications are mocked.
  */
 import { NextRequest } from 'next/server';
+import { as400Answers } from '@/test/fixtures/ax-migration';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const submitMock = vi.fn();
@@ -46,35 +47,9 @@ const request = (body: unknown, headers: Record<string, string> = {}) =>
     headers: { 'content-type': 'application/json', ...headers },
   });
 
-const fullAnswers = {
-  industry: 'manufacturing',
-  revenue: '10b_30b',
-  system: 'as400',
-  languages: ['rpg'],
-  years: 'gte20',
-  programs: '500_2000',
-  integrations: 'some',
-  maintenance: 'few',
-  documents: 'partial',
-  challenges: ['people'],
-  timeline: '1_2y',
-  role: 'it_manager',
-};
+const fullAnswers = as400Answers;
 
-const result = evaluateAxMigration({
-  industry: 'manufacturing',
-  revenue: '10b_30b',
-  system: 'as400',
-  languages: ['rpg'],
-  years: 'gte20',
-  programs: '500_2000',
-  integrations: 'some',
-  maintenance: 'few',
-  documents: 'partial',
-  challenges: ['people'],
-  timeline: '1_2y',
-  role: 'it_manager',
-});
+const result = evaluateAxMigration(as400Answers);
 
 describe('POST /api/diagnostics/ax-migration', () => {
   beforeEach(() => {

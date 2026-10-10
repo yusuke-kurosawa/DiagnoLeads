@@ -52,10 +52,11 @@ export const dealPhaseEnum = z.enum(DEAL_PHASES);
 export type DealPhase = z.infer<typeof dealPhaseEnum>;
 
 /** 対象システム */
-// AS/400 / other office computers & mainframes / VB client-server / Microsoft Access
+// AS/400 / NEC ACOS / other office computers & mainframes / VB client-server / Microsoft Access
 // (incl. department-level tools) / WebPerformer (the first low-code target) / other
 export const TARGET_SYSTEMS = [
   'as400',
+  'acos',
   'other_legacy',
   'vb',
   'access',
