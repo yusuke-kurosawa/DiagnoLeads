@@ -75,35 +75,38 @@ ALTER TABLE "sessions" ENABLE ROW LEVEL SECURITY;
 -- ============================================================================
 -- Helper Functions
 -- ============================================================================
+-- These live in the app schema: managed PostgreSQL such as Supabase reserves the auth
+-- schema, and the migration role cannot create objects there.
+CREATE SCHEMA IF NOT EXISTS app;
 
 -- 現在のユーザーIDを取得するヘルパー関数
-CREATE OR REPLACE FUNCTION auth.user_id() RETURNS uuid AS $$
+CREATE OR REPLACE FUNCTION app.user_id() RETURNS uuid AS $$
   SELECT NULLIF(current_setting('app.current_user_id', true), '')::uuid;
 $$ LANGUAGE SQL STABLE;
 
 -- ユーザーが所属する組織IDのリストを取得
-CREATE OR REPLACE FUNCTION auth.user_organization_ids() RETURNS SETOF uuid AS $$
+CREATE OR REPLACE FUNCTION app.user_organization_ids() RETURNS SETOF uuid AS $$
   SELECT organization_id
   FROM organization_members
-  WHERE user_id = auth.user_id();
+  WHERE user_id = app.user_id();
 $$ LANGUAGE SQL STABLE SECURITY DEFINER;
 
 -- ユーザーが組織のメンバーかチェック
-CREATE OR REPLACE FUNCTION auth.is_organization_member(org_id uuid) RETURNS boolean AS $$
+CREATE OR REPLACE FUNCTION app.is_organization_member(org_id uuid) RETURNS boolean AS $$
   SELECT EXISTS (
     SELECT 1
     FROM organization_members
     WHERE organization_id = org_id
-      AND user_id = auth.user_id()
+      AND user_id = app.user_id()
   );
 $$ LANGUAGE SQL STABLE SECURITY DEFINER;
 
 -- ユーザーの組織内ロールを取得
-CREATE OR REPLACE FUNCTION auth.user_role_in_organization(org_id uuid) RETURNS text AS $$
+CREATE OR REPLACE FUNCTION app.user_role_in_organization(org_id uuid) RETURNS text AS $$
   SELECT role
   FROM organization_members
   WHERE organization_id = org_id
-    AND user_id = auth.user_id()
+    AND user_id = app.user_id()
   LIMIT 1;
 $$ LANGUAGE SQL STABLE SECURITY DEFINER;
 
@@ -114,7 +117,7 @@ $$ LANGUAGE SQL STABLE SECURITY DEFINER;
 -- ユーザーは自分の情報を閲覧可能
 CREATE POLICY "users_select_own" ON "users"
   FOR SELECT
-  USING (id = auth.user_id());
+  USING (id = app.user_id());
 
 -- ユーザーは同じ組織のメンバーの情報を閲覧可能
 CREATE POLICY "users_select_same_org" ON "users"
@@ -123,20 +126,20 @@ CREATE POLICY "users_select_same_org" ON "users"
     id IN (
       SELECT user_id
       FROM organization_members
-      WHERE organization_id IN (SELECT auth.user_organization_ids())
+      WHERE organization_id IN (SELECT app.user_organization_ids())
     )
   );
 
 -- ユーザーは自分の情報を更新可能
 CREATE POLICY "users_update_own" ON "users"
   FOR UPDATE
-  USING (id = auth.user_id())
-  WITH CHECK (id = auth.user_id());
+  USING (id = app.user_id())
+  WITH CHECK (id = app.user_id());
 
 -- ユーザーは自分の情報を削除可能（アカウント削除）
 CREATE POLICY "users_delete_own" ON "users"
   FOR DELETE
-  USING (id = auth.user_id());
+  USING (id = app.user_id());
 
 -- ============================================================================
 -- Organizations Table Policies
@@ -145,22 +148,22 @@ CREATE POLICY "users_delete_own" ON "users"
 -- ユーザーは自分が所属する組織を閲覧可能
 CREATE POLICY "organizations_select" ON "organizations"
   FOR SELECT
-  USING (id IN (SELECT auth.user_organization_ids()));
+  USING (id IN (SELECT app.user_organization_ids()));
 
 -- オーナーと管理者のみが組織情報を更新可能
 CREATE POLICY "organizations_update" ON "organizations"
   FOR UPDATE
   USING (
-    auth.user_role_in_organization(id) IN ('owner', 'admin')
+    app.user_role_in_organization(id) IN ('owner', 'admin')
   )
   WITH CHECK (
-    auth.user_role_in_organization(id) IN ('owner', 'admin')
+    app.user_role_in_organization(id) IN ('owner', 'admin')
   );
 
 -- オーナーのみが組織を削除可能
 CREATE POLICY "organizations_delete" ON "organizations"
   FOR DELETE
-  USING (auth.user_role_in_organization(id) = 'owner');
+  USING (app.user_role_in_organization(id) = 'owner');
 
 -- 新規組織の作成は誰でも可能（新規登録時）
 CREATE POLICY "organizations_insert" ON "organizations"
@@ -174,37 +177,37 @@ CREATE POLICY "organizations_insert" ON "organizations"
 -- ユーザーは自分が所属する組織のメンバー一覧を閲覧可能
 CREATE POLICY "organization_members_select" ON "organization_members"
   FOR SELECT
-  USING (organization_id IN (SELECT auth.user_organization_ids()));
+  USING (organization_id IN (SELECT app.user_organization_ids()));
 
 -- オーナーと管理者のみがメンバーを追加可能
 CREATE POLICY "organization_members_insert" ON "organization_members"
   FOR INSERT
   WITH CHECK (
-    auth.user_role_in_organization(organization_id) IN ('owner', 'admin')
+    app.user_role_in_organization(organization_id) IN ('owner', 'admin')
   );
 
 -- オーナーと管理者のみがメンバーのロールを更新可能
 CREATE POLICY "organization_members_update" ON "organization_members"
   FOR UPDATE
   USING (
-    auth.user_role_in_organization(organization_id) IN ('owner', 'admin')
+    app.user_role_in_organization(organization_id) IN ('owner', 'admin')
   )
   WITH CHECK (
-    auth.user_role_in_organization(organization_id) IN ('owner', 'admin')
+    app.user_role_in_organization(organization_id) IN ('owner', 'admin')
   );
 
 -- オーナーと管理者のみがメンバーを削除可能（ただし自分自身は除く）
 CREATE POLICY "organization_members_delete" ON "organization_members"
   FOR DELETE
   USING (
-    auth.user_role_in_organization(organization_id) IN ('owner', 'admin')
-    AND user_id != auth.user_id()
+    app.user_role_in_organization(organization_id) IN ('owner', 'admin')
+    AND user_id != app.user_id()
   );
 
 -- ユーザーは自分自身を組織から退出可能
 CREATE POLICY "organization_members_leave" ON "organization_members"
   FOR DELETE
-  USING (user_id = auth.user_id());
+  USING (user_id = app.user_id());
 
 -- ============================================================================
 -- Leads Table Policies
@@ -213,24 +216,24 @@ CREATE POLICY "organization_members_leave" ON "organization_members"
 -- ユーザーは自分の組織のリードを閲覧可能
 CREATE POLICY "leads_select" ON "leads"
   FOR SELECT
-  USING (organization_id IN (SELECT auth.user_organization_ids()));
+  USING (organization_id IN (SELECT app.user_organization_ids()));
 
 -- ユーザーは自分の組織にリードを追加可能
 CREATE POLICY "leads_insert" ON "leads"
   FOR INSERT
-  WITH CHECK (organization_id IN (SELECT auth.user_organization_ids()));
+  WITH CHECK (organization_id IN (SELECT app.user_organization_ids()));
 
 -- ユーザーは自分の組織のリードを更新可能
 CREATE POLICY "leads_update" ON "leads"
   FOR UPDATE
-  USING (organization_id IN (SELECT auth.user_organization_ids()))
-  WITH CHECK (organization_id IN (SELECT auth.user_organization_ids()));
+  USING (organization_id IN (SELECT app.user_organization_ids()))
+  WITH CHECK (organization_id IN (SELECT app.user_organization_ids()));
 
 -- オーナーと管理者のみがリードを削除可能
 CREATE POLICY "leads_delete" ON "leads"
   FOR DELETE
   USING (
-    auth.user_role_in_organization(organization_id) IN ('owner', 'admin')
+    app.user_role_in_organization(organization_id) IN ('owner', 'admin')
   );
 
 -- ============================================================================
@@ -240,7 +243,7 @@ CREATE POLICY "leads_delete" ON "leads"
 -- ユーザーは自分のセッションのみ閲覧可能
 CREATE POLICY "sessions_select" ON "sessions"
   FOR SELECT
-  USING (user_id = auth.user_id());
+  USING (user_id = app.user_id());
 
 -- セッション作成は誰でも可能（ログイン時）
 CREATE POLICY "sessions_insert" ON "sessions"
@@ -250,13 +253,13 @@ CREATE POLICY "sessions_insert" ON "sessions"
 -- ユーザーは自分のセッションのみ更新可能
 CREATE POLICY "sessions_update" ON "sessions"
   FOR UPDATE
-  USING (user_id = auth.user_id())
-  WITH CHECK (user_id = auth.user_id());
+  USING (user_id = app.user_id())
+  WITH CHECK (user_id = app.user_id());
 
 -- ユーザーは自分のセッションのみ削除可能（ログアウト時）
 CREATE POLICY "sessions_delete" ON "sessions"
   FOR DELETE
-  USING (user_id = auth.user_id());
+  USING (user_id = app.user_id());
 
 -- ============================================================================
 -- Indexes for Performance

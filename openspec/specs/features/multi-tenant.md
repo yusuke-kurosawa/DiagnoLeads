@@ -227,16 +227,16 @@ PostgreSQLのRLS機能を使用し、データベースレベルでテナント�
 
 ```sql
 -- 現在のユーザーID取得
-CREATE OR REPLACE FUNCTION auth.user_id()
+CREATE OR REPLACE FUNCTION app.user_id()
 RETURNS uuid AS $$
   SELECT current_setting('app.user_id', true)::uuid;
 $$ LANGUAGE sql STABLE;
 
 -- ユーザーの所属組織ID一覧取得
-CREATE OR REPLACE FUNCTION auth.user_organization_ids()
+CREATE OR REPLACE FUNCTION app.user_organization_ids()
 RETURNS SETOF uuid AS $$
   SELECT organization_id FROM organization_members
-  WHERE user_id = auth.user_id();
+  WHERE user_id = app.user_id();
 $$ LANGUAGE sql STABLE;
 ```
 
@@ -250,21 +250,21 @@ ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 CREATE POLICY leads_select ON leads
   FOR SELECT
   USING (
-    organization_id IN (SELECT auth.user_organization_ids())
+    organization_id IN (SELECT app.user_organization_ids())
   );
 
 -- INSERT: 所属組織のみ
 CREATE POLICY leads_insert ON leads
   FOR INSERT
   WITH CHECK (
-    organization_id IN (SELECT auth.user_organization_ids())
+    organization_id IN (SELECT app.user_organization_ids())
   );
 
 -- UPDATE: 所属組織のみ
 CREATE POLICY leads_update ON leads
   FOR UPDATE
   USING (
-    organization_id IN (SELECT auth.user_organization_ids())
+    organization_id IN (SELECT app.user_organization_ids())
   );
 
 -- DELETE: owner/adminのみ
@@ -273,7 +273,7 @@ CREATE POLICY leads_delete ON leads
   USING (
     organization_id IN (
       SELECT organization_id FROM organization_members
-      WHERE user_id = auth.user_id()
+      WHERE user_id = app.user_id()
         AND role IN ('owner', 'admin')
     )
   );

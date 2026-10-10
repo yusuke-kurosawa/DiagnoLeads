@@ -207,7 +207,6 @@ jobs:
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d diagnoleads_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
           PGPASSWORD=postgres psql -h localhost -U postgres -d diagnoleads_test -c "CREATE EXTENSION IF NOT EXISTS ltree;"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d diagnoleads_test -c "CREATE SCHEMA IF NOT EXISTS auth;"
           PGPASSWORD=postgres psql -h localhost -U postgres -d diagnoleads_test -c "CREATE SCHEMA IF NOT EXISTS drizzle;"
 
       - name: Run database migrations
