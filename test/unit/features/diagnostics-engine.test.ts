@@ -1,4 +1,5 @@
 import { consultationDeadline, buildSalesMessage } from '@/lib/features/diagnostics/ax-migration/notify';
+import { as400Answers } from '@/test/fixtures/ax-migration';
 import { evaluateAxMigration } from '@/lib/features/diagnostics/ax-migration/evaluate';
 import { multiple, single, toPercent, validateAnswers } from '@/lib/features/diagnostics/engine';
 import { compactTracking, inferInflowSource, trackingSchema } from '@/lib/features/diagnostics/tracking';
@@ -161,20 +162,7 @@ describe('sales notification', () => {
   });
 
   it('puts the deadline in the title of a consultation request', () => {
-    const result = evaluateAxMigration({
-      industry: 'manufacturing',
-      revenue: '10b_30b',
-      system: 'as400',
-      languages: ['rpg'],
-      years: 'gte20',
-      programs: '500_2000',
-      integrations: 'some',
-      maintenance: 'few',
-      documents: 'partial',
-      challenges: ['people'],
-      timeline: '1_2y',
-      role: 'it_manager',
-    });
+    const result = evaluateAxMigration(as400Answers);
     const base = {
       organizationId: 'org',
       leadId: 'lead',

@@ -2,6 +2,7 @@
  * notifyAxMigrationSubmission: which channels fire for which events.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { as400Answers } from '@/test/fixtures/ax-migration';
 
 const webhookMock = vi.fn();
 const inAppMock = vi.fn();
@@ -24,20 +25,7 @@ vi.mock('@/lib/features/email', () => ({
 const { notifyAxMigrationSubmission } = await import('@/lib/features/diagnostics/ax-migration/notify');
 const { evaluateAxMigration } = await import('@/lib/features/diagnostics/ax-migration/evaluate');
 
-const result = evaluateAxMigration({
-  industry: 'manufacturing',
-  revenue: '10b_30b',
-  system: 'as400',
-  languages: ['rpg'],
-  years: 'gte20',
-  programs: '500_2000',
-  integrations: 'some',
-  maintenance: 'few',
-  documents: 'partial',
-  challenges: ['people'],
-  timeline: '1_2y',
-  role: 'it_manager',
-});
+const result = evaluateAxMigration(as400Answers);
 
 const base = {
   organizationId: 'org-1',

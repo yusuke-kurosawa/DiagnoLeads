@@ -5,19 +5,30 @@ import { z } from 'zod';
 import { validateAnswers } from '../engine';
 import { type Tracking, compactTracking, inferInflowSource, trackingSchema } from '../tracking';
 import type { AnswerValidationIssue, DiagnosticAnswers } from '../types';
+import { AX_MIGRATION_CONFIG } from './config';
+import { PHONE_PATTERN, normalizePhone } from './contact';
 import { AX_MIGRATION_DIAGNOSTIC_KEY, axMigrationDefinition } from './definition';
 import { type AxMigrationResult, evaluateAxMigration } from './evaluate';
 
 type Database = typeof defaultDb;
 
+/** No control or format characters (line breaks, bidi overrides) in names shown to sales */
+const PLAIN_TEXT = /^[^\p{Cc}\p{Cf}]*$/u;
+const plainText = (max: number) => z.string().trim().max(max).regex(PLAIN_TEXT);
+
 export const axMigrationSubmissionSchema = z.object({
   answers: z.record(z.unknown()),
   contact: z.object({
-    company: z.string().trim().min(1).max(200),
-    name: z.string().trim().min(1).max(100),
+    company: plainText(200).pipe(z.string().min(1)),
+    name: plainText(100).pipe(z.string().min(1)),
     email: z.string().trim().email().max(254),
-    phone: z.string().trim().max(30).optional(),
-    department: z.string().trim().max(100).optional(),
+    phone: z
+      .string()
+      .max(30)
+      .transform(normalizePhone)
+      .pipe(z.string().regex(PHONE_PATTERN))
+      .optional(),
+    department: plainText(100).optional(),
   }),
   privacyConsent: z.literal(true),
   consultationRequested: z.boolean().default(false),
@@ -66,6 +77,7 @@ function buildLeadSummary(
     sqlSignals: result.sqlSignals.candidate,
     needsHearing: result.needsHearing,
     consultationRequested: input.consultationRequested,
+    platform: result.platform,
     department: input.contact.department ?? null,
   };
 }
@@ -91,7 +103,7 @@ export async function submitAxMigrationDiagnosis(
     return { ok: false, issues: validation.issues };
   }
   const answers = validation.answers;
-  const result = evaluateAxMigration(answers);
+  const result = evaluateAxMigration(answers, AX_MIGRATION_CONFIG, now);
   const tracking: Tracking = input.tracking ?? {};
   const inflow = inferInflowSource(tracking);
   const email = input.contact.email.toLowerCase();
@@ -247,5 +259,113 @@ export async function requestAxMigrationConsultation(
       leadId: claimed.leadId,
       leadCreated: claimed.leadCreated,
     };
+  });
+}
+
+/** Optional follow-up questions (asked after the result) */
+const DETAIL_QUESTION_IDS = new Set(
+  axMigrationDefinition.questions.filter((q) => q.detail).map((q) => q.id)
+);
+/** Follow-ups are answered on the result screen, so they are accepted for a day */
+export const DETAILS_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+export const axMigrationDetailsSchema = z.object({
+  submissionId: z.string().uuid(),
+  answers: z.record(z.unknown()).refine((answers) => {
+    const count = Object.keys(answers).length;
+    return count >= 1 && count <= DETAIL_QUESTION_IDS.size;
+  }),
+});
+
+/**
+ * Add the optional follow-up answers given after the result and evaluate again.
+ * Only `detail` questions of the submission's path are accepted; the answers the result was
+ * based on stay as submitted. The lead is updated only when it was created by this submission.
+ */
+export async function addAxMigrationDetails(
+  database: Database,
+  submissionId: string,
+  details: Record<string, unknown>,
+  now: Date = new Date()
+): Promise<
+  | { ok: true; result: AxMigrationResult }
+  | { ok: false; reason: 'not_found' }
+  | { ok: false; reason: 'outdated' }
+  | { ok: false; reason: 'closed' }
+  | { ok: false; reason: 'invalid'; issues: AnswerValidationIssue[] }
+> {
+  const notDetail = Object.keys(details).filter((id) => !DETAIL_QUESTION_IDS.has(id));
+  if (notDetail.length > 0) {
+    return {
+      ok: false,
+      reason: 'invalid',
+      issues: notDetail.map((questionId) => ({ questionId, code: 'not_applicable' as const })),
+    };
+  }
+
+  return database.transaction(async (tx) => {
+    const [submission] = await tx
+      .select()
+      .from(diagnosticSubmissions)
+      .where(
+        and(
+          eq(diagnosticSubmissions.id, submissionId),
+          eq(diagnosticSubmissions.diagnosticKey, AX_MIGRATION_DIAGNOSTIC_KEY)
+        )
+      )
+      .for('update');
+    if (!submission) return { ok: false as const, reason: 'not_found' as const };
+    if (submission.diagnosticVersion !== axMigrationDefinition.version) {
+      return { ok: false as const, reason: 'outdated' as const };
+    }
+    // Answered once, on the result screen: later calls (or a leaked id) change nothing
+    const submitted = submission.answers as Record<string, unknown>;
+    const answeredBefore = Object.keys(submitted).some((id) => DETAIL_QUESTION_IDS.has(id));
+    if (answeredBefore || now.getTime() - submission.createdAt.getTime() > DETAILS_WINDOW_MS) {
+      return { ok: false as const, reason: 'closed' as const };
+    }
+
+    const validation = validateAnswers(axMigrationDefinition, { ...submitted, ...details });
+    if (!validation.success) {
+      return { ok: false as const, reason: 'invalid' as const, issues: validation.issues };
+    }
+    const result = evaluateAxMigration(validation.answers, AX_MIGRATION_CONFIG, now);
+    const previousScore = (submission.result as Partial<AxMigrationResult> | null)?.leadScore;
+
+    await tx
+      .update(diagnosticSubmissions)
+      .set({
+        answers: validation.answers,
+        result: result as unknown as Record<string, unknown>,
+      })
+      .where(eq(diagnosticSubmissions.id, submissionId));
+
+    if (submission.leadId && submission.leadCreated) {
+      const summary = {
+        difficulty: result.difficulty.level,
+        urgency: result.urgency.level,
+        needsHearing: result.needsHearing,
+        detailsAnsweredAt: now.toISOString(),
+      };
+      await tx
+        .update(leads)
+        .set({
+          // Keep a score sales have already changed
+          score:
+            typeof previousScore === 'number'
+              ? sql`case when ${leads.score} = ${previousScore} then ${result.leadScore} else ${leads.score} end`
+              : leads.score,
+          responses: sql`jsonb_set(
+            coalesce(${leads.responses}, '{}'::jsonb),
+            '{axMigration}',
+            coalesce(${leads.responses} -> 'axMigration', '{}'::jsonb) || ${JSON.stringify(summary)}::jsonb,
+            true
+          )`,
+          updatedAt: now,
+        })
+        .where(eq(leads.id, submission.leadId));
+    }
+
+    return { ok: true as const, result };
   });
 }

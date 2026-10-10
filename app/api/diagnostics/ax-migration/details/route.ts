@@ -1,0 +1,53 @@
+import { db } from '@/lib/db/client';
+import { toPublicResult } from '@/lib/features/diagnostics/ax-migration/evaluate';
+import {
+  addAxMigrationDetails,
+  axMigrationDetailsSchema,
+} from '@/lib/features/diagnostics/ax-migration/submission-service';
+import { checkPublicJsonRequest, readJsonBody } from '@/lib/features/diagnostics/request-guard';
+import { type NextRequest, NextResponse } from 'next/server';
+
+/**
+ * POST /api/diagnostics/ax-migration/details
+ *
+ * Optional follow-up answers given after the result. Returns the refined public result.
+ */
+const MAX_BYTES = 8 * 1024;
+/** Enough to point at the wrong answers without echoing a flood back */
+const MAX_ISSUES = 20;
+
+export async function POST(req: NextRequest) {
+  const guard = checkPublicJsonRequest(req, MAX_BYTES);
+  if (guard) return guard;
+
+  const read = await readJsonBody(req, MAX_BYTES);
+  if (!read.ok) return read.response;
+
+  const parsed = axMigrationDetailsSchema.safeParse(read.body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Validation failed' }, { status: 400 });
+  }
+
+  try {
+    const outcome = await addAxMigrationDetails(db, parsed.data.submissionId, parsed.data.answers);
+    if (!outcome.ok) {
+      if (outcome.reason === 'not_found') {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+      if (outcome.reason === 'outdated') {
+        return NextResponse.json({ error: 'Diagnosis version changed' }, { status: 409 });
+      }
+      if (outcome.reason === 'closed') {
+        return NextResponse.json({ error: 'Follow-up answers are closed' }, { status: 409 });
+      }
+      return NextResponse.json(
+        { error: 'Invalid answers', issues: outcome.issues.slice(0, MAX_ISSUES) },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json({ result: toPublicResult(outcome.result) });
+  } catch (error) {
+    console.error('AX diagnosis details error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

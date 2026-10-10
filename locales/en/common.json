@@ -308,56 +308,176 @@
   },
   "axDiagnosis": {
     "meta": {
-      "title": "AX Migration Core System Check",
-      "description": "A free self-check: answer 12 questions to see an estimate of your core-system migration difficulty and the challenges to tackle first."
+      "title": "AX Migration check",
+      "description": "Choose your system (AS/400, NEC ACOS, Access and others) and answer multiple-choice questions to see the migration difficulty, the urgency and the challenge to tackle first. Free self-check."
     },
     "intro": {
       "eyebrow": "Free self-check",
-      "headline": "Can your current core system support decisions in the AI era?",
-      "lead": "In about 5 minutes, see the risks of staying on a core system such as AS/400, or on department tools built with Access or VB, and how a migration could look.",
+      "headline": "Can your current core system support management decisions in the AI era?",
+      "lead": "See the risks of keeping core systems and business tools on AS/400, NEC ACOS or Access, and the migration outlook, in about 3 minutes. We ask for your contact details at the end and show the result right away.",
       "points": {
-        "time": "12 questions, about 5 minutes",
+        "time": "Multiple choice, about 3 minutes",
         "difficulty": "Migration difficulty",
-        "challenge": "Top-priority challenge"
-      },
-      "start": "Start the check",
-      "note": "We use the information only to send your result and to contact you about AX migration."
+        "challenge": "Priority challenge"
+      }
     },
-    "progress": "Step {current} of {total}",
-    "contactStep": "Where to send your result",
+    "progress": "STEP {current} / {total}",
+    "platformNote": "Choose the one that applies to go to the next question.",
+    "selected": "Selected",
+    "allRequiredNote": "Please answer every question not marked as optional. You can choose \"I don't know\".",
+    "restore": {
+      "prompt": "Your previous answers are saved. Continue where you left off?",
+      "continue": "Continue",
+      "startOver": "Start over"
+    },
+    "deselectedOthers": "The other choices were cleared",
+    "contactStep": "Finally, your contact details",
     "required": "Required",
     "optional": "Optional",
-    "multipleHint": "Select all that apply",
+    "multipleHint": "Choose all that apply",
+    "multipleHintExclusive": "You can choose several ({options} clears the other choices)",
     "back": "Back",
     "next": "Next",
-    "submit": "See my result",
-    "submitting": "Analyzing...",
+    "submit": "See the result",
+    "submitting": "Checking…",
     "errors": {
-      "required": "Please choose an answer",
-      "contactRequired": "This field is required",
-      "email": "Please enter a valid email address",
+      "requiredSingle": "Choose one",
+      "requiredMultiple": "Choose at least one",
+      "contactRequiredNamed": "Please enter your {field}",
+      "email": "Enter a valid email address (for example taro@example.com)",
+      "phone": "Enter the phone number with digits and hyphens",
       "consent": "Please agree to the handling of personal information",
       "submit": "Could not submit. Please try again later.",
       "rateLimited": "Too many submissions. Please wait a minute and try again."
     },
     "contact": {
-      "description": "Your result appears on screen. If you wish, our team will walk you through it.",
+      "description": "The result is shown on this page. We use your contact details to explain the result and offer a consultation.",
       "company": "Company",
       "name": "Name",
-      "email": "Email",
+      "email": "Work email",
       "phone": "Phone",
-      "department": "Department / title",
-      "consultation": "I would like a free consultation about my result",
-      "consultationHint": "Our team will contact you.",
+      "consultation": "I would like a free consultation about the result",
+      "consultationHint": "We will contact you. Enter your phone number if you prefer a call.",
       "consent": "I agree to the handling of personal information",
-      "consentNotice": "We use the information only to send your result and to contact you about AX migration.",
-      "privacyPolicy": "Privacy policy"
+      "consentNotice": "Your information is used only to follow up on your result and to contact you about AX Migration.",
+      "privacyPolicy": "Privacy policy",
+      "sendNote": "It takes about a minute. No pushy sales."
+    },
+    "platforms": {
+      "as400": "AS/400 (IBM i)",
+      "acos": "NEC ACOS",
+      "access": "Microsoft Access",
+      "other": "another system"
+    },
+    "followUp": {
+      "title": "Optional questions to refine the result ({count})",
+      "lead": "Each answer makes the result more accurate and helps us explain it.",
+      "open": "Open",
+      "close": "Close",
+      "submit": "Answer and update the result",
+      "done": "The result has been updated. Thank you.",
+      "failed": "Could not send. Please try again later."
     },
     "result": {
-      "title": "Your result",
-      "subtitle": "An estimate based on the answers from {company}",
-      "difficulty": "Migration difficulty (estimate)",
-      "urgency": "Urgency to modernize",
+      "eyebrow": "RESULT",
+      "platformLabel": "From: {platform}",
+      "reasonsTitle": "What drove the result",
+      "reasons": {
+        "programs_large": "Many programs make the migration scope large",
+        "as400_tool": "A system built with a development tool needs its specification rebuilt from the tool's design data",
+        "rpg3": "Programs in RPG II / RPG III (RPG/400) need their processing flow worked out",
+        "source_missing": "Some source code is missing and needs checking",
+        "source_vendor_held": "The maintenance company or the vendor holds the source code, so you need to confirm they will hand it over",
+        "docs_outdated": "Documents are outdated or missing, so the current specifications must be made visible first",
+        "integrations_many": "Many interfaces make the switch-over more complex",
+        "acos_assembler": "Parts written in assembler are hard to convert automatically or analyze with AI",
+        "access_vba": "One-button processing (VBA, macros) means the business rules must be worked out",
+        "other_host": "Mainframe and office computer assets tend to be large",
+        "small_scale": "Size and customization look relatively small",
+        "support_passed": "Support has already ended, which is a risk when something breaks",
+        "support_within_1y": "Support ends within a year",
+        "support_1_3y": "Support ends in 1-3 years, so planned preparation is needed",
+        "maintenance_none": "Nobody can change the system, neither in-house nor at a maintenance company",
+        "maintenance_retiring": "The people who can change the system will retire or move within a few years",
+        "maintenance_few": "Maintenance depends on one or two people",
+        "maintenance_vendor": "Nobody in-house can change the system; it depends on a maintenance company",
+        "access_no_maintainer": "Nobody can change the tool",
+        "no_deadline": "There is no pressing deadline",
+        "access_many_screens": "Many screens and reports make the rebuild larger",
+        "access_many_tools": "Many tools are in scope, so they need to be sorted out first",
+        "access_compiled": "Some parts are compiled (.accde / .mde), so their behaviour must be investigated",
+        "access_single_maintainer": "Only one person (or an outside individual) can change the tool",
+        "access_support_ended": "Some of your Access (Office) versions are out of support",
+        "access_support_ending": "Support for some of your Access (Office) versions ends within a year",
+        "access_company_impact": "A stop would affect the whole company, partners or customers",
+        "access_cloud": "Microsoft advises against using Access from OneDrive or SharePoint"
+      },
+      "checkpointsTitle": "What to check when moving from {platform} to a web system",
+      "checkpointsTitleGeneric": "What to check when moving to a web system",
+      "checkpoints": {
+        "source_missing": "First decide how to handle the missing source code (for example analyzing the running programs)",
+        "source_vendor_held": "First confirm whether the maintenance company or the vendor will hand over the source code for the survey (contract and cost)",
+        "support_deadline": "Plan a step-by-step migration that switches over before support ends",
+        "as400_tool": "Write up the current specification from the design data of the development tool (Synon/2E, LANSA and so on)",
+        "as400_package": "Separate the package from the changes made for your company, then decide how to move the changes and whether to update or replace the package",
+        "as400_version": "Your IBM i version is out of IBM standard support: include the move to a supported environment in the migration plan",
+        "rpg3": "Work out the processing flow of RPG II / RPG III (RPG/400) programs before migrating them",
+        "docs_outdated": "Use AI to write the current specifications from the source code instead of the documents",
+        "integrations_many": "Decide the switch-over order and data exchange for each interface",
+        "legacy_edi": "Plan the switch of EDI over phone lines (INS Net) to an Internet-based method",
+        "as400_devices": "Check printing on special forms and devices such as label printers and handheld terminals, and decide what replaces them on the Web",
+        "as400_query": "List the data staff pull out with Query or Excel transfers and decide how they will get it after the migration",
+        "gaiji": "Decide how to replace custom characters with Unicode",
+        "as400_screens": "Replace the 5250 screens with Web screens while keeping the flow of operations",
+        "acos_assembler": "Work out what the assembler parts do and rebuild them in a modern language",
+        "acos_charset": "Convert the ACOS character codes (JIPS) and number formats (packed decimals and so on), and decide how to handle custom characters",
+        "acos_network_db": "Design how to move the network database structure to a relational database",
+        "acos_simple_language": "List the processing written in simple languages (IDL, IDL II) and rebuild it as Web features",
+        "acos_online": "Replace the business screens used with ETOS and so on (MFDL screen definitions) with Web screens",
+        "acos_batch": "Move the order and schedule of the overnight and month-end jobs (JCL) to the new system",
+        "access_no_maintainer": "Investigate how the current tool behaves first, since nobody can change it",
+        "access_support": "Move off an Office version that is out of support or about to be",
+        "access_vba": "List the one-button processing (VBA, macros) and rebuild it as web features",
+        "access_size": "Move to a database without the file size limit (about 2 GB)",
+        "access_excel": "Keep Excel / CSV import and export as downloads and uploads on web screens",
+        "access_web": "Make it a web system used in the browser, without the limits of shared files",
+        "other_vb": "Separate Visual Basic screens and logic into web screens and server processing",
+        "other_webperformer": "Check the WebPerformer screen definitions and logic to choose the approach",
+        "other_host": "Take stock of COBOL and other programs, batch jobs and forms",
+        "other_inventory": "First take stock of the current setup (languages, database, interfaces)",
+        "access_compiled": "For compiled parts (.accde / .mde), check whether the originals exist and investigate the behaviour",
+        "access_inventory": "First take stock of the tools and drop unused or duplicate ones to narrow the scope",
+        "access_cloud": "Stop opening Access from cloud folders and move to a web system that shares data safely",
+        "access_external": "Replace the links to data outside Access (core system, SQL Server) with web system interfaces",
+        "access_devices": "Check how barcodes, label printers and other devices are used and decide their web replacements"
+      },
+      "nowHere": "You are here: the online self-check is complete. Next is a quick assessment by our staff.",
+      "nextStepLabel": "NEXT STEP",
+      "cta": {
+        "hearing": {
+          "title": "Shall we check the unknown items together?",
+          "lead": "We can check the items you did not know together in a consultation (and show you how to find them)."
+        },
+        "urgent": {
+          "title": "Shall we plan the steps to the deadline together?",
+          "lead": "A deadline is close. Shall we plan the steps in a consultation?"
+        },
+        "consultation": {
+          "title": "We explain your result and how to proceed",
+          "lead": "We explain your result and how to proceed in a consultation."
+        },
+        "information": {
+          "title": "Why not start by gathering information?",
+          "lead": "Feel free to ask even if you are only gathering information."
+        },
+        "body": "Our staff explain the approach that fits your situation based on your result. No pushy sales.",
+        "button": "Request a free consultation",
+        "sending": "Sending…",
+        "accepted": "Your consultation request has been received",
+        "acceptedBody": "We will contact you.",
+        "failed": "Could not send the request. Please try again later."
+      },
+      "diagnoseAnother": "Check another system",
       "levels": {
         "low": "Low",
         "medium": "Medium",
@@ -373,7 +493,6 @@
         "medium": "Staffing or end of support will likely require a decision within a few years.",
         "high": "Business continuity risk is rising. We recommend assessing the current state soon."
       },
-      "primaryChallenge": "The challenge to tackle first",
       "challenges": {
         "people": {
           "title": "People: a system that depends on a few individuals",
@@ -387,8 +506,8 @@
         },
         "agility": {
           "title": "Agility: a system that cannot keep up with the market",
-          "problem": "Every change for new customers or markets is held back by the current system.",
-          "solution": "Add features in short cycles and respond quickly to market changes."
+          "problem": "Every time you try to keep up with partners, markets or new ways of working, the limits of the current system or its support deadline hold you back.",
+          "solution": "Move to a supported Web platform that can take new features and use from outside the office right away."
         },
         "data": {
           "title": "Data: data that cannot support decisions",
@@ -396,8 +515,10 @@
           "solution": "Use AI agents to organize data and get the information needed for proactive decisions."
         }
       },
-      "selectedChallenges": "Challenges you selected",
-      "stepsTitle": "Start small, then go beyond migration to AX",
+      "noPrimaryChallenge": {
+        "title": "You see no major challenge at the moment",
+        "body": "Organizing the current specification now makes future decisions easier when staff change or support ends."
+      },
       "steps": {
         "simple": {
           "title": "Simple assessment",
@@ -416,26 +537,22 @@
           "body": "Extend features with AI agents and put your data to work."
         }
       },
-      "cta": {
-        "consultationTitle": "Let us explain your result and how to proceed",
-        "informationTitle": "Why not start by gathering information?",
-        "body": "Our team will explain an approach that fits your situation, based on your result. No pushy sales.",
-        "button": "Request a free consultation",
-        "sending": "Sending...",
-        "accepted": "Your consultation request has been received",
-        "acceptedBody": "Our team will contact you.",
-        "failed": "Could not send your request. Please try again later."
-      },
+      "stepLabel": "STEP {number}",
+      "title": "Your result",
+      "subtitle": "An estimate based on the answers from {company}",
+      "difficulty": "Migration difficulty (estimate)",
+      "urgency": "Urgency to modernize",
+      "primaryChallenge": "The challenge to tackle first",
+      "selectedChallenges": "Challenges you selected",
+      "stepsTitle": "Start small, then go beyond migration to AX",
       "disclaimer": "This result is an estimate based on your answers. The exact approach, schedule and cost are determined in the current-system survey.",
-      "restart": "Check again",
       "needsHearing": "Many answers were \"I don't know\", so this estimate is rough. A consultation lets us give you a more accurate outlook.",
-      "noPrimaryChallenge": {
-        "title": "You see no major challenge at the moment",
-        "body": "Organizing the current specification now makes future decisions easier when staff change or support ends."
-      },
-      "stepLabel": "STEP {number}"
+      "unknownsTitle": "Checking these in-house will sharpen the result",
+      "unknownsHint": "Notices from the maintenance company, asset lists and contracts often have the answers. We can also show you how to find them in a consultation."
     },
-    "operator": "Provided by Software Agency System Co., Ltd., DX Services Division"
+    "operator": "Provided by Software Agency System Co., Ltd., DX Services Division",
+    "quoted": "\"{label}\"",
+    "listJoiner": " or "
   },
   "pipeline": {
     "inflowSource": {
@@ -464,6 +581,7 @@
     },
     "targetSystem": {
       "as400": "AS/400",
+      "acos": "NEC ACOS",
       "other_legacy": "Other Office Computer / Mainframe",
       "vb": "VB (client-server)",
       "access": "Access (incl. department tools)",
@@ -1748,6 +1866,177 @@
     },
     "bySource": "By Source",
     "byStatus": "By Status"
+  },
+  "axSite": {
+    "meta": {
+      "title": "AX Migration | From AS/400, NEC ACOS and Access to web systems | Software Agency System Co., Ltd.",
+      "description": "Move core systems and business tools running on AS/400, NEC ACOS or Microsoft Access to a modern web system while keeping today's specifications, from AI-assisted specification analysis to AI transformation after the migration. Start with a free migration check.",
+      "siteName": "Software Agency System Co., Ltd."
+    },
+    "brand": {
+      "name": "Migration",
+      "operator": "Software Agency System Co., Ltd."
+    },
+    "skipToContent": "Skip to content",
+    "floatingCta": "Start the free check",
+    "header": {
+      "home": "AX Migration home",
+      "navLabel": "On this page",
+      "nav": {
+        "problems": "Challenges",
+        "steps": "Approach",
+        "targets": "Systems",
+        "faq": "FAQ"
+      },
+      "cta": "Free check"
+    },
+    "hero": {
+      "eyebrow": "AX MIGRATION",
+      "title": "Turn the core system you have relied on for years into a web system ready for AI",
+      "tagline": "\"Start small, and go beyond the migration to AI transformation\"",
+      "lead": "We move core systems and business tools running on AS/400, NEC ACOS or Microsoft Access to a modern web system while keeping today's specifications, and support you on to AI agents and data use (AX).",
+      "ctaCaption": "Multiple choice, about 3 minutes",
+      "cta": "Start the free check",
+      "consult": "Book a free consultation",
+      "preview": {
+        "title": "Sample result",
+        "difficulty": "Migration difficulty",
+        "urgency": "Urgency",
+        "medium": "Medium",
+        "high": "High",
+        "challenge": "Priority challenge",
+        "challengeValue": "People: a system that depends on a few people",
+        "next": "We explain how to proceed from your result",
+        "caption": "Example only. The result depends on your answers."
+      }
+    },
+    "problems": {
+      "title": "Does this sound familiar?",
+      "lead": "We want to keep the core system running, but...",
+      "items": {
+        "people": "The engineers who know our AS/400 or ACOS are retiring",
+        "blackbox": "The documents are outdated and nobody fully understands the system",
+        "cost": "Maintenance costs keep rising and leave no budget for new investment",
+        "eos": "Hardware or software support is about to end",
+        "access": "Department Access tools keep multiplying and only their authors can fix them",
+        "start": "We want to modernize but do not know where to start"
+      }
+    },
+    "steps": {
+      "title": "Solve it with a step-by-step migration",
+      "lead": "No big-bang replacement. We start with a quick assessment and confirm the results at every step.",
+      "stepLabel": "STEP {number}",
+      "items": {
+        "simple": {
+          "title": "Quick assessment",
+          "body": "An inventory of your assets (programs, languages, interfaces) gives an estimate of the migration difficulty."
+        },
+        "survey": {
+          "title": "Specification analysis",
+          "body": "AI analyzes the current source code, forms and data structures and makes the specifications visible."
+        },
+        "migration": {
+          "title": "Migration",
+          "body": "We move to a modern web system while keeping the current specifications."
+        },
+        "ax": {
+          "title": "AI transformation",
+          "body": "AI agents extend the system and put your data to work."
+        }
+      },
+      "note": "The results of each step are the basis of the next proposal."
+    },
+    "targets": {
+      "title": "Systems we migrate",
+      "lead": "Not only core systems: business tools used by a single department are covered too.",
+      "items": {
+        "as400": {
+          "name": "AS/400 (IBM i)",
+          "body": "Core systems written in RPG, COBOL or CL, moved to the web together with their screens, forms and data."
+        },
+        "acos": {
+          "name": "NEC ACOS",
+          "body": "COBOL assets on ACOS-2 or ACOS-4, including online screens, batch jobs and forms."
+        },
+        "access": {
+          "name": "Microsoft Access",
+          "body": "Department Access tools brought together in a web system that many people can use safely."
+        },
+        "other": {
+          "name": "Others",
+          "body": "Visual Basic client-server systems, low-code products such as WebPerformer, and other office computers and mainframes."
+        }
+      },
+      "industries": "For mid-sized manufacturers and distributors."
+    },
+    "diagnosis": {
+      "eyebrow": "FREE CHECK",
+      "title": "Start with a free migration check",
+      "lead": "Choose the system you want to migrate and answer multiple-choice questions. You will see the migration difficulty, the urgency and the challenge to tackle first right away."
+    },
+    "reasons": {
+      "title": "What makes AX Migration different",
+      "items": {
+        "visualize": {
+          "title": "AI makes the specifications visible",
+          "body": "AI analyzes source code, forms and data structures and uncovers specifications nobody fully understands any more."
+        },
+        "keep": {
+          "title": "Migration that keeps the specifications",
+          "body": "We move to a modern web system while keeping today's specifications so that your business keeps running."
+        },
+        "small": {
+          "title": "Start small",
+          "body": "Begin with the quick assessment and the specification analysis, and proceed step by step."
+        },
+        "ax": {
+          "title": "Beyond the migration",
+          "body": "We continue on to AI agents and the use of your data."
+        }
+      },
+      "certified": {
+        "title": "A DX-certified company",
+        "body": "Software Agency System Co., Ltd. is certified under the DX Certification program of the Ministry of Economy, Trade and Industry."
+      }
+    },
+    "faq": {
+      "title": "FAQ",
+      "items": {
+        "cost": {
+          "q": "Is the check free?",
+          "a": "Yes. The online self-check is free, and so is a consultation about the result."
+        },
+        "who": {
+          "q": "Can I answer if I am not in IT?",
+          "a": "Yes. All questions are multiple choice and you can choose \"I don't know\". Detailed questions are optional."
+        },
+        "targets": {
+          "q": "Which systems are covered?",
+          "a": "AS/400 (IBM i), NEC ACOS and Microsoft Access, as well as Visual Basic systems, low-code products such as WebPerformer, and other office computers and mainframes."
+        },
+        "result": {
+          "q": "How can I use the result?",
+          "a": "You see the migration difficulty, the urgency and the priority challenge right away. Use them in your internal discussion. The exact approach, schedule and cost are set in the specification analysis."
+        },
+        "privacy": {
+          "q": "How is my information used?",
+          "a": "Only to follow up on your result and to contact you about AX Migration."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Start by finding out how easy your system is to migrate",
+      "caption": "Multiple choice, about 3 minutes",
+      "cta": "Start the free check",
+      "consult": "Book a free consultation"
+    },
+    "footer": {
+      "operator": "Provided by Software Agency System Co., Ltd., DX Services Division",
+      "company": "Company",
+      "related": "DX service \"Maru Maru DX\"",
+      "privacy": "Privacy policy",
+      "newTab": "(opens in a new tab)"
+    }
   },
   "organizations": {
     "switcher": {

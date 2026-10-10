@@ -9,9 +9,11 @@ import * as schema from '@/lib/db/schema';
 import { diagnosticSubmissions, leads, organizations } from '@/lib/db/schema';
 import {
   type AxMigrationSubmissionInput,
+  addAxMigrationDetails,
   requestAxMigrationConsultation,
   submitAxMigrationDiagnosis,
 } from '@/lib/features/diagnostics/ax-migration/submission-service';
+import { as400Answers } from '@/test/fixtures/ax-migration';
 import { and, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -32,20 +34,7 @@ describe.skipIf(!url)('AX migration submission (PostgreSQL)', () => {
   const unique = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   const input = (overrides: Partial<AxMigrationSubmissionInput> = {}): AxMigrationSubmissionInput => ({
-    answers: {
-      industry: 'manufacturing',
-      revenue: '10b_30b',
-      system: 'as400',
-      languages: ['rpg', 'cl'],
-      years: 'gte20',
-      programs: '500_2000',
-      integrations: 'some',
-      maintenance: 'few',
-      documents: 'partial',
-      challenges: ['people', 'cost'],
-      timeline: '1_2y',
-      role: 'it_manager',
-    },
+    answers: as400Answers,
     contact: { company: '三田製作所', name: '山田 太郎', email: `Yamada-${unique()}@Example.co.jp` },
     privacyConsent: true,
     consultationRequested: false,
@@ -102,7 +91,12 @@ describe.skipIf(!url)('AX migration submission (PostgreSQL)', () => {
     // The Web diagnosis counts as the MQL action (2026-10-09 decision)
     expect(lead?.mqlQualifiedAt).toEqual(now);
     expect(lead?.responses).toMatchObject({
-      axMigration: { submissionId: outcome.submissionId, mqlCandidate: true, primaryChallenge: 'people' },
+      axMigration: {
+        submissionId: outcome.submissionId,
+        mqlCandidate: true,
+        primaryChallenge: 'people',
+        platform: 'as400',
+      },
     });
 
     const submission = await pg.query.diagnosticSubmissions.findFirst({
@@ -112,7 +106,7 @@ describe.skipIf(!url)('AX migration submission (PostgreSQL)', () => {
       leadId: outcome.leadId,
       leadCreated: true,
       diagnosticKey: 'ax-migration',
-      diagnosticVersion: 1,
+      diagnosticVersion: 2,
       tracking: { utmSource: 'google', utmMedium: 'cpc', utmCampaign: 'ax-hito' },
       consultationRequestedAt: null,
     });
@@ -293,5 +287,121 @@ describe.skipIf(!url)('AX migration submission (PostgreSQL)', () => {
   it('returns not_found for an unknown submission', async () => {
     const result = await requestAxMigrationConsultation(db, '00000000-0000-0000-0000-000000000000');
     expect(result).toEqual({ ok: false, reason: 'not_found' });
+  });
+
+  describe('follow-up answers after the result', () => {
+    it('adds them, evaluates again and updates the lead the diagnosis created', async () => {
+      const outcome = await submitAxMigrationDiagnosis(db, organizationId, input(), now);
+      if (!outcome.ok) throw new Error('submission failed');
+
+      const details = await addAxMigrationDetails(
+        db,
+        outcome.submissionId,
+        { as400_screens_forms: 'gte1000', gaiji: 'many' },
+        now
+      );
+      if (!details.ok) throw new Error(`details failed: ${details.reason}`);
+      expect(details.result.difficulty.score).toBeGreaterThan(outcome.result.difficulty.score);
+
+      const [submission] = await pg
+        .select()
+        .from(diagnosticSubmissions)
+        .where(eq(diagnosticSubmissions.id, outcome.submissionId));
+      expect(submission.answers).toMatchObject({
+        platform: 'as400',
+        as400_screens_forms: 'gte1000',
+        gaiji: 'many',
+      });
+      const lead = await pg.query.leads.findFirst({ where: eq(leads.id, outcome.leadId) });
+      expect(lead?.score).toBe(details.result.leadScore);
+      expect(lead?.responses).toMatchObject({
+        axMigration: { detailsAnsweredAt: now.toISOString() },
+      });
+    });
+
+    it('accepts only follow-up questions of the chosen path', async () => {
+      const outcome = await submitAxMigrationDiagnosis(db, organizationId, input(), now);
+      if (!outcome.ok) throw new Error('submission failed');
+
+      // The answers the result was based on cannot be changed afterwards
+      expect(
+        await addAxMigrationDetails(db, outcome.submissionId, { maintenance: 'team' }, now)
+      ).toMatchObject({ ok: false, reason: 'invalid' });
+      // A follow-up of another path does not apply
+      expect(
+        await addAxMigrationDetails(db, outcome.submissionId, { access_size: 'gte1gb' }, now)
+      ).toMatchObject({ ok: false, reason: 'invalid' });
+
+      const [submission] = await pg
+        .select()
+        .from(diagnosticSubmissions)
+        .where(eq(diagnosticSubmissions.id, outcome.submissionId));
+      expect(submission.answers).toEqual(outcome.answers);
+    });
+
+    it('accepts the follow-up answers once, and only within a day', async () => {
+      const first = await submitAxMigrationDiagnosis(db, organizationId, input(), now);
+      if (!first.ok) throw new Error('submission failed');
+      expect(await addAxMigrationDetails(db, first.submissionId, { gaiji: 'none' }, now)).toMatchObject(
+        { ok: true }
+      );
+      // A second call (or a leaked id) changes nothing
+      expect(
+        await addAxMigrationDetails(db, first.submissionId, { as400_query: 'many' }, now)
+      ).toEqual({ ok: false, reason: 'closed' });
+
+      const late = await submitAxMigrationDiagnosis(db, organizationId, input(), now);
+      if (!late.ok) throw new Error('submission failed');
+      const nextDay = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+      expect(await addAxMigrationDetails(db, late.submissionId, { gaiji: 'none' }, nextDay)).toEqual({
+        ok: false,
+        reason: 'closed',
+      });
+    });
+
+    it('keeps a lead score that sales have changed', async () => {
+      const outcome = await submitAxMigrationDiagnosis(db, organizationId, input(), now);
+      if (!outcome.ok) throw new Error('submission failed');
+      await pg.update(leads).set({ score: 99 }).where(eq(leads.id, outcome.leadId));
+
+      const details = await addAxMigrationDetails(
+        db,
+        outcome.submissionId,
+        { as400_screens_forms: 'gte1000' },
+        now
+      );
+      expect(details.ok).toBe(true);
+      const lead = await pg.query.leads.findFirst({ where: eq(leads.id, outcome.leadId) });
+      expect(lead?.score).toBe(99);
+      expect(lead?.responses).toMatchObject({
+        axMigration: { detailsAnsweredAt: now.toISOString() },
+      });
+    });
+
+    it('does not touch a lead that existed before the diagnosis', async () => {
+      const data = input();
+      const first = await submitAxMigrationDiagnosis(db, organizationId, data, now);
+      const second = await submitAxMigrationDiagnosis(db, organizationId, data, now);
+      if (!first.ok || !second.ok) throw new Error('submission failed');
+      expect(second.leadCreated).toBe(false);
+      const before = await pg.query.leads.findFirst({ where: eq(leads.id, first.leadId) });
+
+      const details = await addAxMigrationDetails(
+        db,
+        second.submissionId,
+        { as400_screens_forms: 'gte1000', gaiji: 'many' },
+        now
+      );
+      expect(details.ok).toBe(true);
+      const after = await pg.query.leads.findFirst({ where: eq(leads.id, first.leadId) });
+      expect(after?.score).toBe(before?.score);
+      expect(after?.responses).toEqual(before?.responses);
+    });
+
+    it('returns not_found for an unknown submission', async () => {
+      expect(
+        await addAxMigrationDetails(db, '00000000-0000-0000-0000-000000000000', { gaiji: 'none' })
+      ).toEqual({ ok: false, reason: 'not_found' });
+    });
   });
 });
