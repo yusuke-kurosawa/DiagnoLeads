@@ -1748,5 +1748,35 @@
     },
     "bySource": "ソース別",
     "byStatus": "ステータス別"
+  },
+  "organizations": {
+    "switcher": {
+      "create": "組織を作成",
+      "select": "組織を選択",
+      "createNew": "新しい組織を作成",
+      "label": "組織の切り替え",
+      "roles": {
+        "owner": "オーナー",
+        "admin": "管理者",
+        "member": "メンバー"
+      }
+    },
+    "create": {
+      "title": "組織を作成",
+      "description": "リードや診断の結果は組織ごとに管理されます。作成したあなたがオーナーになります。",
+      "nameLabel": "組織名",
+      "namePlaceholder": "例: 株式会社サンプル",
+      "slugLabel": "組織スラッグ",
+      "slugPlaceholder": "例: sample-corp",
+      "slugHelp": "組織を見分けるための識別子です。小文字の英数字とハイフンだけ使えます。後から変更できます。",
+      "nameRequired": "組織名を入力してください",
+      "slugRequired": "組織スラッグを入力してください",
+      "slugInvalid": "小文字の英数字とハイフンだけ使えます",
+      "slugTaken": "このスラッグは既に使われています。別のスラッグを指定してください。",
+      "error": "組織を作成できませんでした。時間をおいてもう一度お試しください。",
+      "submit": "作成する",
+      "submitting": "作成しています…",
+      "success": "「{name}」を作成しました"
+    }
   }
 }
