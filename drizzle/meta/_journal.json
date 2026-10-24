@@ -218,6 +218,13 @@
       "when": 1792709205454,
       "tag": "0030_app_function_search_path",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792770638955,
+      "tag": "0032_drop_content_editors",
+      "breakpoints": true
     }
   ]
 }
