@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ProgressBar } from '@/components/ui/progress-bar';
 import {
   Select,
   SelectContent,
@@ -115,7 +114,6 @@ const isSortKey = (id: string): id is LeadSortKey =>
 export function defaultColumnVisibility(width: number): VisibilityState {
   const optional = {
     lastActivityAt: false,
-    mqlQualifiedAt: false,
     nextMeetingDate: false,
     dealRating: false,
     // "When to act" (#151): from the columns menu
@@ -134,6 +132,8 @@ export function defaultColumnVisibility(width: number): VisibilityState {
       createdAt: false,
       tags: false,
       assignee: false,
+      // The cards show the MQL level on phones
+      mqlQualifiedAt: false,
     };
   }
   if (width < 1024) {
@@ -395,6 +395,28 @@ export function LeadTable({
       ),
     },
     {
+      accessorKey: 'mqlQualifiedAt',
+      // The MQL level says how promising a lead is (#447): shown by default, sorted by it
+      header: sortableHeader('mqlLevel', t('mqlLevel')),
+      cell: ({ row }) => {
+        // The MQL level badge (#196) and the MQL date
+        const { mqlLevel, mqlQualifiedAt } = row.original;
+        if (!mqlQualifiedAt && mqlLevel !== 'interest' && mqlLevel !== 'fit') {
+          return <span className="text-gray-400">-</span>;
+        }
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <LeadMqlBadges level={mqlLevel} qualifiedAt={mqlQualifiedAt} />
+            {mqlQualifiedAt && (
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {jstDay(mqlQualifiedAt)}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'inflowSource',
       header: t('inflowSource'),
       cell: ({ row }) => {
@@ -416,32 +438,6 @@ export function LeadTable({
           return <span className="text-gray-400">-</span>;
         }
         return <TagBadgeList tags={leadTags} maxVisible={2} />;
-      },
-    },
-    {
-      accessorKey: 'score',
-      header: sortableHeader('score', t('score')),
-      cell: ({ row }) => {
-        const score = row.getValue('score') as number | null;
-        if (score === null || score === undefined) {
-          return <span className="text-gray-400">-</span>;
-        }
-        const getScoreColor = (s: number): 'red' | 'yellow' | 'emerald' => {
-          if (s >= 70) return 'emerald';
-          if (s >= 40) return 'yellow';
-          return 'red';
-        };
-        return (
-          <div className="w-24">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {score}
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">/100</span>
-            </div>
-            <ProgressBar value={score} color={getScoreColor(score)} className="h-1.5" />
-          </div>
-        );
       },
     },
     {
@@ -480,27 +476,6 @@ export function LeadTable({
           <span className="text-sm text-gray-500">
             {formatDistance(new Date(value), new Date(), { addSuffix: true, locale: dateLocale })}
           </span>
-        );
-      },
-    },
-    {
-      accessorKey: 'mqlQualifiedAt',
-      header: sortableHeader('mqlQualifiedAt', t('mqlQualifiedAt')),
-      cell: ({ row }) => {
-        // The MQL level badge (#196) and the MQL date
-        const { mqlLevel, mqlQualifiedAt } = row.original;
-        if (!mqlQualifiedAt && mqlLevel !== 'interest' && mqlLevel !== 'fit') {
-          return <span className="text-gray-400">-</span>;
-        }
-        return (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <LeadMqlBadges level={mqlLevel} qualifiedAt={mqlQualifiedAt} />
-            {mqlQualifiedAt && (
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                {jstDay(mqlQualifiedAt)}
-              </span>
-            )}
-          </div>
         );
       },
     },
@@ -723,11 +698,10 @@ export function LeadTable({
     assignee: tAssignee('label'),
     inflowSource: t('inflowSource'),
     tags: locale === 'ja' ? 'タグ' : 'Tags',
-    score: t('score'),
     source: t('source'),
     createdAt: t('createdAt'),
     lastActivityAt: tList('sort.lastActivityAt'),
-    mqlQualifiedAt: t('mqlQualifiedAt'),
+    mqlQualifiedAt: t('mqlLevel'),
     nextMeetingDate: tList('nextMeeting'),
     dealRating: tList('dealRating'),
     actBy: tList('actBy'),
